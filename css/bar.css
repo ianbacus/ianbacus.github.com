@@ -4,6 +4,10 @@ body
 	padding: 20px 0;
 }
 
+table th {
+    width: 50% !important;
+}
+
 h1 
 {
 	font-weight: 200;
