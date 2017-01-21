@@ -29,6 +29,13 @@ h1
 	}
 }
 
+.nav-item a
+{
+  color:black;
+   border-left:solid black 3px;
+    border-top:solid black 4px;
+}
+
 .jumbotron h1
 {
  margin-top:-10px; 
