@@ -1,0 +1,43 @@
+body 
+{
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	padding: 20px 0;
+}
+
+h1 
+{
+	font-weight: 200;
+}
+
+
+/* Creates a vertical nav starting at 768px (sm) */
+@media (min-width: 268px) {
+    .bootstrap-vertical-nav .collapse {
+
+        display: block;
+    }
+}
+
+@media (min-width: 268px) {
+	.bootstrap-vertical-nav {
+		position: fixed;
+		margin-top: 10px;
+	}
+}
+
+
+.jumbotron {
+    background-image: url(../img/buffalo.jpeg);
+    margin-bottom: 0px;
+	height: 300px;
+    background-position: 0% 25%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: white;
+    text-shadow: black 0.3em 0.3em 0.3em;
+}
+
+.navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
+    background-color: #FFFF00;
+    color: #FFC0CB;
+}
