@@ -25,7 +25,7 @@ h1
 @media (min-width: 268px) {
 	.bootstrap-vertical-nav {
 		position: fixed;
-		margin-top: 10px;
+		margin-top: 4px;
 	}
 }
 
