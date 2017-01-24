@@ -32,8 +32,9 @@ h1
 .nav-item a
 {
   color:black;
-   border-left:solid black 3px;
-    border-top:solid black 4px;
+  border-left:solid black 3px;
+  border-top:solid black 4px;
+  left:-45px;
 }
 
 .jumbotron h1
@@ -43,7 +44,16 @@ h1
  color:#fff;
 }
 
+.jumbotron h4
+{
+
+ margin-top:100px;
+ float:right;
+ color:#fff;
+}
+
 .jumbotron {
+	
     background-image: url(../img/buffalo_waterline.jpeg);
     margin-bottom: 0px;
 	height: 300px;
@@ -57,4 +67,21 @@ h1
 .navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
     background-color: #FFFF00;
     color: #FFC0CB;
+}
+
+.nav
+{
+	display: block;
+}
+.logoDiv
+{
+	display: block;
+	position: fixed;
+    bottom: 100px;
+}
+.logoDiv .logo
+{
+	display: block;
+	padding-bottom:10px;
+	
 }
