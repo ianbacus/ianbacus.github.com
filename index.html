@@ -1,88 +1,353 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <!-- Required meta tags always come first -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
-    <title>MobiSys 2017: Welcome</title>
+<html>
+<title>Mi Zhang @ MSU</title>
+<meta name="keywords" content="Mi, Zhang, Mi Zhang, mizhang, USC, University of Southern California,
+	MSU, Michigan State University, 
+	mHealth, Mobile Health, Wireless Health,
+	Activity Recognition, Mobile Sensing, Ubiquitous Computing, Wearable Computing, Embedded Systems,
+	Pattern Recognition" />
+<meta name="description" content="" />
 
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/bar.css">
-	<script src="js/main.js"> </script>
-   
-</head>
+
+<link rel="stylesheet" href="css/MSUBootstrap.min.css">
+<style>
+
+/* ========================
+General
+*/
+body {
+    height:10000px;
+    background:#f2f2f2;
+}
+.container {
+	margin-left:10%;
+	margin-right:10%;
+    width:80%;
+    height:100%;
+    position:relative;
+    background:white;
+}
+.centered{
+	padding-top:2%;
+    float: none;
+    margin: 0 auto;
+}
+/* ========================
+Navigation bar: stickiness
+*/
+#stickyNav_container {
+    position: absolute;
+    margin: 0 auto;
+    top: 300px;
+}
+#stickyNav_container, #stickyNav {
+	z-index:100;
+    background:white;
+}
+#stickyNav ul {
+    float:left;
+}
+
+
+/* ========================
+Navigation bar: look n feel
+*/
+#nav-wrap, #nav-wrap ul, #nav-wrap li, #nav-wrap a {
+	margin: 0;
+	padding: 0;
+	border: none;
+	outline: none;
+}
+
+/* nav-wrap */
+#nav-wrap {
+	font: 11px "raleway-heavy", sans-serif;
+	text-transform: uppercase;
+	letter-spacing: 1.5px;
+	display: inline-block;
+}
+
+/* hide toggle button */
+#nav-wrap > a {
+	display: none;
+}
+
+ul#nav {
+	min-height: 72px;
+	width: auto; 
+
+	/* left align the menu */
+	text-align: left;
+}
+ul#nav li {
+	position: relative;
+	list-style: none;
+	height: 72px;
+	display: inline-block;
+}
+ul#nav li a {
+	display: inline-block;
+	padding: 17px 12px;
+	line-height: 38px;
+	text-decoration: none;
+	color: black;
+	-moz-transition: all 0.2s ease-in-out;
+	-o-transition: all 0.2s ease-in-out;
+	-webkit-transition: all 0.2s ease-in-out;
+	-ms-transition: all 0.2s ease-in-out;
+	transition: all 0.2s ease-in-out;
+}
+ul#nav li a:hover {
+	color: white;
+}
+ul#nav li a:active {
+	/*background-color: transparent !important;*/
+}
+ul#nav li.current a {
+	background: #10301a;
+	color: white;
+}
+
+
+/* ========================
+Banner
+*/
+#banner img 
+{
+	border-style: none; 
+	border-width: 0;
+	margin:auto;
+}
+
+/* ========================
+Newsfeed
+*/
+.blogShort{ border-bottom:1px solid #ddd;}
+.blogShort img 
+{
+	height:150px;
+	width:300px;
+}
+.add{background: #333; padding: 10%; height: 300px;}
+
+</style>
+
 <body>
-
-<div class="container">
-	<div clas="row-fluid">
-	<!--============================ Menu bar  ====================================-->
-	<div class="col-sm-2">
-
-	<nav class="navbar navbar-toggleable-md navbar-light bg-faded">
-		<button class="navbar-toggler navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-			<span class="navbar-toggler-icon"></span>
-		</button>
-  		
-		<div class="collapse navbar-collapse" id="navbarSupportedContent">
-				<ul class="nav" id="mainNavbar">
-				
-					<li class="nav-item active">
-						<a class="nav-link " href="/acm-wearsys-2017/">Welcome</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="/acm-wearsys-2017/organizers.html">Organizers</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="/acm-wearsys-2017/call-for-papers.html">Call for Papers</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="/acm-wearsys-2017/submission-guidelines.html">Submission Guidelines</a>
-					</li>
-		
-				</ul>
-				<div class="logoDiv">
-					<img class="logo" src="img/acm.jpg" height="100" width="100"> 
-					<img class="logo" src="img/sigmobile.jpg" height="100" width="100"> 
-				</div>
-			</div>
-	</div>
-	
-	<!--============================ Main content  ================================-->
-	<div class="col-lg-9">
-			<div class="jumbotron">
-				<h1><u>ACM WearSys 2017</u></h1>
-				<h3>The 3rd Workshop on Wearable Systems</h3>
-				<h4>Niagra Falls, June 19, 2017</h4>
+    <div class="container">
+    	<div id="banner" class="centered">
+    	<!--
+    	<a href="http://www.msu.edu">
+			<img src="images/03-01-msu-masthead.png" alt="MSU Logo"/>
+		</a>
+		-->
+		<h1> Mi Zhang </h1>
+    	</div>
+    	<div id="home">
+    		<div class="row centered">
+    			
+    			
+    			<div class="col-md-4 ">
+    				<p>		
+						<br />		
+						<b>Mi Zhang</b>
+						<br />
+						Assistant Professor
+						<br />
+						Electrical and Computer Engineering
+						<br />
+						Michigan State University
+						<br />
+						East Lansing, MI 48824-1226 USA
+						<br />
+						<br />
 			
-			</div>
+						 mizhang@egr.msu.edu 
+						<br />		
+			
+						(517) 432-4682 	
+						<br/>
+						<b>Office</b>: 3530 Engineering Building (<a href="http://maps.msu.edu/interactive/index.php?location=eb">Map</a>) <br/>
+						<b>Lab</b>: 1228 Engineering Building
+					</p>
+    			</div>
+    			<div class="col-md-3">
+    				<img src="images/mizhang_profile_vertical.jpg" alt="Mi Zhang's Profile Picture" width="200" height="280" />
+    			</div>
+    		</div>
+    		
+    		<div class="row centered" >
+	    		<p>
+					I am an Assistant Professor in the Department of Electrical and Computer Engineering at Michigan State University, where I direct the Intelligent Sensing and Mobile Systems Lab.    
+				<!--I am also a Trifecta Intellectual Leader (TIL) of the <a href="http://trifecta.msu.edu/">Trifecta initiative</a> at MSU. The goal of the Trifecta initiative is to catalyze interdisciplinary research to advance health research and improve health outcomes. -->       
+				I received my Ph.D. degree in Computer Engineering and M.S. degrees in both Electrical Engineering and Computer Science from University of Southern California under the supervision of Alexander Sawchuk. 
+				I received my B.S. degree in Electrical Engineering from Peking University.	 
+				Before joining MSU, I was a Postdoctoral Associate with Tanzeem Choudhury at Cornell University. 
 
-			<hr />
-			<!--============================ (start)  ================================-->
-			<h3>
-			Welcome!
-			</h3>
-			<p>
-			The 2017 ACM WearSys workshop, in conjunction with the 15th ACM International Conference on Mobile Systems, Applications, and Services (MobiSys), focuses on advances and discussions on 
-			how wearable technologies can shape mobile computing, systems and applications research. 
-			The goal of this workshop is to provide a forum to bring together researchers and design experts to discuss how wearable technologies have, and can, 
-			complement mobile systems research, and vice-versa. It also aims to provide a launchpad for bold and visionary ideas for wearable systems research. 
-			The 2017 ACM WearSys workshop comes at a critical time–juncture where wearable devices are proliferating commercially, and when mobile systems research is 
-			increasingly adopting wearable devices; mostly for primary and auxiliary sensing. The off-the-shelf availability of wearable devices today has only 
-			improved and shaped new directions for mobile and wireless systems research. This is an exciting time where wearables are seeming to spearhead advancements 
-			in technology through inter-disciplinary research among a broad spectrum of disciplines such as wireless systems, health, fashion, energy – to name a few. 
-			We hope that this workshop will serve as a catalyst for advancements in mobile and wearable systems technology as well as present a clear sense of direction
-			 for the research community to proceed in this space.
-			</p>
-		
-			<!--============================ (end)  ================================-->
-		</div>
-		</div>
-</div>
+				My students and I work on topics at the intersection of mobile systems and machine intelligence, covering areas including mobile and wearable sensing systems, ubiquitous computing, mobile health (mHealth), and cyber-physical systems/Internet-of-Things. 
+				Please visit my Publications page to learn more about my research work. 	   
+				<br/>
+				<br/>
+				</p>
+    		</div>
+    	</div>
+        <section id="stickyNav-container">
+            <div id="stickyNav">
+                <nav id="nav-wrap">
+				 <a class="mobile-btn" href="#nav-wrap" title="Show navigation">
+					<span class='menu-text'>Show Menu</span>
+					<span class="menu-icon"></span>
+				 </a>
+				<a class="mobile-btn" href="#" title="Hide navigation">
+					<span class='menu-text'>Hide Menu</span>
+					<span class="menu-icon"></span>
+				</a>     
 
+				 <ul id="nav" class="nav">
+					<li class="current"><a class="smoothscroll" href="#home">Home</a></li>
+					<li><a class="smoothscroll" href="#news">News</a></li>
+					<li><a class="smoothscroll" href="#publications">Publications</a></li>
+					<li><a class="smoothscroll" href="#teaching">Teaching</a></li>
+					<li><a class="smoothscroll" href="#professional">Activities</a></li>           
+					
+				 </ul> 
 
-<script src="js/jquery.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
+			  </nav> <!-- /nav-wrap -->	 
+            </div>
+        </section>
+        <section id="news">
+        	<div class="row blogShort">
+				 
+				 <div class="col-lg-4">
+				 	<img src="images/iSee.png" alt="post img" class="pull-left img-responsive thumb margin10 img-thumbnail"/>
+				 </div>
+				 <div class="col-lg-8">
+				 	<h2>01/2017: iSee</h2>
+				 	<article><p>
+						We are developing a system for tackling this campus mental health crisis, called iSee. When it's ready to be deployed, students who participate in the program will need to carry a smartphone and a smartwatch. Data collected by those devices are transmitted to, and analyzed by, a computer system. This lets the relatively few counselors keep better track of more students - extending service to more students in need. 
+					
+					<a href="https://theconversation.com/helping-universities-combat-depression-with-mobile-technology-67033">The Conversation</a>,
+					<a href="http://www.smithsonianmag.com/innovation/how-mobile-technology-can-help-universities-combat-depression-180961795/">Smithsonian Magazine</a>
+				 	</p></article>
+				 </div>
+			 </div>
+			 
+			 <div class="row blogShort">
+			 	<div class="col-lg-4">
+					<img src="images/iSee.png" alt="post img" class="pull-left img-responsive thumb margin10 img-thumbnail" />
+				</div>
+				<div class="col-lg-8">
+				 	<h2>09/2016: NSF awarded PFI:BIC grant (PI). </h2>
+				 	<article><p>
+						We are very grateful for receiving this grant to develop mobile sensing technologies to combat depression on university campuses. 
+						<a href="http://www.nsf.gov/news/news_summ.jsp?cntn_id=189628&WT.mc_id=USNSF_56&WT.mc_ev=click"> 
+					<br />
+					Official NSF Announcement</a>. 
+					Other media coverage: 
+					<a href="http://msutoday.msu.edu/news/2016/1-million-nsf-grant-to-enhance-college-counseling-services/">MSU Today</a>,
+					<a href="http://www.edtechmagazine.com/higher/article/2016/11/michigan-state-university-app-helps-college-students-depression">EdTech</a>,
+					<a href="http://www.itechpost.com/articles/30025/20160915/depression-and-anxiety-treated-through-smartphone-counseling-on-msu-campus.htm">iTechPost</a>, etc.
+					</p></article>
+				</div>
+			 </div>
+			 
+			 <div class="row blogShort">
+				 <div class="col-lg-4">
+				 	<img src="images/iSee.png" alt="post img" class="pull-left img-responsive thumb margin10 img-thumbnail"/>
+				 </div>
+				 
+				 <div class="col-lg-8">
+				 	<h2>Title</h2>
+				 	<article><p>
+						Article
+					</p></article>
+				 </div>
+				 
+				 
+			 </div>
+			 
+			 <div class="row blogShort">
+
+				<div class="col-lg-4">
+					<img src="images/iSee.png" alt="post img" class="pull-left img-responsive thumb margin10 img-thumbnail" />
+				</div>
+				<div class="col-lg-8">
+					<h2>Title</h2>
+					<article><p>
+						Article
+					</p></article>
+				</div>
+			 </div>	 
+        </section>
+        
+        <section id="publications"> 
+        </section>
+        
+        <section id="teaching"> 
+        </section>
+        
+        <section id="professional"> 
+        </section>
+        
+    </div>
 </body>
+
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script type="text/javascript" src="js/jquery-migrate-1.2.1.min.js"></script>   
+<script type="text/javascript" src="js/jquery.flexslider.js"></script>
+<script type="text/javascript" src="js/jquery.fittext.js"></script>
+<script type="text/javascript" src="js/backstretch.js"></script> 
+<script type="text/javascript" src="js/waypoints.js"></script>  
+
+<script>
+$(document).ready(function () {
+	/*----------------------------------------------------*/
+	/* Make navbar static when scrolling down page
+	------------------------------------------------------*/
+    $(window).bind('scroll', function () {
+        var vPos = $(window).scrollTop();
+        var totalH = $('#stickyNav-container').offset().top;
+        var finalSize = totalH - vPos;
+
+        console.log(finalSize);
+
+        if (finalSize <= 0) {
+            $('#stickyNav').css({
+                'position': 'fixed',
+                    'top': 0
+            })
+        } else {
+            $('#stickyNav').css({
+                'position': 'static'
+            })
+        }
+    });
+    
+    /*----------------------------------------------------*/
+	/* Adjust Primary Navigation Background Opacity
+	------------------------------------------------------*/
+   $(window).on('scroll', function() {
+
+		var h = $('header').height();
+		var y = $(window).scrollTop();
+      var header = $('#main-header');
+
+	   if ((y > h + 30 ) && ($(window).outerWidth() > 768 ) ) {
+	      header.addClass('opaque');
+	   }
+      else {
+         if (y < h + 30) {
+            header.removeClass('opaque');
+         }
+         else {
+            header.addClass('opaque');
+         }
+      }
+
+	});
+});
+</script>
+
 </html>
+
