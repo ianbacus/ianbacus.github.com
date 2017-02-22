@@ -10,7 +10,7 @@
 <meta name="description" content="" />
 
 
-<link rel="stylesheet" href="css/MSUBootstrap.min.css">
+<link rel="stylesheet" href="css/bootstrap.min.css">
 <style>
 
 /* ========================
@@ -28,6 +28,10 @@ body {
     background:white;
 }
 
+.opaque {
+	background:white;
+	opacity:1;
+}
 .centered
 {
 	display:inline-block;
@@ -44,6 +48,7 @@ Navigation bar: stickiness
     margin: 0 auto;
     top: 300px;
 }
+
 #stickyNav_container, #stickyNav {
 	width:60%;
 	z-index:100;
@@ -682,7 +687,7 @@ select
 					
                     <li>
 					<p style="font-size:10pt">
-					<font color="#B96D00"><b>Personal Sensing: Understanding Mental Health Using Ubiquitous Sensors and Machine Learning</b></font>
+					<font color="#1a512b"><b>Personal Sensing: Understanding Mental Health Using Ubiquitous Sensors and Machine Learning</b></font>
 					<br>
 					David C. Mohr, Mi Zhang, and Stephen M. Schueller. 
 					<br>
@@ -697,7 +702,7 @@ select
                     
                     <li>
 					<p style="font-size:10pt">
-					<font color="#B96D00"><b>AirSense: An Intelligent Home-based Sensing System for Indoor Air Quality Analytics</b></font>
+					<font color="#1a512b"><b>AirSense: An Intelligent Home-based Sensing System for Indoor Air Quality Analytics</b></font>
 					<br>
 					Biyi Fang, Qiumin Xu, Taiwoo Park, and Mi Zhang. 
 					<br>
@@ -720,7 +725,7 @@ select
                     
                     <li>
 					<p style="font-size:10pt">
-					<font color="#B96D00"><b>BodyScan: Enabling Radio-based Sensing on Wearable Devices for Contactless Activity and Vital Sign Monitoring</b></font>
+					<font color="#1a512b"><b>BodyScan: Enabling Radio-based Sensing on Wearable Devices for Contactless Activity and Vital Sign Monitoring</b></font>
 					<br>
 					Biyi Fang, Nicholas D. Lane, Mi Zhang, Aidan Boran, and Fahim Kawsar. 
 					<br>
@@ -737,7 +742,7 @@ select
                     
 					<li>
 					<p style="font-size:10pt">
-					<font color="#B96D00"><b>HeadScan: A Wearable System for Radio-based Sensing of Head and Mouth-related Activities</b></font>
+					<font color="#1a512b"><b>HeadScan: A Wearable System for Radio-based Sensing of Head and Mouth-related Activities</b></font>
 					<br>
 					Biyi Fang, Nicholas D. Lane, Mi Zhang, and Fahim Kawsar. 
 					<br>
@@ -773,7 +778,7 @@ select
                     
                     <li>
 					<p style="font-size:10pt">
-					<font color="#B96D00"><b>Towards Radio-based Activity Sensing on Wearables</b></font>
+					<font color="#1a512b"><b>Towards Radio-based Activity Sensing on Wearables</b></font>
 					<br>
 					Biyi Fang, Nicholas D. Lane, Mi Zhang, and Fahim Kawsar. 
 					<br>
@@ -787,7 +792,7 @@ select
 					<br>																				
 					<li>
 					<p style="font-size:10pt">
-					<font color="#B96D00"><b>MyBehavior: Automatic Personalized Health Feedback from User Behavior and Preference using Smartphones</b></font>
+					<font color="#1a512b"><b>MyBehavior: Automatic Personalized Health Feedback from User Behavior and Preference using Smartphones</b></font>
 					<br>	
 					Mashfiqui Rabbi, Min Hane Aung, Mi Zhang, and Tanzeem Choudhury. 
 					<br>
@@ -810,7 +815,7 @@ select
 					
 					<li>
 					<p style="font-size:10pt">
-					<font color="#B96D00"><b>DoppleSleep: A Contactless Unobtrusive Sleep Sensing System Using Short-Range Doppler Radar</b></font>
+					<font color="#1a512b"><b>DoppleSleep: A Contactless Unobtrusive Sleep Sensing System Using Short-Range Doppler Radar</b></font>
 					<br>	
 					Tauhidur Rahman, Alexander Adams, Ruth Ravichandran, Mi Zhang, Shwetak Patel, Julie Kientz, and Tanzeem Choudhury. 
 					<br>
@@ -1288,7 +1293,7 @@ select
 </body>
 
 
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script type="text/javascript" src="js/jquery.min.js"></script>   
 <script type="text/javascript" src="js/jquery-migrate-1.2.1.min.js"></script>   
 <script type="text/javascript" src="js/jquery.flexslider.js"></script>
 <script type="text/javascript" src="js/jquery.fittext.js"></script>
@@ -1300,6 +1305,7 @@ $(document).ready(function () {
 	/*----------------------------------------------------*/
 	/* Make navbar static when scrolling down page
 	------------------------------------------------------*/
+	var navDocked = 200;
     $(window).bind('scroll', function () {
         var vPos = $(window).scrollTop();
         var totalH = $('#stickyNav-container').offset().top;
@@ -1310,12 +1316,16 @@ $(document).ready(function () {
         if (finalSize <= 0) {
             $('#stickyNav').css({
                 'position': 'fixed',
+                'opacity': '1.0',
                     'top': 0
             })
+            navDocked = 100;
         } else {
             $('#stickyNav').css({
-                'position': 'static'
+                'position': 'static',
+                'opacity': '1.0'
             })
+            navDocked = 200;
         }
     });
     
@@ -1367,15 +1377,18 @@ $(document).ready(function () {
   	------------------------------------------------------ */
   	$('.smoothscroll').on('click', function (e) {
 	 	
+	 	$(this).parent().siblings().removeClass("current");
+	 	$(this).parent().addClass("current");
+	 	
 	 	e.preventDefault();
 
    		var target = this.hash,
     	$target = $(target);
 		console.log($target.offset().top);
     	$('html, body').stop().animate({
-       	'scrollTop': ($target.offset().top-300)
+       	'scrollTop': (parseInt($target.offset().top)-navDocked)
       }, 800, 'swing', function () {
-      	window.location.hash = target;
+      	//window.location.hash = target;
       });
 
   	});
