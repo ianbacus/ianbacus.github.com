@@ -112,14 +112,14 @@
 	 	
 	 	e.preventDefault();
 
-   	var target = this.hash,
+   		var target = this.hash,
     	$target = $(target);
-
-    	$('html, body').stop().animate({
-       	'scrollTop': $target.offset().top
-      }, 800, 'swing', function () {
-      	window.location.hash = target;
-      });
+		console.log("FUCK");
+    	$('html, body').stop().animate(
+    	{'scrollTop': $target.offset().top}, 800, 'swing', 
+    	function () {
+      		window.location.hash = target;
+      	});
 
   	});
 
@@ -176,7 +176,6 @@
         var totalH = $('#nav-wrap').offset().top;
         var finalSize = totalH - vPos;
 
-        console.log(finalSize);
 
         if (finalSize <= 0) {
             $('#nav-wrap').css({
