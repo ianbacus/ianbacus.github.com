@@ -63,8 +63,9 @@
 	text-decoration: underline !important;
 }
 #menu li:hover > a {
-    color: #ffffff;
-	text-decoration: underline;
+    color: black;
+    font-weight:bold;
+	/*text-decoration: underline;*/
 }
 
 *html #menu li a:focus { /* IE6 only */
