@@ -1,0 +1,1428 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html>
+<title>Mi Zhang @ MSU</title>
+<meta name="keywords" content="Mi, Zhang, Mi Zhang, mizhang, USC, University of Southern California,
+	MSU, Michigan State University, 
+	mHealth, Mobile Health, Wireless Health,
+	Activity Recognition, Mobile Sensing, Ubiquitous Computing, Wearable Computing, Embedded Systems,
+	Pattern Recognition" />
+<meta name="description" content="" />
+
+
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<style>
+
+/* ========================
+General
+*/
+body {
+    background:#f2f2f2;
+}
+.container {
+	position:relative;
+	margin-left:10%;
+	padding-right:10%;
+    width:80%;
+    height:100%;
+    background:white;
+}
+
+.opaque {
+	background:white;
+	opacity:1;
+}
+.centered
+{
+	display:inline-block;
+	padding-top:2%;
+    float: left;
+    margin: 0 auto;
+}
+/* ========================
+Navigation bar: stickiness
+*/
+#stickyNav_container {
+
+    position: absolute;
+    margin: 0 auto;
+    top: 300px;
+}
+
+#stickyNav_container, #stickyNav {
+	width:60%;
+	z-index:100;
+    background:white;
+}
+#stickyNav ul {
+    float:left;
+}
+
+
+/* ========================
+Navigation bar: look n feel
+*/
+#nav-wrap, #nav-wrap ul, #nav-wrap li, #nav-wrap a {
+	margin: 0;
+	padding: 0;
+	border: none;
+	outline: none;
+}
+
+/* nav-wrap */
+#nav-wrap {
+	font: 11px "raleway-heavy", sans-serif;
+	text-transform: uppercase;
+	letter-spacing: 1.5px;
+	display: inline-block;
+}
+
+/* hide toggle button */
+#nav-wrap > a {
+	display: none;
+}
+
+ul#nav {
+	min-height: 72px;
+	width: auto; 
+
+	/* left align the menu */
+	text-align: left;
+}
+ul#nav li {
+	position: relative;
+	list-style: none;
+	height: 72px;
+	display: inline-block;
+}
+ul#nav li a {
+	display: inline-block;
+	padding: 17px 12px;
+	line-height: 38px;
+	text-decoration: none;
+	color: black;
+	-moz-transition: all 0.2s ease-in-out;
+	-o-transition: all 0.2s ease-in-out;
+	-webkit-transition: all 0.2s ease-in-out;
+	-ms-transition: all 0.2s ease-in-out;
+	transition: all 0.2s ease-in-out;
+}
+ul#nav li a:hover {
+	color: white;
+}
+ul#nav li a:active {
+	/*background-color: transparent !important;*/
+}
+ul#nav li.current a {
+	background: #10301a;
+	color: white;
+}
+
+
+/* ========================
+Banner
+*/
+#banner
+{
+	text-align:center;
+	width:600px;
+	margin:0 auto;
+}
+
+/* ========================
+Home
+*/
+#home #bio
+{
+	text-align:center;
+	margin-left:5%;
+
+}
+
+
+/* ========================
+Newsfeed
+*/
+.blogShort{ border-bottom:1px solid #ddd;}
+.blogShort img 
+{
+	height:150px;
+	width:300px;
+}
+.add{background: #333; padding: 10%; height: 300px;}
+
+/* ========================
+Publications
+*/
+/* Adapted from https://gist.github.com/LibertysYarn/8722008 */
+
+select
+{
+	display:none;
+}
+
+.publicationTitle
+{
+	color: green;
+	font-weight:bold;
+}
+
+.specialTag
+{
+	font-weight:bold;
+}
+.timeline {
+  list-style: none;
+  padding: 10px 0 10px;
+  position: relative;
+}
+
+.timeline:before {
+  top: 0;
+  bottom: 0;
+  position: absolute;
+  content: " ";
+  width: 3px;
+  background-color: #eeeeee;
+  left: 50%;
+  margin-left: -1.5px;
+}
+
+.timeline > li {
+  margin-bottom: 0px;
+  position: relative;
+}
+
+.timeline > li:before,
+.timeline > li:after {
+  content: " ";
+  display: table;
+}
+
+.timeline > li:after {
+  clear: both;
+}
+
+.timeline > li:before,
+.timeline > li:after {
+  content: " ";
+  display: table;
+}
+
+.timeline > li:after {
+  clear: both;
+}
+
+.timeline > li > .timeline-panel {
+  width: 46%;
+  float: left;
+  border: 1px solid #d4d4d4;
+  border-radius: 2px;
+  padding: 10px 20px;
+  position: relative;
+  -webkit-box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.175);
+
+  float: right;
+
+  width: 92%;
+}
+
+.timeline > li.timeline-inverted > .timeline-panel {
+  float: right;
+}
+
+.timeline > li > .timeline-panel:before {
+  position: absolute;
+  top: 26px;
+  right: -15px;
+  display: inline-block;
+  border-top: 15px solid transparent;
+  border-left: 15px solid #ccc;
+  border-right: 0 solid #ccc;
+  border-bottom: 15px solid transparent;
+  content: " ";
+
+  border-left-width: 0;
+  border-right-width: 15px;
+  left: -15px;
+  right: auto;
+}
+
+.timeline > li.timeline-inverted > .timeline-panel:before {
+  border-left-width: 0;
+  border-right-width: 15px;
+  left: -15px;
+  right: auto;
+}
+
+.timeline > li > .timeline-panel:after {
+  position: absolute;
+  top: 27px;
+  right: -14px;
+  display: inline-block;
+  border-top: 14px solid transparent;
+  border-left: 14px solid #fff;
+  border-right: 0 solid #fff;
+  border-bottom: 14px solid transparent;
+  content: " ";
+
+  border-left-width: 0;
+  border-right-width: 14px;
+  left: -14px;
+  right: auto;
+}
+
+.timeline > li.timeline-inverted > .timeline-panel:after {
+  border-left-width: 0;
+  border-right-width: 14px;
+  left: -14px;
+  right: auto;
+}
+
+.timeline > li > .timeline-badge {
+  color: transparent;
+  width: 50px;
+  height: 50px;
+  line-height: 50px;
+  font-size: 1.4em;
+  text-align: center;
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  margin-left: -25px;
+  background-color: #999999;
+  z-index: 50;
+  border-top-right-radius: 50%;
+  border-top-left-radius: 50%;
+  border-bottom-right-radius: 50%;
+  border-bottom-left-radius: 50%;
+}
+
+.timeline-badge.primary,
+.timeline-badge-conference {
+  /*background-color: #2e6da4 !important;*/
+  background-color: transparent !important;
+}
+
+.timeline-badge.success,
+.timeline-badge-demo {
+  /*background-color: #3f903f !important;*/
+  background-color: transparent !important;
+}
+
+.timeline-badge.warning,
+.timeline-badge-poster {
+  /*background-color: #f0ad4e !important;*/
+  background-color: transparent !important;
+}
+
+.timeline-badge.danger,
+.timeline-badge-journal {
+  background-color: transparent !important;
+}
+
+.timeline-badge.info,
+.timeline-badge-workshop {
+  background-color: transparent !important;
+}
+
+.timeline-title {
+  margin-top: 0;
+  color: inherit;
+}
+
+.timeline-body > p,
+.timeline-body > ul {
+  margin-bottom: 0;
+}
+
+.timeline-body > p + p {
+  margin-top: 5px;
+}
+
+/*@media (max-width: 767px) {*/
+  ul.timeline:before {
+    left: 40px;
+  }
+
+  ul.timeline > li > .timeline-panel {
+    width: calc(100% - 90px);
+    width: -moz-calc(100% - 90px);
+    width: -webkit-calc(100% - 90px);
+  }
+
+  ul.timeline > li > .timeline-badge {
+    left: 15px;
+    margin-left: 0;
+    top: 16px;
+  }
+
+  ul.timeline > li > .timeline-panel {
+    float: right;
+  }
+
+  ul.timeline > li > .timeline-panel:before {
+    border-left-width: 0;
+    border-right-width: 15px;
+    left: -15px;
+    right: auto;
+  }
+
+  ul.timeline > li > .timeline-panel:after {
+    border-left-width: 0;
+    border-right-width: 14px;
+    left: -14px;
+    right: auto;
+  }
+/*}*/
+
+</style>
+
+<body>
+    <div class="container">
+    	<div id="banner">
+    	
+    	<a href="http://www.msu.edu">
+			<img src="images/03-01-msu-masthead.png" alt="MSU Logo"/>
+		</a>
+    	</div>
+    	<hr/>
+    	<section id="home">
+    		<div class="row">
+    			<div class="col-md-2"> </div>
+    			
+    			
+    			<div class="col-md-4">
+    				<img src="images/mizhang_profile_vertical.jpg" alt="Mi Zhang's Profile Picture" width="200" height="280" />
+    			</div>
+    			<div class="col-md-4">
+    				<p>		
+						<h3><b>Mi Zhang</b></h3>
+						<br />
+						Assistant Professor
+						<br />
+						Electrical and Computer Engineering
+						<br />
+						Michigan State University
+						<br />
+						East Lansing, MI 48824-1226 USA
+						<br />
+						<br />
+			
+						<b>Email</b>: mizhang@egr.msu.edu 
+						<br />		
+				
+						<b>Phone</b>: (517) 432-4682 	
+						<br/>
+						<b>Office</b>: 3530 Engineering Building (<a href="http://maps.msu.edu/interactive/index.php?location=eb">Map</a>) <br/>
+						<b>Lab</b>: 1228 Engineering Building
+					</p>
+    			</div>
+    		</div>
+    		<br />
+    		<br />
+    		<div id="bio" class="row" >
+	    		<p>
+					I am an Assistant Professor in the Department of Electrical and Computer Engineering at Michigan State University, where I direct the Intelligent Sensing and Mobile Systems Lab.    
+				<!--I am also a Trifecta Intellectual Leader (TIL) of the <a href="http://trifecta.msu.edu/">Trifecta initiative</a> at MSU. The goal of the Trifecta initiative is to catalyze interdisciplinary research to advance health research and improve health outcomes. -->       
+				I received my Ph.D. degree in Computer Engineering and M.S. degrees in both Electrical Engineering and Computer Science from University of Southern California under the supervision of Alexander Sawchuk. 
+				I received my B.S. degree in Electrical Engineering from Peking University.	 
+				Before joining MSU, I was a Postdoctoral Associate with Tanzeem Choudhury at Cornell University. 
+   
+				<br/>
+				</p>
+    		</div>
+    	</section>
+    	<hr/>
+        <section id="stickyNav-container">
+            <div id="stickyNav">
+                <nav id="nav-wrap">
+				 <a class="mobile-btn" href="#nav-wrap" title="Show navigation">
+					<span class='menu-text'>Show Menu</span>
+					<span class="menu-icon"></span>
+				 </a>
+				<a class="mobile-btn" href="#" title="Hide navigation">
+					<span class='menu-text'>Hide Menu</span>
+					<span class="menu-icon"></span>
+				</a>     
+
+				 <ul id="nav" class="nav">
+					<li class="current"><a class="smoothscroll" href="#home">Home</a></li>
+					<li><a class="smoothscroll" href="#news">News</a></li>
+					<li><a class="smoothscroll" href="#teaching">Teaching</a></li>
+					<li><a class="smoothscroll" href="#publications">Publications</a></li>
+					
+					<li><a class="smoothscroll" href="#professional">Activities</a></li>           
+					
+				 </ul> 
+
+			  </nav> <!-- /nav-wrap -->	 
+            </div>
+        </section>
+        <hr/>
+        <section id="news">
+        	<h1> News </h1>
+        	<!--
+        	<div class="row blogShort">
+				 
+				 <div class="col-lg-4">
+				 	<img src="images/iSee.png" alt="post img" class="pull-left img-responsive thumb margin10 img-thumbnail"/>
+				 </div>
+				 <div class="col-lg-8">
+				 	<h2>01/2017: iSee</h2>
+				 	<article><p>
+						We are developing a system for tackling this campus mental health crisis, called iSee. When it's ready to be deployed, students who participate in the program will need to carry a smartphone and a smartwatch. Data collected by those devices are transmitted to, and analyzed by, a computer system. This lets the relatively few counselors keep better track of more students - extending service to more students in need. 
+					
+					<a href="https://theconversation.com/helping-universities-combat-depression-with-mobile-technology-67033">The Conversation</a>,
+					<a href="http://www.smithsonianmag.com/innovation/how-mobile-technology-can-help-universities-combat-depression-180961795/">Smithsonian Magazine</a>
+				 	</p></article>
+				 </div>
+			 </div>
+			 
+			 <div class="row blogShort">
+			 	<div class="col-lg-4">
+					<img src="images/iSee.png" alt="post img" class="pull-left img-responsive thumb margin10 img-thumbnail" />
+				</div>
+				<div class="col-lg-8">
+				 	<h2>09/2016: NSF awarded PFI:BIC grant (PI). </h2>
+				 	<article><p>
+						We are very grateful for receiving this grant to develop mobile sensing technologies to combat depression on university campuses. 
+						<a href="http://www.nsf.gov/news/news_summ.jsp?cntn_id=189628&WT.mc_id=USNSF_56&WT.mc_ev=click"> 
+					<br />
+					Official NSF Announcement</a>. 
+					Other media coverage: 
+					<a href="http://msutoday.msu.edu/news/2016/1-million-nsf-grant-to-enhance-college-counseling-services/">MSU Today</a>,
+					<a href="http://www.edtechmagazine.com/higher/article/2016/11/michigan-state-university-app-helps-college-students-depression">EdTech</a>,
+					<a href="http://www.itechpost.com/articles/30025/20160915/depression-and-anxiety-treated-through-smartphone-counseling-on-msu-campus.htm">iTechPost</a>.
+					</p></article>
+				</div>
+			 </div>
+			 
+			 <div class="row blogShort">
+				 <div class="col-lg-4">
+				 	<img src="images/iSee.png" alt="post img" class="pull-left img-responsive thumb margin10 img-thumbnail"/>
+				 </div>
+				 
+				 <div class="col-lg-8">
+				 	<h2>Title</h2>
+				 	<article><p>
+						Article
+					</p></article>
+				 </div>
+				 
+				 
+			 </div>
+			 
+			 <div class="row blogShort">
+
+				<div class="col-lg-4">
+					<img src="images/iSee.png" alt="post img" class="pull-left img-responsive thumb margin10 img-thumbnail" />
+				</div>
+				<div class="col-lg-8">
+					<h2>Title</h2>
+					<article><p>
+						Article
+					</p></article>
+				</div>
+			 </div>	 
+			 -->
+			 <ul id="news">	
+			
+			
+				<li>
+					<font color="#1a512b">01/2017:</font> iSee is in the news: 
+					<a href="https://theconversation.com/helping-universities-combat-depression-with-mobile-technology-67033">The Conversation</a>,
+					<a href="http://www.smithsonianmag.com/innovation/how-mobile-technology-can-help-universities-combat-depression-180961795/">Smithsonian Magazine</a>, etc.
+				</li>
+			
+				<br />
+			
+				<li>
+					<font color="#1a512b">09/2016:</font> Thanks NSF for the awarded PFI:BIC grant (PI). We are very grateful for receiving this grant to develop mobile sensing technologies to combat depression on university campuses. 
+					<a href="http://www.nsf.gov/news/news_summ.jsp?cntn_id=189628&WT.mc_id=USNSF_56&WT.mc_ev=click"> 
+					<br />
+					Official NSF Announcement</a>. 
+					Other media coverage: 
+					<a href="http://msutoday.msu.edu/news/2016/1-million-nsf-grant-to-enhance-college-counseling-services/">MSU Today</a>,
+					<a href="http://www.edtechmagazine.com/higher/article/2016/11/michigan-state-university-app-helps-college-students-depression">EdTech</a>,
+					<a href="http://www.itechpost.com/articles/30025/20160915/depression-and-anxiety-treated-through-smartphone-counseling-on-msu-campus.htm">iTechPost</a>, etc.
+				</li>
+			
+				<br />
+			
+				<li>
+					<font color="#1a512b">08/2016:</font> We are the <font color="#de1111"><b>First Prize Winner (champion)</b></font> of the NIH Pill Image Recognition Challenge! Congratulations to Xiao and Kai.
+					<br />
+					<a href="https://www.nlm.nih.gov/news/pillimagerecognitionchallenge.html">Official NIH Announcement</a>.
+					Other media coverage: 
+					<a href="http://msutoday.msu.edu/news/2016/nih-challenge-winner-helping-solve-pill-recognition-problem/">MSU Today</a>,
+					<a href="http://www.wxyz.com/news/msu-professor-working-on-mobile-solution-to-identify-pills">ABC 7</a>, etc.
+				</li>
+			
+				<br />
+			
+				<li>
+					<font color="#1a512b">08/2016:</font> Thanks NSF for the awarded CSR grant (PI).
+				</li>
+			
+				<br />
+			
+				<li>
+					<font color="#1a512b">08/2016:</font> Thanks NSF for the awarded CRII grant (PI). Media coverage:
+					<a href="http://msutoday.msu.edu/news/2016/msu-technology-could-help-keep-elderly-safe-in-their-homes/">MSU Today</a>,
+					<a href="http://cacm.acm.org/news/206887-msu-technology-could-help-keep-elderly-safe-in-their-homes/fulltext">ACM TechNews</a>,
+					<a href="http://michiganradio.org/post/msu-researcher-studying-new-way-monitor-risk-senior-citizens">NPR Michigan Radio</a>,
+					<a href="http://www.wxyz.com/news/wi-fi-signals-could-keep-tabs-on-health-of-aging-family-members-msu-exploring-possibilities">ABC 7</a>, etc.
+				</li>
+			
+				<br />
+			
+				<li>
+					<font color="#1a512b">05/2016:</font> AirSense is accepted by <a href="http://ubicomp.org/ubicomp2016/">UbiComp'16</a>. Congratulations to Biyi and our collaborators at USC and MSU. 
+					<br />
+					Media coverage: 
+					<a href="http://msutoday.msu.edu/news/2016/new-technology-monitors-indoor-air-quality/">MSU Today</a>, 
+					<a href="http://www.futurity.org/airsense-indoor-pollution-1295542-2/">Futurity</a>, etc.
+				</li>
+			
+				<br />
+			
+				<li>
+					<font color="#1a512b">05/2016:</font> HeadScan is in the news: 
+					<a href="http://msutoday.msu.edu/news/2016/wearable-technology-could-help-detect-health-risks-depression/">MSU Today</a>,
+					<a href="http://www.medgadget.com/2016/05/headscan-keeps-jaw-radar-view.html">Medgadget</a>,
+					<a href="http://scopeblog.stanford.edu/2016/05/25/engineers-develop-new-type-of-wearable-device/">Stanford Medicine</a>,
+					<a href="http://readwrite.com/2016/05/23/health-wearable-monitors-patients-depression-ht4/">ReadWrite</a>,
+					<a href="http://www.futurity.org/headscan-wearables-1165962-2/?utm_source=Futurity+Today&utm_campaign=4b768f71bd-May_19_20165_19_2016&utm_medium=email&utm_term=0_e34e8ee443-4b768f71bd-206324325">Futurity</a>,
+					<a href="http://www.fox2detroit.com/good-day/194845994-story">Fox 2</a>, etc.
+				</li>
+			
+				<br />
+			
+				<li>
+					<font color="#1a512b">02/2016:</font> BodyScan is accepted by <a href="http://www.sigmobile.org/mobisys/2016/">MobiSys'16</a> as a full paper. Congratulations to our collaborators at Bell Labs and congratulations to Biyi on receiving the Student Travel Grant from NSF.
+				</li>
+			
+				<br />
+			
+				<li>
+					<font color="#1a512b">01/2016:</font> HeadScan is accepted by <a href="http://ipsn.acm.org/2016/">IPSN'16</a> as a full paper as well as by <a href="http://www.hotmobile.org/2016/">HotMobile'16</a> as a poster. Congratulations to our collaborators at Bell Labs and congratulations to Biyi on receiving the Student Travel Grant from NSF.
+				</li>
+			
+				<br />
+			
+				<li>
+					<font color="#1a512b">09/2015:</font> DoppleSleep receives the <font color="#de1111"><b>Best Paper Nominee (Top 5%)</b></font> at <a href="http://www.ubicomp.org/ubicomp2015/">UbiComp'15</a>. Congratulations to Rifat.
+				</li>
+			
+				<br />
+							  
+				<li>
+					<font color="#1a512b">07/2015:</font> DoppleSleep is accepted by <a href="http://www.ubicomp.org/ubicomp2015/">UbiComp'15</a>. It is covered by 
+					<a href="http://www.technologyreview.com/news/539961/got-sleep-problems-try-tracking-your-rest-with-radar/">MIT Technology Review</a>, etc.
+				</li>
+			
+				<br />
+			
+				<li>
+					<font color="#1a512b">07/2015:</font> MyBehavior 2.0 is accepted by <a href="http://www.ubicomp.org/ubicomp2015/">UbiComp'15</a>. It is covered by 
+					<a href="http://www.technologyreview.com/news/539721/a-health-tracking-app-you-might-actually-stick-with/">MIT Technology Review</a>, 
+					<a href="http://mashable.com/2015/07/30/health-tracking-app/">Mashable</a>, etc.
+				</li>
+			
+				<br />
+			   
+				<li>
+					<font color="#1a512b">07/2015:</font> Our work on using smartphone GPS sensor data for depression detection is accepted by <a href="http://www.jmir.org/2015/7/e175/">JMIR</a>. Congratulations to our collaborators at Northwestern University. 
+					<br />
+					Media coverage:  
+					<a href="http://time.com/3958128/smartphone-depression/">TIME</a>, 
+					<a href="http://www.cnn.com/2015/07/15/health/smartphone-depression-diagnosis/">CNN News</a>,
+					<a href="http://techcrunch.com/2015/07/16/your-phone-can-tell-whether-youre-depressed/">TechCrunch</a>, 
+					<a href="http://www.theverge.com/2015/7/15/8970269/smartphone-depression-mental-health-detect">The Verge</a>, 
+					<a href="http://www.washingtonpost.com/news/to-your-health/wp/2015/07/16/how-your-cellphone-knows-if-youre-depressed-it-has-to-do-with-how-you-move-through-time-and-space/">The Washington Post</a>, 
+					<a href="http://www.huffingtonpost.com/entry/your-phone-can-tell-if-youre-depressed_55a53e03e4b0b8145f73a97f">The Huffington Post</a>, 
+					<a href="http://www.cbsnews.com/news/phone-habits-depression-mental-health/">CBS News</a>, 
+					<a href="http://www.foxnews.com/health/2015/07/15/smartphone-sensors-may-detect-depression-study-says/">Fox News</a>, 
+					<a href="http://news.discovery.com/tech/gear-and-gadgets/depressed-your-phone-already-knows-150715.htm">Discovery News</a>, etc.
+				</li>
+			
+				<br />
+			
+				<li>
+					<font color="#1a512b">04/2015:</font> MyBehavior 1.0 is accepted by <a href="http://mhealth.jmir.org/2015/2/e42/">JMIR</a>. It is covered by 
+					<a href="http://mobihealthnews.com/45795/cornell-researchers-use-personalized-algorithm-in-weight-loss-app/">MobiHealthNews</a>, etc.
+				</li>
+			
+				<br />
+			
+				<li>
+					<font color="#1a512b">06/2014:</font> BodyBeat is accepted by <a href="http://www.sigmobile.org/mobisys/2014/index.php">MobiSys'14</a>. 
+					It is covered by 
+					<a href="http://www.technologyreview.com/news/528386/wearable-self-tracking-tool-listens-for-yawns-coughs-and-munches/">MIT Technology Review</a>, 
+					<a href="http://blogs.wsj.com/digits/2014/07/03/chainsaws-gunshots-and-coughs-our-smartphones-are-listening/">The Wall Street Journal</a>, 
+					<a href="http://www.newscientist.com/article/mg22229734.900-listen-to-sounds-inside#.VAZpWPldV8F">New Scientist</a>, etc.
+				</li>
+			</ul>
+        </section>
+        <hr/>
+        <section id="teaching">
+        	<h1> Teaching </h1> 
+        	<ul>	
+				<li>Spring 2016: ECE 802 <i>Intelligent Ubiquitous Computing Systems</i></li>
+				<li>Fall 2015: ECE 230 <i>Digital Logic Fundamentals</i></li>
+				<li>Fall 2014: ECE 230 <i>Digital Logic Fundamentals</i></li>
+			</ul>
+        </section>
+        <hr/>
+        <section id="publications"> 
+        
+        	<h1> Publications </h1>
+        	<ul id="publications">	
+
+					<b><font size="4">2016</font></b>
+					<br>
+					<br>
+					
+                    <li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>Personal Sensing: Understanding Mental Health Using Ubiquitous Sensors and Machine Learning</b></font>
+					<br>
+					David C. Mohr, Mi Zhang, and Stephen M. Schueller. 
+					<br>
+					<i>Annual Review of Clinical Psychology</i> (<b>ARCP</b>). 										
+					<br>
+                    <b>[Impact Factor: 12.214]</b>
+                    <br>
+                    [<a href="http://www.annualreviews.org/doi/abs/10.1146/annurev-clinpsy-032816-044949"><font color="#1a512b">Link</font></a> | 
+                    <a href="papers/2017_ARCP.bib"><font color="#1a512b">BibTex</font></a>]  
+                    </p>
+                    </li>
+                    
+                    <li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>AirSense: An Intelligent Home-based Sensing System for Indoor Air Quality Analytics</b></font>
+					<br>
+					Biyi Fang, Qiumin Xu, Taiwoo Park, and Mi Zhang. 
+					<br>
+					<i>ACM International Joint Conference on Pervasive and Ubiquitous Computing</i> (<b>UbiComp</b>), Heidelberg, Germany, September 2016. 										
+					<br>
+                    <b>[Acceptance Rate: 23.9%]</b>
+                    <br>
+                    [<a href="papers/2016_UbiComp_AirSense.pdf"><font color="#1a512b">PDF</font></a> | 
+                    <a href="papers/2016_UbiComp_AirSense.bib"><font color="#1a512b">BibTex</font></a>]
+                    <br>
+                    <font color="#1a512b"><b>Press Coverage</b>:</font>   
+                    <a href="http://www.futurity.org/airsense-indoor-pollution-1295542-2/">
+					<img src="images/Futurity_logo2.png" style="border-style: none; border-width: 0px; width: 6.5%; height: 5%;">
+					</a>
+                    <a href="http://msutoday.msu.edu/news/2016/new-technology-monitors-indoor-air-quality/">
+					<img src="images/MSUToday.png" style="border-style: none; border-width: 0px; width: 16%; height: 5%;">
+					</a>    
+                    </p>
+                    </li>
+                    
+                    <li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>BodyScan: Enabling Radio-based Sensing on Wearable Devices for Contactless Activity and Vital Sign Monitoring</b></font>
+					<br>
+					Biyi Fang, Nicholas D. Lane, Mi Zhang, Aidan Boran, and Fahim Kawsar. 
+					<br>
+					<i>ACM International Conference on Mobile Systems, Applications, and Services</i> (<b>MobiSys</b>), Singapore, June 2016. 										
+					<br>
+                    <b>[Acceptance Rate: 15.7%]</b>
+                    <br>
+                    [<a href="papers/2016_MobiSys_BodyScan.pdf"><font color="#1a512b">PDF</font></a> | 
+                    <a href="papers/2016_MobiSys_BodyScan.bib"><font color="#1a512b">BibTex</font></a> |
+                     <a href="https://www.youtube.com/watch?v=lcYDVcU7-m0&feature=youtu.be"><font color="#1a512b">Video</font></a>]
+                    </p>
+                    </li>
+                    
+                    
+					<li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>HeadScan: A Wearable System for Radio-based Sensing of Head and Mouth-related Activities</b></font>
+					<br>
+					Biyi Fang, Nicholas D. Lane, Mi Zhang, and Fahim Kawsar. 
+					<br>
+					<i>ACM/IEEE International Conference on Information Processing in Sensor Networks</i> (<b>IPSN</b>), Vienna, Austria, April 2016. 	
+                    <br>    
+					<b>[Acceptance Rate: 19.7%]</b>
+                    <br>
+                    [<a href="papers/2016_IPSN_HeadScan.pdf"><font color="#1a512b">PDF</font></a> | 
+                    <a href="papers/2016_IPSN_HeadScan.bib"><font color="#1a512b">BibTex</font></a>]
+                    <br>
+                    <font color="#1a512b"><b>Press Coverage</b>:</font>	
+                    <a href="http://scopeblog.stanford.edu/2016/05/25/engineers-develop-new-type-of-wearable-device/">
+					<img src="images/stanfordmedicine-logo.jpg" style="border-style: none; border-width: 0px; width: 16%; height: 5%;">
+					</a>    
+                    <a href="http://www.medgadget.com/2016/05/headscan-keeps-jaw-radar-view.html">
+					<img src="images/medgadget-logo2.jpg" style="border-style: none; border-width: 0px; width: 16%; height: 5%;">
+					</a>    
+                    <a href="http://www.futurity.org/headscan-wearables-1165962-2/?utm_source=Futurity+Today&utm_campaign=4b768f71bd-May_19_20165_19_2016&utm_medium=email&utm_term=0_e34e8ee443-4b768f71bd-206324325">
+					<img src="images/Futurity_logo2.png" style="border-style: none; border-width: 0px; width: 6.5%; height: 5%;">
+					</a>
+                    <a href="http://msutoday.msu.edu/news/2016/wearable-technology-could-help-detect-health-risks-depression/">
+					<img src="images/MSUToday.png" style="border-style: none; border-width: 0px; width: 16%; height: 5%;">
+					</a>
+                    <a href="http://www.fox2detroit.com/good-day/194845994-story">
+					<img src="images/fox-2-logo.png" style="border-style: none; border-width: 0px; width: 10%; height: 5%;">
+					</a>
+                    <a href="http://readwrite.com/2016/05/23/health-wearable-monitors-patients-depression-ht4/">
+					<img src="images/readwrite-logo1.png" style="border-style: none; border-width: 0px; width: 15%; height: 5%;">
+					</a>
+                    </p> 
+                    </li>
+                    
+                    
+                    <li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>Towards Radio-based Activity Sensing on Wearables</b></font>
+					<br>
+					Biyi Fang, Nicholas D. Lane, Mi Zhang, and Fahim Kawsar. 
+					<br>
+					<i>ACM International Workshop on Mobile Computing Systems and Applications</i> (<b>HotMobile</b>), St. Augustine, FL, February 2016. (Poster) 		
+                    </p>
+                    </li>
+                    
+                    
+                    <b><font size="4">2015</font></b>
+					<br>
+					<br>																				
+					<li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>MyBehavior: Automatic Personalized Health Feedback from User Behavior and Preference using Smartphones</b></font>
+					<br>	
+					Mashfiqui Rabbi, Min Hane Aung, Mi Zhang, and Tanzeem Choudhury. 
+					<br>
+					<i>ACM International Joint Conference on Pervasive and Ubiquitous Computing</i> (<b>UbiComp</b>), Osaka, Japan, September 2015.			
+                    <br>    
+					<b>[Acceptance Rate: 23%]</b>
+					<br>
+                    [<a href="papers/2015_UbiComp_MyBehavior.pdf"><font color="#1a512b">PDF</font></a> | 
+                    <a href="papers/2015_UbiComp_MyBehavior.bib"><font color="#1a512b">BibTex</font></a>]
+					<br>
+                    <font color="#1a512b"><b>Press Coverage</b>:</font>															
+					<a href="http://www.technologyreview.com/news/539721/a-health-tracking-app-you-might-actually-stick-with/">
+					<img src="images/mit-tr-logo.png" style="border-style: none; border-width: 0px; width: 10%; height: 5%;">
+					</a>
+					<a href="http://mashable.com/2015/07/30/health-tracking-app/">
+					<img src="images/mashable-logo.png" style="border-style: none; border-width: 0px; width: 5.7%; height: 5%;">
+					</a>					
+					</p>					
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>DoppleSleep: A Contactless Unobtrusive Sleep Sensing System Using Short-Range Doppler Radar</b></font>
+					<br>	
+					Tauhidur Rahman, Alexander Adams, Ruth Ravichandran, Mi Zhang, Shwetak Patel, Julie Kientz, and Tanzeem Choudhury. 
+					<br>
+					<i>ACM International Joint Conference on Pervasive and Ubiquitous Computing</i> (<b>UbiComp</b>), Osaka, Japan, September 2015.
+                    <br>    
+					<b>[Acceptance Rate: 23%]</b>
+                    <!--
+					<img src="images/badge.jpg" style="border-style: none; border-width: 0px; width: 4%; height: 10%;">
+					-->
+                    <font color="red"><b>[Best Paper Nominee (Top 5%)]</b></font>
+                    <br>
+                    [<a href="papers/2015_UbiComp_DoppleSleep.pdf"><font color="#1a512b">PDF</font></a> | 
+                    <a href="papers/2015_UbiComp_DoppleSleep.bib"><font color="#1a512b">BibTex</font></a>]
+					<br>    
+                    <font color="#1a512b"><b>Press Coverage</b>:</font>														
+					<a href="http://www.technologyreview.com/news/539961/got-sleep-problems-try-tracking-your-rest-with-radar/">
+					<img src="images/mit-tr-logo.png" style="border-style: none; border-width: 0px; width: 10%; height: 5%;">
+					</a>
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>An Intelligent Crowd-Worker Selection Approach for Reliable Content Labeling of Food Images</b></font>
+					<br>	
+					Mashfiqui Rabbi, Jean Costa, Fabian Okeke, Max Schachere, Mi Zhang, and Tanzeem Choudhury. 
+					<br>
+					<i>ACM Wireless Health Conference</i> (<b>Wireless Health</b>), Bethesda, MD, October 2015.
+                    <br>
+                    <b>[Acceptance Rate: 26%]</b>
+					<br>
+                    [<a href="papers/2015_WH_FoodLabel.pdf"><font color="#1a512b">PDF</font></a> | 
+                    <a href="papers/2015_WH_FoodLabel.bib"><font color="#1a512b">BibTex</font></a>]
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>Mobile Phone Sensor Correlates of Depressive Symptom Severity in Daily-Life Behavior: An Exploratory Study</b></font>
+					<br>	
+					Sohrob Saeb, Mi Zhang, Christopher J. Karr, Stephen M. Schueller, Marya E. Corden, Konrad P. Kording, and David C. Mohr. 
+					<br>
+					<i>Journal of Medical Internet Research</i> (<b>JMIR</b>), Volume 17, Issue 7, Pages e175, July 2015.  
+					<br>
+                    <b>[Impact Factor: 4.7]</b>
+                    <br>
+                    [<a href="http://www.jmir.org/2015/7/e175/"><font color="#1a512b">Link</font></a> | 
+                    <a href="papers/2015_JMIR_MobileDepression.bib"><font color="#1a512b">BibTex</font></a>]
+					<br>
+					<font color="#1a512b"><b>Press Coverage</b>:</font>															
+					<a href="http://www.cnn.com/2015/07/15/health/smartphone-depression-diagnosis/">
+					<img src="images/cnn-logo.png" style="border-style: none; border-width: 0px; width: 6%; height: 4%;">
+					</a>
+					<a href="http://techcrunch.com/2015/07/16/your-phone-can-tell-whether-youre-depressed/">
+					<img src="images/techcrunch-logo.png" style="border-style: none; border-width: 0px; width: 6%; height: 5%;">
+					</a>
+					<a href="http://www.theverge.com/2015/7/15/8970269/smartphone-depression-mental-health-detect">
+					<img src="images/verge-logo.png" style="border-style: none; border-width: 0px; width: 6%; height: 5%;">
+					</a>					
+					<a href="http://time.com/3958128/smartphone-depression/">
+					<img src="images/time-logo.jpg" style="border-style: none; border-width: 0px; width: 7.5%; height: 1%;">
+					</a>					
+					<a href="http://www.cbsnews.com/news/phone-habits-depression-mental-health/">
+					<img src="images/cbs-logo.png" style="border-style: none; border-width: 0px; width: 9%; height: 4%;">
+					</a>
+					<a href="http://www.foxnews.com/health/2015/07/15/smartphone-sensors-may-detect-depression-study-says/">
+					<img src="images/fox-logo.jpg" style="border-style: none; border-width: 0px; width: 7%; height: 4%;">
+					</a>
+					<a href="http://news.discovery.com/tech/gear-and-gadgets/depressed-your-phone-already-knows-150715.htm">
+					<img src="images/discovery-logo.jpg" style="border-style: none; border-width: 0px; width: 6%; height: 4%;">
+					</a>
+					<a href="http://www.washingtonpost.com/news/to-your-health/wp/2015/07/16/how-your-cellphone-knows-if-youre-depressed-it-has-to-do-with-how-you-move-through-time-and-space/">
+					<img src="images/washingtonpost-logo.png" style="border-style: none; border-width: 0px; width: 6%; height: 4%;">
+					</a>
+					<a href="http://www.huffingtonpost.com/entry/your-phone-can-tell-if-youre-depressed_55a53e03e4b0b8145f73a97f">
+					<img src="images/huffingtonpost-logo.png" style="border-style: none; border-width: 0px; width: 6%; height: 4%;">
+					</a>
+					<a href="http://www.usnews.com/news/articles/2015/07/15/phones-can-help-detect-if-youre-depressed-study-says">
+					<img src="images/usnews-logo.jpg" style="border-style: none; border-width: 0px; width: 9%; height: 14%;">
+					</a>
+					</p>
+					</li>																																							
+					
+					<li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>Automated Personalized Feedback for Physical Activity and Dietary Behavior Change With Mobile Phones: A Randomized Controlled Trial on Adults</b></font>
+					<br>	
+					Mashfiqui Rabbi, Angela Pfammatter, Mi Zhang, Bonnie Spring, and Tanzeem Choudhury. 
+					<br>
+					<i>Journal of Medical Internet Research</i> (<b>JMIR</b>) <i>mHealth and uHealth</i>, Volume 3, Issue 2, Pages e42, April 2015. 
+					<br>
+					<b>[Impact Factor: 4.7]</b>
+                    <br>
+                    [<a href="http://mhealth.jmir.org/2015/2/e42/"><font color="#1a512b">Link</font></a> | 
+                    <a href="papers/2015_JMIR_MyBehavior.bib"><font color="#1a512b">BibTex</font></a>]
+					<br>
+					<font color="#1a512b"><b>Press Coverage</b>:</font>																				
+					<a href="http://mobihealthnews.com/45795/cornell-researchers-use-personalized-algorithm-in-weight-loss-app/">
+					<img src="images/mobihealthnews-logo.jpg" style="border-style: none; border-width: 0px; width: 14%; height: 5%;">
+					</a>
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>The Relationship between Clinical, Momentary, and Sensor-based Assessment of Depression</b></font>
+					<br>	
+					Sohrob Saeb, Mi Zhang, Mary Kwasney, Christopher J. Karr, Konrad Kording, and David C. Mohr. 
+					<br>
+					<i>International Conference on Pervasive Computing Technologies for Healthcare</i> (<b>PervasiveHealth</b>), Istanbul, Turkey, May 2015.
+                    <br>    
+					<b>[Acceptance Rate: 38%]</b>
+					<br>
+                    [<a href="papers/2015_PervasiveHealth.pdf"><font color="#1a512b">PDF</font></a> | 
+                    <a href="papers/2015_PervasiveHealth.bib"><font color="#1a512b">BibTex</font></a>]
+					</p>
+					</li>	
+					
+					<li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>SAINT: A Scalable Sensing and Inference Toolkit</b></font>
+					<br>	
+					Mashfiqui Rabbi, Thiago Caetano, Jean Costa, Saeed Abdullah, Mi Zhang, and Tanzeem Choudhury.
+					<br>
+					<i>ACM International Workshop on Mobile Computing Systems and Applications</i> (<b>HotMobile</b>), Santa Fe, NM, February 2015. (Poster)
+					</p>
+					</li>	
+					
+					<li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>Eavesdropping on Our Body Using a Wearable Microphone</b></font>
+					<br>	
+					Tauhidur Rahman, Alexander Adams, Mi Zhang, Erin Cherry, and Tanzeem Choudhury. 
+					<br>
+					<i>ACM SIGMOBILE Mobile Computing and Communications Review</i> (<b>GetMobile</b>), Volume 19, Issue 1, Pages 14 - 17, January 2015. 			
+                    <br>    
+                        <b><font color="#1a512b"><i>Invited Paper</i></font></b>
+					<br>
+                    [<a href="papers/2015_GetMobile_BodyBeat.pdf"><font color="#1a512b">PDF</font></a> | 
+                    <a href="papers/2015_GetMobile_BodyBeat.bib"><font color="#1a512b">BibTex</font></a>]
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>Feasibility of B-mode Diagnostic Ultrasonic Energy Transfer and Telemetry to a cm<sup>2</sup> Sized Deep-Tissue Implant</b></font>
+					<br>	
+					Biyi Fang, Tao Feng, Mi Zhang, and Shantanu Chakrabartty.
+					<br>
+					<i>IEEE International Symposium on Circuits and Systems</i> (<b>ISCAS</b>), Lisbon, Portugal, May 2015.
+					<br>
+                    [<a href="papers/2015_ISCAS.pdf"><font color="#1a512b">PDF</font></a> | 
+                    <a href="papers/2015_ISCAS.bib"><font color="#1a512b">BibTex</font></a>]
+					</p>
+					</li>
+					
+					<b><font size="4">2014</font></b>
+					<br>
+					<br>
+					
+					<li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>BodyBeat: A Mobile System for Sensing Non-Speech Body Sounds</b></font>
+					<br>
+					Tauhidur Rahman, Alexander T. Adams, Mi Zhang, Erin Cherry, Bobby Zhou, Huaishu Peng, and Tanzeem Choudhury. 
+					<br>
+					<i>ACM International Conference on Mobile Systems, Applications, and Services</i> (<b>MobiSys</b>), Bretton Woods, NH, June 2014.   
+					<br>
+                    <b>[Acceptance Rate: 13%]</b>
+                    <br>
+                    [<a href="papers/2014_MobiSys_BodyBeat.pdf"><font color="#1a512b">PDF</font></a> | <a href="papers/2014_MobiSys_BodyBeat.bib"><font color="#1a512b">BibTex</font></a>]
+					<br>
+					<font color="#1a512b"><b>Press Coverage</b>:</font>                        
+					<a href="http://www.technologyreview.com/news/528386/wearable-self-tracking-tool-listens-for-yawns-coughs-and-munches/">
+					<!--<img src="images/mit-technology-review-logo.jpg" style="border-style: none; border-width: 0px; width: 6%; height: 5%;">-->
+					<img src="images/mit-tr-logo.png" style="border-style: none; border-width: 0px; width: 10%; height: 5%;">
+					</a>					
+					<a href="http://blogs.wsj.com/digits/2014/07/03/chainsaws-gunshots-and-coughs-our-smartphones-are-listening/">
+					<img src="images/wsj-logo.jpg" style="border-style: none; border-width: 0px; width: 6%; height: 4%;">
+					</a>
+					<a href="http://www.newscientist.com/article/mg22229734.900-listen-to-sounds-inside#.VAZpWPldV8F">
+					<img src="images/newscientist-logo.jpg" style="border-style: none; border-width: 0px; width: 20%; height: 5%;">
+					</a>
+                    </p>
+					</li>
+				
+					<li>
+					<p style="font-size:10pt">
+					<font color="#1a512b"><b>Towards Accurate Non-Intrusive Recollection of Stress Levels Using Mobile Sensing and Contextual Recall</b></font>
+					<br>	
+					Tauhidur Rahman, Mi Zhang, Stephen Voida, and Tanzeem Choudhury. 
+					<br>
+					<i>International Conference on Pervasive Computing Technologies for Healthcare</i> (<b>PervasiveHealth</b>), Oldenburg, Germany, May 2014.    
+                    <br>    
+					<b>[Acceptance Rate: 26%]</b>
+                    <br>
+                    [<a href="papers/2014_PervasiveHealth.pdf"><font color="#1a512b">PDF</font></a> | <a href="papers/2014_PervasiveHealth.bib"><font color="#1a512b">BibTex</font></a>]    
+					</p>
+					</li>
+					
+					<b><font size="4">2013 and Before</font></b>
+					<br>
+					<br>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/mobile-energy-expenditure-asilomar13.pdf"><font color="#1a512b"><b>Towards Practical Energy Expenditure Estimation With Mobile Phones</b></font></a>
+					<br>
+					Harshvardhan Vathsangam, Mi Zhang, Alexander Tarashansky, Alexander A. Sawchuk, and Gaurav S. Sukhatme. 
+					<br>
+					<i>The Annual Asilomar Conference on Signals, Systems, and Computers (ASILOMAR)</i>, 2013. 
+                    <br>    
+                        <b><font color="#1a512b"><i>Invited Paper</i></font></b>
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/sparse-representation-activity-recognition-titb13.pdf"><font color="#1a512b"><b>Human Daily Activity Recognition with Sparse Representation Using Wearable Sensors</b></font></a>
+					<br>
+					Mi Zhang and Alexander A. Sawchuk. 
+					<br>
+					<i>IEEE Journal of Biomedical and Health Informatics (J-BHI), Volume 17, Issue 3, Pages 553 - 560</i>, May 2013. 
+					<br>
+                        <b><font color="#1a512b"><i>Featured Article</i></font></b>
+					</p>
+					</li>
+				
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/usc-had-dataset-ubicomp-sagaware12.pdf"><font color="#1a512b"><b>USC-HAD: A Daily Activity Dataset for Ubiquitous Activity Recognition Using Wearable Sensors</b></font></a>
+					<br>
+					Mi Zhang and Alexander A. Sawchuk. 
+					<br>
+					<i>ACM International Conference on Ubiquitous Computing (UbiComp) Workshop on Situation, Activity and Goal Awareness (SAGAware)</i>, 2012.
+                    <br> 
+                    <b><font color="#1a512b"><i>The USC-HAD Dataset can be downloaded</i></font> <a href="http://sipi.usc.edu/HAD/"><font color="#1a512b"><b>here</b></font></a></b>	
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/mobile-magnetometer-appliance-sensing-ubicomp-ubimi12.pdf"><font color="#1a512b"><b>A Preliminary Study of Sensing Appliance Usage for Human Activity Recognition Using Mobile Magnetometer</b></font></a>
+					<br>
+					Mi Zhang and Alexander A. Sawchuk. 
+					<br>
+					<i>ACM International Conference on Ubiquitous Computing (UbiComp) Workshop on Ubiquitous Mobile Instrumentation (UbiMI)</i>, 2012.
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/sensor-location-recognition-tbme12.pdf"><font color="#1a512b"><b>Robust Human Activity and Sensor Location Co-Recognition via Sparse Signal Representation</b></font></a>
+					<br>
+					Wenyao Xu, Mi Zhang, Alexander A. Sawchuk, and Majid Sarrafzadeh. 
+					<br>
+					<i>IEEE Transactions on Biomedical Engineering (TBME), Volume 59, Issue 11, Pages 3169 - 3176</i>, November 2012.
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/sparse-representation-motion-primitive-activity-recognition-icpr12.pdf"><font color="#1a512b"><b>Sparse Representation for Motion Primitive-Based Human Activity Modeling and Recognition Using Wearable Sensors</b></font></a>
+					<br>	
+					Mi Zhang, Wenyao Xu, Alexander A. Sawchuk, and Majid Sarrafzadeh. 
+					<br>
+					<i>International Conference on Pattern Recognition (ICPR)</i>, 2012. 
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/fine-grained-rehabilitation-embc12.pdf"><font color="#1a512b"><b>Beyond the Standard Clinical Rating Scales: Fine-Grained Assessment of Post-Stroke Motor Functionality Using Wearable Inertial Sensors</b></font></a>
+					<br>
+					Mi Zhang, Belinda Lange, Chien-Yen Chang, Alexander A. Sawchuk, and Albert A. Rizzo. 
+					<br>
+					<i>International Conference of the IEEE Engineering in Medicine and Biology Society (EMBC)</i>, 2012.
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/kinect-rehabilitation-pervasive-health12.pdf"><font color="#1a512b"><b>Towards Pervasive Physical Rehabilitation Using Microsoft Kinect</b></font></a>
+					<br>
+					Chien-Yen Chang, Belinda Lange, Mi Zhang, Sebastian Koenig, Phil Requejo, Noom Somboon, Alexander A. Sawchuk, and Albert A. Rizzo. 
+					<br>
+					<i>International Conference on Pervasive Computing Technologies for Healthcare (PervasiveHealth)</i>, 2012. 
+					<br>
+                    <b>[Acceptance Rate: 30%]</b>
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/sensor-location-recognition-bsn12.pdf"><font color="#1a512b"><b>Co-Recognition of Human Activity and Sensor Location via Compressed Sensing in Wearable Body Sensor Networks</b></font></a>
+					<br>
+					Wenyao Xu, Mi Zhang, Alexander A. Sawchuk, and Majid Sarrafzadeh. 
+					<br>
+					<i>IEEE International Conference on Wearable and Implantable Body Sensor Networks (BSN)</i>, 2012.
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/motion-primitive-activity-recognition-ihi12.pdf"><font color="#1a512b"><b>Motion Primitive-Based Human Activity Recognition Using a Bag-of-Features Approach</b></font></a>
+					<br>
+					Mi Zhang and Alexander A. Sawchuk.
+					<br>					
+					<i>ACM SIGHIT International Health Informatics Symposium (IHI)</i>, 2012. 
+					<br>
+                    <b>[Acceptance Rate: 18%]</b>
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/manifold-activity-recognition-icmla11.pdf"><font color="#1a512b"><b>Manifold Learning and Recognition of Human Activity Using Body-Area Sensors</b></font></a>
+					<br>
+					Mi Zhang and Alexander A. Sawchuk. 
+					<br>
+					<i>IEEE International Conference on Machine Learning and Applications (ICMLA)</i>, 2011. 					
+					<br>
+                    <b>[Acceptance Rate: 27%]</b>
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/feature-selection-activity-recognition-bodynets11.pdf"><font color="#1a512b"><b>A Feature Selection-Based Framework for Human Activity Recognition Using Wearable Multimodal Sensors</b></font></a>
+					<br>
+					Mi Zhang and Alexander A. Sawchuk. 
+					<br>
+					<i>International Conference on Body Area Networks (BodyNets)</i>, 2011.
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href=""><font color="#1a512b"><b>A Fine-Grained Analysis of Post-Stroke Motor Function Using Wearable Motion Sensors</b></font></a>
+					<br>
+					Mi Zhang, Belinda Lange, Chien-Yen Chang, and Alexander A. Sawchuk. 
+					<br>
+					<i>AMA-IEEE EMBS Medical Technology Conference (MedTech)</i>, Boston, Massachusetts, USA, October 2011. (Poster)
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/motion-primitive-activity-recognition-ubicomp-sagaware11.pdf"><font color="#1a512b"><b>A Bag-Of-Feature-Based Framework for Human Activity Representation and Recognition</b></font></a>
+					<br>
+					Mi Zhang and Alexander A. Sawchuk. 
+					<br>
+					<i>ACM International Conference on Ubiquitous Computing (UbiComp) Workshop on Situation, Activity and Goal Awareness (SAGAware)</i>, 2011.
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/context-fall-detection-ubicomp-casemans11.pdf"><font color="#1a512b"><b>Context-Aware Fall Detection Using A Bayesian Network</b></font></a>
+					<br>
+					Mi Zhang and Alexander A. Sawchuk. 
+					<br>
+					<i>ACM International Conference on Ubiquitous Computing (UbiComp) Workshop on Context-Awareness for Self-Managing Systems (CASEMANS)</i>, 2011.
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/context-privacy-bsn-w3c09.pdf"><font color="#1a512b"><b>Towards Supporting Contextual Privacy in Body Sensor Networks for Health Monitoring Service</b></font></a>
+					<br>
+					Fuming Shih and Mi Zhang. 
+					<br>
+					<i>W3C Workshop on Privacy and Data Usage Control</i>, 2010.
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/ocrdroid-mobicase09.pdf"><font color="#1a512b"><b>OCRdroid: A Framework to Digitize Text Using Mobile Phones</b></font></a>
+					<br>
+					Mi Zhang, Anand Joshi, Ritesh Kadmawala, Karthik Dantu, Sameera Poduri, and Gaurav S. Sukhatme. 
+					<br>
+					<i>International Conference on Mobile Computing, Applications and Services (MobiCASE)</i>, 2009.
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/rehabilitation-bsn-isabel09.pdf"><font color="#1a512b"><b>A Customizable Framework of Body Area Sensor Network for Rehabilitation</b></font></a>
+					<br>
+					Mi Zhang and Alexander A. Sawchuk. 
+					<br>
+					<i>International Symposium on Applied Sciences in Biomedical and Communication Technologies (ISABEL)</i>, 2009.
+					</p>
+					</li>
+					
+					<li>
+					<p style="font-size:10pt">
+					<a href="papers/mdp-bsn-icics09.pdf"><font color="#1a512b"><b>Evaluation of Learning Algorithms for Optimal Policy Representation in Sensor-Network based Human Health Monitoring Systems</b></font></a>
+					<br>
+					Shuping Liu and Mi Zhang. 
+					<br>
+					<i>International Conference on Information, Communications and Signal Processing (ICICS)</i>, 2009.
+					</p>
+					</li>
+				
+				</ul>
+        <!--
+        	<h4>2016</h4>
+        	<ul class="timeline">
+        		<li class="pub_type_conference">
+        			<div class="timeline-badge timeline-badge-conference"> 
+        			<p>C</p>
+        			</div>
+        			<div class="timeline-panel pub_entry">
+        			<ul>
+        				<span class="publicationTitle">HeadScan: A Wearable System for Radio-based Sensing of Head and Mouth-related Activities</span>
+        				<br>
+        				<span class="author author-Biyi Fang">Biyi Fang, </span>
+        				<span class="author author-Nicholas D. Lane">Nicholas D. Lane, </span>
+        				<span class="author author-Mi Zhang">Mi Zhang, </span>
+        				<span class="author author-Fahim Kawsar">and Fahim Kawsar</span>
+        				<br>
+        				<span>ACM/IEEE International Conference on Information Processing in Sensor Networks  </span>
+        				<span class="venue venue-(IPSN)">(IPSN) </span>
+        				<br><span> Vienna, Austria, April 2016. </span>
+        				<span class="specialTag">Acceptance Rate: 19.7%</span>
+        			</ul>
+        			</div>
+        		</li>
+        		<br>
+        		<li class="pub_type_workshop"><div class="timeline-badge timeline-badge-workshop"> <p>W</p>
+        		</div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Towards Radio-based Activity Sensing on Wearables</span><br><span class="author author-Biyi Fang">Biyi Fang, </span><span class="author author-Nicholas D. Lane">Nicholas D. Lane, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Fahim Kawsar">and Fahim Kawsar</span><br><span>ACM International Workshop on Mobile Computing Systems and Applications  </span><span class="venue venue-(HotMobile)">(HotMobile) </span><br><span> St. Augustine, FL, February 2016. (Poster) </span></ul></div></li><br></ul><h4>2015</h4><ul class="timeline"><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">MyBehavior: Automatic Personalized Health Feedback from User Behavior and Preference using Smartphones</span><br><span class="author author-Mashfiqui Rabbi">Mashfiqui Rabbi, </span><span class="author author-Min Hane Aung">Min Hane Aung, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Tanzeem Choudhury">and Tanzeem Choudhury</span><br><span>ACM International Joint Conference on Pervasive and Ubiquitous Computing  </span><span class="venue venue-(UbiComp)">(UbiComp) </span><br><span> Osaka, Japan, September 2015. </span><span class="specialTag">Acceptance Rate: 23%</span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">DoppleSleep: A Contactless Unobtrusive Sleep Sensing System Using Short-Range Doppler Radar</span><br><span class="author author-Tauhidur Rahman">Tauhidur Rahman, </span><span class="author author-Alexander Adams">Alexander Adams, </span><span class="author author-Ruth Ravichandran">Ruth Ravichandran, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Shwetak Patel">Shwetak Patel, </span><span class="author author-Julie Kientz">Julie Kientz, </span><span class="author author-Tanzeem Choudhury">and Tanzeem Choudhury</span><br><span>ACM International Joint Conference on Pervasive and Ubiquitous Computing  </span><span class="venue venue-(UbiComp)">(UbiComp) </span><br><span> Osaka, Japan, September 2015. </span><span class="specialTag">Acceptance Rate: 23%, Best Paper Nominee (Top 5%)</span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">An Intelligent Crowd-Worker Selection Approach for Reliable Content Labeling of Food Images</span><br><span class="author author-Mashfiqui Rabbi">Mashfiqui Rabbi, </span><span class="author author-Jean Costa">Jean Costa, </span><span class="author author-Fabian Okeke">Fabian Okeke, </span><span class="author author-Max Schachere, Mi Zhang">Max Schachere, Mi Zhang, </span><span class="author author-Tanzeem Choudhury">and Tanzeem Choudhury</span><br><span>ACM Wireless Health Conference </span><span class="venue venue-(Wireless Health)">(Wireless Health) </span><br><span> (Wireless Health), Bethesda, MD, October 2015. </span><span class="specialTag">Acceptance Rate: 26%</span></ul></div></li><br><li class="pub_type_journal"><div class="timeline-badge timeline-badge-journal"> <p>J</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Mobile Phone Sensor Correlates of Depressive Symptom Severity in Daily-Life Behavior: An Exploratory Study</span><br><span class="author author-Sohrob Saeb">Sohrob Saeb, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Christopher J. Karr">Christopher J. Karr, </span><span class="author author-Stephen M. Schueller">Stephen M. Schueller, </span><span class="author author-Marya E. Corden">Marya E. Corden, </span><span class="author author-Konrad P. Kording">Konrad P. Kording, </span><span class="author author-David C. Mohr">and David C. Mohr</span><br><span>Journal of Medical Internet Research  </span><span class="venue venue-(JMIR)">(JMIR) </span><br><span> Volume 17, Issue 7, Pages e175, July 2015. </span><span class="specialTag">Impact Factor: 4.7</span></ul></div></li><br><li class="pub_type_journal"><div class="timeline-badge timeline-badge-journal"> <p>J</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Automated Personalized Feedback for Physical Activity and Dietary Behavior Change With Mobile Phones: A Randomized Controlled Trial on Adults</span><br><span class="author author-Mashfiqui Rabbi">Mashfiqui Rabbi, </span><span class="author author-Angela Pfammatter">Angela Pfammatter, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Bonnie Spring">Bonnie Spring, </span><span class="author author-Tanzeem Choudhury">and Tanzeem Choudhury</span><br><span>Journal of Medical Internet Research  </span><span class="venue venue-(JMIR)">(JMIR) </span><br><span>  mHealth and uHealth, Volume 3, Issue 2, Pages e42, April 2015. </span><span class="specialTag">Impact Factor: 4.7</span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">The Relationship between Clinical, Momentary, and Sensor-based Assessment of Depression</span><br><span class="author author-Sohrob Saeb">Sohrob Saeb, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Mary Kwasney">Mary Kwasney, </span><span class="author author-Christopher J. Karr">Christopher J. Karr, </span><span class="author author-Konrad Kording">Konrad Kording, </span><span class="author author-David C. Mohr">and David C. Mohr</span><br><span>International Conference on Pervasive Computing Technologies for Healthcare  </span><span class="venue venue-(PervasiveHealth)">(PervasiveHealth) </span><br><span> Istanbul, Turkey, May 2015. </span><span class="specialTag">Acceptance Rate: 38%</span></ul></div></li><br><li class="pub_type_workshop"><div class="timeline-badge timeline-badge-workshop"> <p>W</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">SAINT: A Scalable Sensing and Inference Toolkit</span><br><span class="author author-Mashfiqui Rabbi">Mashfiqui Rabbi, </span><span class="author author-Thiago Caetano">Thiago Caetano, </span><span class="author author-Jean Costa">Jean Costa, </span><span class="author author-Saeed Abdullah, Mi Zhang">Saeed Abdullah, Mi Zhang, </span><span class="author author-Tanzeem Choudhury">and Tanzeem Choudhury</span><br><span>ACM International Workshop on Mobile Computing Systems and Applications  </span><span class="venue venue-(HotMobile)">(HotMobile) </span><br><span> Santa Fe, NM, February 2015. (Poster) </span></ul></div></li><br><li class="pub_type_journal"><div class="timeline-badge timeline-badge-journal"> <p>J</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Eavesdropping on Our Body Using a Wearable Microphone</span><br><span class="author author-Tauhidur Rahman">Tauhidur Rahman, </span><span class="author author-Alexander Adams">Alexander Adams, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Erin Cherry">Erin Cherry, </span><span class="author author-Tanzeem Choudhury">and Tanzeem Choudhury</span><br><span>ACM SIGMOBILE Mobile Computing and Communications Review  </span><span class="venue venue-(GetMobile)">(GetMobile) </span><br><span> Volume 19, Issue 1, Pages 14 - 17, January 2015. </span><span class="specialTag">Invited Paper</span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Feasibility of B-mode Diagnostic Ultrasonic Energy Transfer and Telemetry to a cm2 Sized Deep-Tissue Implant</span><br><span class="author author-Biyi Fang">Biyi Fang, </span><span class="author author-Tao Feng">Tao Feng, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Shantanu Chakrabartty">and Shantanu Chakrabartty</span><br><span>IEEE International Symposium on Circuits and Systems  </span><span class="venue venue-(ISCAS)">(ISCAS) </span><br><span> Lisbon, Portugal, May 2015. </span></ul></div></li><br></ul><h4>2014</h4><ul class="timeline"><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">BodyBeat: A Mobile System for Sensing Non-Speech Body Sounds</span><br><span class="author author-Tauhidur Rahman">Tauhidur Rahman, </span><span class="author author-Alexander T. Adams">Alexander T. Adams, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Erin Cherry, Bobby Zhou">Erin Cherry, Bobby Zhou, </span><span class="author author-Huaishu Peng">Huaishu Peng, </span><span class="author author-Tanzeem Choudhury">and Tanzeem Choudhury</span><br><span>ACM International Conference on Mobile Systems, Applications, and Services  </span><span class="venue venue-(MobiSys)">(MobiSys) </span><br><span> , Bretton Woods, NH, June 2014. </span><span class="specialTag">Acceptance Rate: 13%</span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Towards Accurate Non-Intrusive Recollection of Stress Levels Using Mobile Sensing and Contextual Recall</span><br><span class="author author-Tauhidur Rahman">Tauhidur Rahman, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Stephen Voida">Stephen Voida, </span><span class="author author-Tanzeem Choudhury">and Tanzeem Choudhury</span><br><span>International Conference on Pervasive Computing Technologies for Healthcare  </span><span class="venue venue-(PervasiveHealth)">(PervasiveHealth) </span><br><span> Oldenburg, Germany, May 2014. </span><span class="specialTag">Acceptance Rate: 26%</span></ul></div></li><br></ul><h4>2013</h4><ul class="timeline"><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Towards Practical Energy Expenditure Estimation With Mobile Phones</span><br><span class="author author-Harshvardhan Vathsangam">Harshvardhan Vathsangam, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Alexander Tarashansky">Alexander Tarashansky, </span><span class="author author-Alexander A. Sawchuk">Alexander A. Sawchuk, </span><span class="author author-Gaurav S. Sukhatme">and Gaurav S. Sukhatme</span><br><span>The Annual Asilomar Conference on Signals, Systems, and Computers  </span><span class="venue venue-(ASILOMAR)">(ASILOMAR) </span><br><span> , 2013. </span><span class="specialTag">Invited Paper</span></ul></div></li><br><li class="pub_type_journal"><div class="timeline-badge timeline-badge-journal"> <p>J</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Human Daily Activity Recognition with Sparse Representation Using Wearable Sensors</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Alexer A. Sawchuk">and Alexer A. Sawchuk</span><br><span>IEEE Journal of Biomedical and Health Informatics  </span><span class="venue venue-(J-BHI)">(J-BHI) </span><br><span> Volume 17, Issue 3, Pages 553 - 560, May 2013. </span><span class="specialTag">Featured Article</span></ul></div></li><br></ul><h4>2012</h4><ul class="timeline"><li class="pub_type_workshop"><div class="timeline-badge timeline-badge-workshop"> <p>W</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">USC-HAD: A Daily Activity Dataset for Ubiquitous Activity Recognition Using Wearable Sensors</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Alexer A. Sawchuk">and Alexer A. Sawchuk</span><br><span>ACM International Conference on Ubiquitous Computing  </span><span class="venue venue-(UbiComp)">(UbiComp) </span><br><span>  Workshop on Situation, Activity and Goal Awareness (SAGAware), 2012. </span><span class="specialTag">The USC-HAD Dataset can be downloadedhere</span></ul></div></li><br><li class="pub_type_workshop"><div class="timeline-badge timeline-badge-workshop"> <p>W</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">A Preliminary Study of Sensing Appliance Usage for Human Activity Recognition Using Mobile Magnetometer</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Alexer A. Sawchuk">and Alexer A. Sawchuk</span><br><span>ACM International Conference on Ubiquitous Computing  </span><span class="venue venue-(UbiComp)">(UbiComp) </span><br><span>  Workshop on Ubiquitous Mobile Instrumentation (UbiMI), 2012. </span></ul></div></li><br><li class="pub_type_journal"><div class="timeline-badge timeline-badge-journal"> <p>J</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Robust Human Activity and Sensor Location Co-Recognition via Sparse Signal Representation</span><br><span class="author author-Wenyao Xu">Wenyao Xu, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Alexander A. Sawchuk">Alexander A. Sawchuk, </span><span class="author author-Majid Sarrafzadeh">and Majid Sarrafzadeh</span><br><span>IEEE Transactions on Biomedical Engineering  </span><span class="venue venue-(TBME)">(TBME) </span><br><span> Volume 59, Issue 11, Pages 3169 - 3176, November 2012. </span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Sparse Representation for Motion Primitive-Based Human Activity Modeling and Recognition Using Wearable Sensors</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Wenyao Xu">Wenyao Xu, </span><span class="author author-Alexander A. Sawchuk">Alexander A. Sawchuk, </span><span class="author author-Majid Sarrafzadeh">and Majid Sarrafzadeh</span><br><span>International Conference on Pattern Recognition  </span><span class="venue venue-(ICPR)">(ICPR) </span><br><span> 2012. </span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Beyond the Standard Clinical Rating Scales: Fine-Grained Assessment of Post-Stroke Motor Functionality Using Wearable Inertial Sensors</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Belinda Lange">Belinda Lange, </span><span class="author author-Chien-Yen Chang">Chien-Yen Chang, </span><span class="author author-Alexander A. Sawchuk">Alexander A. Sawchuk, </span><span class="author author-Albert A. Rizzo">and Albert A. Rizzo</span><br><span>International Conference of the IEEE Engineering in Medicine and Biology Society  </span><span class="venue venue-(EMBC)">(EMBC) </span><br><span> 2012. </span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Towards Pervasive Physical Rehabilitation Using Microsoft Kinect</span><br><span class="author author-Chien-Yen Chang">Chien-Yen Chang, </span><span class="author author-Belinda Lange">Belinda Lange, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Sebastian Koenig">Sebastian Koenig, </span><span class="author author-Phil Requejo">Phil Requejo, </span><span class="author author-Noom Somboon">Noom Somboon, </span><span class="author author-Alexander A. Sawchuk">Alexander A. Sawchuk, </span><span class="author author-Albert A. Rizzo">and Albert A. Rizzo</span><br><span>International Conference on Pervasive Computing Technologies for Healthcare  </span><span class="venue venue-(PervasiveHealth)">(PervasiveHealth) </span><br><span> 2012. </span><span class="specialTag">Acceptance Rate: 30%</span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Co-Recognition of Human Activity and Sensor Location via Compressed Sensing in Wearable Body Sensor Networks</span><br><span class="author author-Wenyao Xu">Wenyao Xu, </span><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Alexander A. Sawchuk">Alexander A. Sawchuk, </span><span class="author author-Majid Sarrafzadeh">and Majid Sarrafzadeh</span><br><span>IEEE International Conference on Wearable and Implantable Body Sensor Networks  </span><span class="venue venue-(BSN)">(BSN) </span><br><span> 2012. </span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Motion Primitive-Based Human Activity Recognition Using a Bag-of-Features Approach</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Alexer A. Sawchuk">and Alexer A. Sawchuk</span><br><span>ACM SIGHIT International Health Informatics Symposium  </span><span class="venue venue-(IHI)">(IHI) </span><br><span> 2012. </span><span class="specialTag">Acceptance Rate: 18%</span></ul></div></li><br></ul><h4>2012</h4><ul class="timeline"><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Manifold Learning and Recognition of Human Activity Using Body-Area Sensors</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Alexer A. Sawchuk">and Alexer A. Sawchuk</span><br><span>IEEE International Conference on Machine Learning and Applications  </span><span class="venue venue-(ICMLA)">(ICMLA) </span><br><span> 2011. </span><span class="specialTag">Acceptance Rate: 27%</span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">A Feature Selection-Based Framework for Human Activity Recognition Using Wearable Multimodal Sensors</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Alexer A. Sawchuk">and Alexer A. Sawchuk</span><br><span>International Conference on Body Area Networks  </span><span class="venue venue-(BodyNets)">(BodyNets) </span><br><span> 2011. </span></ul></div></li><br><li class="pub_type_poster"><div class="timeline-badge timeline-badge-poster"> <p>P</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">A Fine-Grained Analysis of Post-Stroke Motor Function Using Wearable Motion Sensors</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Belinda Lange">Belinda Lange, </span><span class="author author-Chien-Yen Chang">Chien-Yen Chang, </span><span class="author author-Alexer A. Sawchuk">and Alexer A. Sawchuk</span><br><span>AMA-IEEE EMBS Medical Technology Conference  </span><span class="venue venue-(MedTech)">(MedTech) </span><br><span> , Boston, Massachusetts, USA, October 2011. (Poster) </span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">A Bag-Of-Feature-Based Framework for Human Activity Representation and Recognition</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Alexer A. Sawchuk">and Alexer A. Sawchuk</span><br><span>ACM International Conference on Ubiquitous Computing  </span><span class="venue venue-(UbiComp)">(UbiComp) </span><br><span>  Workshop on Situation, Activity and Goal Awareness (SAGAware), 2011. </span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Context-Aware Fall Detection Using A Bayesian Network</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Alexer A. Sawchuk">and Alexer A. Sawchuk</span><br><span>ACM International Conference on Ubiquitous Computing  </span><span class="venue venue-(UbiComp)">(UbiComp) </span><br><span>  Workshop on Context-Awareness for Self-Managing Systems (CASEMANS), 2011. </span></ul></div></li><br></ul><h4>2012</h4><ul class="timeline"><li class="pub_type_workshop"><div class="timeline-badge timeline-badge-workshop"> <p>W</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Towards Supporting Contextual Privacy in Body Sensor Networks for Health Monitoring Service</span><br><span class="author author-Fuming Shih">Fuming Shih, </span><span class="author author-Mi Zhang">and Mi Zhang</span><br><span>W3C Workshop on Privacy and Data Usage Control </span><span class="venue venue-null"> </span><br><span> 2010 </span></ul></div></li><br></ul><h4>2012</h4><ul class="timeline"><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">OCRdroid: A Framework to Digitize Text Using Mobile Phones</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Anand Joshi">Anand Joshi, </span><span class="author author-Ritesh Kadmawala">Ritesh Kadmawala, </span><span class="author author-Karthik Dantu">Karthik Dantu, </span><span class="author author-Sameera Poduri">Sameera Poduri, </span><span class="author author-Gaurav S. Sukhatme">and Gaurav S. Sukhatme</span><br><span>International Conference on Mobile Computing, Applications and Services  </span><span class="venue venue-(MobiCASE)">(MobiCASE) </span><br><span> , 2009. </span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">A Customizable Framework of Body Area Sensor Network for Rehabilitation</span><br><span class="author author-Mi Zhang">Mi Zhang, </span><span class="author author-Alexer A. Sawchuk">and Alexer A. Sawchuk</span><br><span>International Symposium on Applied Sciences in Biomedical and Communication Technologies  </span><span class="venue venue-(ISABEL)">(ISABEL) </span><br><span> 2009. </span></ul></div></li><br><li class="pub_type_conference"><div class="timeline-badge timeline-badge-conference"> <p>C</p></div><div class="timeline-panel pub_entry"><ul><span class="publicationTitle">Evaluation of Learning Algorithms for Optimal Policy Representation in Sensor-Network based Human Health Monitoring Systems</span><br><span class="author author-Shuping Liu">Shuping Liu, </span><span class="author author-Mi Zhang">and Mi Zhang</span><br><span>International Conference </span><span class="venue venue-null"> </span><br><span>  </span></ul></div></li><br>
+        </ul>
+        -->
+
+        </section>
+        <hr/>
+        
+        
+        <section id="professional"> 
+        	<h1> Professional Activities </h1>
+        	<ul>	
+				<li>Demo Chair, <a href="http://conferences.computer.org/IoTDI/">ACM/IEEE International Conference on Internet of Things Design and Implementation (IoTDI), 2017</a></li>
+				<li>Student Scholarship Chair, <a href="https://www.sigmobile.org/mobisys/2017/">ACM International Conference on Mobile Systems, Applications, and Services (MobiSys), 2017</a></li>	
+				<li>Demo Co-Chair, <a href="http://ipsn.acm.org/2017/">ACM/IEEE International Conference on Information Processing in Sensor Networks (IPSN), 2017</a></li>
+				<li>Demo Co-Chair, <a href="http://mobicase.org/2016/show/home">International Conference on Mobile Computing, Applications and Services (MobiCASE), 2016</a></li>
+				<li>Program Co-Chair, <a href="http://mwdhealth2016.weebly.com/">International Workshop on Mining Wearable Data for Healthcare, 2016</a></li>
+			</ul>
+        </section>
+        
+        <hr />
+        
+        <div id="footer">
+		<div class="left">
+			<a href="http://www.msu.edu">
+					<img alt="MSU Logo" src="images/msu-wordmark-black-266x57.png" style="border-style: none; border-width: 0; width:25%; height: 40%;" /></a> 	      
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<a href="http://www.egr.msu.edu">
+					<img alt="MSU Engr Logo" src="images/egr_logo.png" style="border-style: none; border-width: 0px; width: 15%; height: 25%;"/></a>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		  
+			<a href="http://trifecta.msu.edu">  
+					<img alt="TRIFECTA Logo" src="images/trifecta-logo-new.png" style="border-style: none; border-width: 0; width:30%; height:60%;"/></a>
+			</div>
+			
+		<div class="right">		
+		<div align="center" style="margin-top: 35px; margin-bottom: 25px;">
+	&copy; <a href="#">Mi Zhang</a>. All rights reserved.
+	</div>
+		
+		</div>
+	</div>
+        
+    </div>
+</body>
+
+
+<script type="text/javascript" src="js/jquery.min.js"></script>   
+<script type="text/javascript" src="js/jquery-migrate-1.2.1.min.js"></script>   
+<script type="text/javascript" src="js/jquery.flexslider.js"></script>
+<script type="text/javascript" src="js/jquery.fittext.js"></script>
+<script type="text/javascript" src="js/backstretch.js"></script> 
+<script type="text/javascript" src="js/waypoints.js"></script>  
+
+<script>
+$(document).ready(function () {
+	/*----------------------------------------------------*/
+	/* Make navbar static when scrolling down page
+	------------------------------------------------------*/
+	var navDocked = 200;
+    $(window).bind('scroll', function () {
+        var vPos = $(window).scrollTop();
+        var totalH = $('#stickyNav-container').offset().top;
+        var finalSize = totalH - vPos;
+
+        console.log(finalSize);
+
+        if (finalSize <= 0) {
+            $('#stickyNav').css({
+                'position': 'fixed',
+                'opacity': '1.0',
+                    'top': 0
+            })
+            navDocked = 100;
+        } else {
+            $('#stickyNav').css({
+                'position': 'static',
+                'opacity': '1.0'
+            })
+            navDocked = 200;
+        }
+    });
+    
+    /*----------------------------------------------------*/
+	/* Adjust Primary Navigation Background Opacity
+	------------------------------------------------------*/
+   $(window).on('scroll', function() {
+
+		var h = $('header').height();
+		var y = $(window).scrollTop();
+      var header = $('#main-header');
+
+	   if ((y > h + 30 ) && ($(window).outerWidth() > 768 ) ) {
+	      header.addClass('opaque');
+	   }
+      else {
+         if (y < h + 30) {
+            header.removeClass('opaque');
+         }
+         else {
+            header.addClass('opaque');
+         }
+      }
+
+	});
+	
+	
+
+	/*-----------------------------------------------------*/
+  	/* Back to top
+   ------------------------------------------------------ */ 
+	var pxShow = 300; // height on which the button will show
+	var fadeInTime = 400; // how slow/fast you want the button to show
+	var fadeOutTime = 400; // how slow/fast you want the button to hide
+	var scrollSpeed = 300; // how slow/fast you want the button to scroll to top. can be a value, 'slow', 'normal' or 'fast'
+
+   // Show or hide the sticky footer button
+	jQuery(window).scroll(function() {
+
+		if (jQuery(window).scrollTop() >= pxShow) {
+			jQuery("#go-top").fadeIn(fadeInTime);
+		} else {
+			jQuery("#go-top").fadeOut(fadeOutTime);
+		}
+
+	}); 
+  	/*----------------------------------------------------*/
+  	/* Smooth Scrolling
+  	------------------------------------------------------ */
+  	$('.smoothscroll').on('click', function (e) {
+	 	
+	 	$(this).parent().siblings().removeClass("current");
+	 	$(this).parent().addClass("current");
+	 	
+	 	e.preventDefault();
+
+   		var target = this.hash,
+    	$target = $(target);
+		console.log($target.offset().top);
+    	$('html, body').stop().animate({
+       	'scrollTop': (parseInt($target.offset().top)-navDocked)
+      }, 800, 'swing', function () {
+      	//window.location.hash = target;
+      });
+
+  	});
+
+
+  	/*----------------------------------------------------*/
+  	/* Highlight the current section in the navigation bar
+  	------------------------------------------------------*/
+	var sections = $("section"),
+	navigation_links = $("#nav-wrap a");
+
+	if($("body").hasClass('homepage')) {
+
+		sections.waypoint( {
+
+	      handler: function(event, direction) {
+
+			   var active_section;
+
+				active_section = $(this);
+				if (direction === "up") active_section = active_section.prev();
+
+				var active_link = $('#nav-wrap a[href="#' + active_section.attr("id") + '"]');
+
+	         navigation_links.parent().removeClass("current");
+				active_link.parent().addClass("current");
+
+			},
+			offset: '25%'
+		});
+
+	}
+});
+</script>
+
+</html>
+
