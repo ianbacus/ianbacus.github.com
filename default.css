@@ -12,6 +12,22 @@ background: none repeat scroll 0 0 #f2f2f2;
 padding: 35px 0px 35px 0px;
 }
 
+.pubEntry
+{
+
+}
+
+.highlight1
+{
+	display:inline;
+}
+
+
+.pubTitle, .pubTitle a
+{
+	font-weight:bold;
+	color:black;
+}
 body,input
 {
 font-size: 11pt;
