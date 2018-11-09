@@ -870,6 +870,7 @@ class Controller
         {
             c_this.View.DeleteSelectRectangle();
             c_this.SelectingGroup = false;
+            c_this.Model.SelectedNotes.sort(m_this.CompareNotes);
         }
 
         else
@@ -882,9 +883,10 @@ class Controller
 			//Play notes and handle move completion
             if(playbackMode == 0)
             {
+                //Reverse iterate to allow deselection, reverse shift into playback buffer
                 c_this.ModifyNoteArray(c_this.Model.SelectedNotes, function(note)
                 {
-                    playbackBuffer.push(note);
+                    playbackBuffer.unshift(note);
                     note.IsSelected = false;
                     note.OnMoveComplete(sequenceNumber);
                 }, false);
