@@ -605,7 +605,6 @@ class Controller
         var delta = 0;
         var xOffset = c_this.View.ConvertTicksToXIndex(currentNote.StartTimeTicks);
 
-
         if(nextNoteIndex < playbackNoteArray.length)
         {
             var nextNote = playbackNoteArray[nextNoteIndex];
@@ -613,6 +612,7 @@ class Controller
             delta = relativeDelta*c_this.MillisecondsPerTick;
 
             c_this.NoteIndex = nextNoteIndex;
+			console.log("Play callback", currentNote, delta)
 
             //Time correction code
             if(c_this.ExpectedTime == undefined)
@@ -624,8 +624,10 @@ class Controller
                 var elapsedTime = Date.now() - c_this.ExpectedTime;
                 c_this.ExpectedTime += delta;
                 delta = Math.max(0, delta - elapsedTime);
+				console.log("Delta subbed elapsedTime", delta, elapsedTime)
             }
-
+	
+			
             c_this.PendingTimeout = setTimeout(c_this.OnPlayAllNotes, delta);
         }
         else
@@ -638,6 +640,12 @@ class Controller
     {
         c_this.NoteIndex = 0;
         c_this.StopPlayingNotes();
+		
+		noteArray.some(function(note)
+		{
+			console.log("Play all", note);
+		});
+		
         if(noteArray.length > 0)
         {
             c_this.PlaybackNoteArray = noteArray
@@ -794,12 +802,18 @@ class Controller
 			//If no selection rectangle is being drawn, move all selected notes
 			else if(selectCount > 0)
 			{
-				var x_offset = c_this.View.ConvertXIndexToTicks(c_this.CursorPosition.x) - c_this.View.ConvertXIndexToTicks(c_this.LastCursorPosition.x);
-				var y_offset = c_this.View.ConvertYIndexToPitch(c_this.CursorPosition.y) - c_this.View.ConvertYIndexToPitch(c_this.LastCursorPosition.y);
+				var x_offset = 
+					c_this.View.ConvertXIndexToTicks(c_this.CursorPosition.x) - 
+					c_this.View.ConvertXIndexToTicks(c_this.LastCursorPosition.x);
+					
+				var y_offset = 
+					c_this.View.ConvertYIndexToPitch(c_this.CursorPosition.y) - 
+					c_this.View.ConvertYIndexToPitch(c_this.LastCursorPosition.y);
 
 				c_this.ModifyNoteArray(c_this.Model.SelectedNotes, function(note){
 					note.Move(x_offset, y_offset);
 				});
+
 				c_this.Model.SortScoreByTicks();
 				c_this.RefreshEditBoxNotes()
 			}
@@ -833,13 +847,14 @@ class Controller
 
     OnMouseClickDown(event)
     {
+		event.preventDefault();
         if(c_this.EditorMode == editModeEnumeration.SELECT)
         {
             var selectCount = c_this.CountSelectedNotes();
             var clickedNoteIndex = c_this.GetNoteIfClicked();
             var score = c_this.Model.Score;
 
-            //If a note is clicked, play it
+            //If a note is clicked, select it 
             if((0 <= clickedNoteIndex) && (clickedNoteIndex < score.length))
             {
                 score[clickedNoteIndex].IsSelected = true;
@@ -877,12 +892,17 @@ class Controller
     OnMouseClickUp(event)
     {
         event.preventDefault();
+		
         c_this.StopPlayingNotes();
+		var selectedNotes = c_this.Model.SelectedNotes;
+		
+		//Re-sort the score to account for notes being repositioned
         if(c_this.SelectingGroup === true)
         {
             c_this.View.DeleteSelectRectangle();
             c_this.SelectingGroup = false;
-            c_this.Model.SelectedNotes.sort(m_this.CompareNotes);
+			selectedNotes.sort(m_this.CompareNotes);
+            c_this.Model.Score.sort(m_this.CompareNotes);
         }
 
         else
@@ -892,33 +912,36 @@ class Controller
             var playbackMode = c_this.GetPlaybackMode();
             var sequenceNumber = sequenceNumber = c_this.GetNextSequenceNumber();
 
-			//Play notes and handle move completion
+			//Play a single note
             if(playbackMode == 0)
             {
+				//console.log("Single case");
                 //Reverse iterate to allow deselection, reverse shift into playback buffer
-                c_this.ModifyNoteArray(c_this.Model.SelectedNotes, function(note)
+                c_this.ModifyNoteArray(selectedNotes, function(note)
                 {
-                    playbackBuffer.unshift(note);
+					c_this.Model.AddNote(note, 0, playbackBuffer, false);
+					// playbackBuffer.some(function(note2)
+					// {
+						// console.log(note2)
+					// });
+					// console.log("IT");
                     note.IsSelected = false;
                     note.OnMoveComplete(sequenceNumber);
                 }, false);
+				
+				
             }
 
 			//Play all intersecting chords and handle move completion
             else if(selectCount > 0)
             {
-                //Push all selected notes to the playback buffer
-                c_this.ModifyNoteArray(c_this.Model.SelectedNotes, function(note)
-                {
-                    playbackBuffer.push(note);
-                });
+				//console.log("Double case");
+                const selectedBufferEndIndex = selectedNotes.length-1;
 
-                var startTickBoundary = playbackBuffer[0].StartTimeTicks;
-                var playbackBufferEndIndex = playbackBuffer.length-1;
-
-                var endTickBoundary =
-                    playbackBuffer[playbackBufferEndIndex].StartTimeTicks +
-                    playbackBuffer[playbackBufferEndIndex].Duration;
+                const startTickBoundary = selectedNotes[0].StartTimeTicks;
+                const endTickBoundary =
+                    selectedNotes[selectedBufferEndIndex].StartTimeTicks +
+                    selectedNotes[selectedBufferEndIndex].Duration;
 
                 //Find all notes in the score that intersect with the selected notes
                 c_this.ModifyNoteArray(c_this.Model.Score, function(note)
@@ -929,22 +952,23 @@ class Controller
 
                     if(!note.IsSelected && intersectsSelectedNote)
                     {
-                        playbackBuffer.push(note);
+						c_this.Model.AddNote(note, 0, playbackBuffer, false);
                     }
                 });
 
-                //Place all selected notes
+                //Push all selected notes to the playback buffer, unselect them to place them and handle 
+				//move completion 
                 c_this.ModifyNoteArray(
-                    c_this.Model.SelectedNotes,
+                    selectedNotes,
                     function(note)
                     {
+						c_this.Model.AddNote(note, 0, playbackBuffer, false);
                         note.IsSelected = false;
                         note.OnMoveComplete(sequenceNumber);
                     }, false);
-
-                //Sort the playback buffer
-                playbackBuffer.sort(m_this.CompareNotes);
+					
             }
+			
             if(playbackMode == 1)
             {
                 c_this.PlayNotes(playbackBuffer,false);
@@ -956,7 +980,6 @@ class Controller
         }
 
         c_this.CreateUniqueEditNote();
-
         c_this.RefreshGridPreview();
 
     } //end OnMouseClickUp

@@ -276,7 +276,16 @@ class Model
     InsertSorted(array, note)
     {
 		var index = m_this.BinarySearch(array, note, m_this.CompareNotes);
+		// if(array !== m_this.Score)
+		// {
+			// array.some(function(note2)
+			// {
+				// console.log(note2);
+			// })
+			// console.log("binary search says ", note, " goes at index ", index)
+		// }
         array.splice( index, 0, note );
+		array.sort(m_this.CompareNotes);
     }
 
     SortScoreByTicks()
@@ -335,24 +344,47 @@ class Model
         // var returnIndex = -lower - 1;
         // return returnIndex;
 
-        var m = 0;
-        var n = array.length - 1;
-        while (m <= n) {
-            var k = (n + m) >> 1;
-            var cmp = m_this.CompareNotes(note, array[k]);
-            if (cmp > 0) {
-                m = k + 1;
-            } else if(cmp < 0) {
-                n = k - 1;
-            } else {
-                return k;
+        var lowerIndex = 0;
+        var upperIndex = array.length - 1;
+		var pivotIndex = (upperIndex + lowerIndex) >> 1;
+		var returnIndex = 0;
+		
+        while (lowerIndex <= upperIndex) 
+		{
+			//Get index of middle element of range
+            var pivotIndex = (upperIndex + lowerIndex) >> 1; 
+			
+			//Compare note against middle element
+            var cmp = m_this.CompareNotes(note, array[pivotIndex]);
+			
+			//Note > middle: change lower bound to middle+1 to search right half
+            if (cmp > 0) 
+			{
+				var newLowerBound = pivotIndex + 1;
+                lowerIndex = newLowerBound;
+				returnIndex = newLowerBound;
+            } 
+			
+			//Note < middle: change upper bound to middle-1 to search left half
+			else if(cmp < 0) 
+			{
+				var newUpperBound = pivotIndex - 1;
+                upperIndex = newUpperBound;
+				returnIndex = newUpperBound;
+            } 
+			
+			//Note == middle: return index
+			else
+			{
+				returnIndex = pivotIndex;
+				return returnIndex;
             }
         }
-        var returnIndex = -m - 1;
+		
+		//console.log("binary search complete. l,p,u =",lowerIndex,pivotIndex,upperIndex)
+        //returnIndex = -lowerIndex - 1;
         return returnIndex;
     }
-
-
 
     CompareNotes(note1, note2)
     {
