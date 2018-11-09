@@ -51,7 +51,7 @@ class Controller
         var tonicOpacity = 0.25;
         var dominantOpacity = 0.20;
 		var modeBuffer = [{Pitch:tonic, Opacity: tonicOpacity}];
-        var currentTone = tonic+11;
+        var currentTone = tonic;
         var intervals = Modes[modeIndex]
 
 		intervals.some(function(interval)
