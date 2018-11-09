@@ -327,8 +327,6 @@ class View
         var isTonicNote = true;
         $(".keynote").remove();
 
-        console.log("H",mainGridHeight);
-
         function functionRenderKeyRow(offsetY, colorIndex, noteOpacity, isTonicNote)
         {
             var node = document.createElement('div');
@@ -379,12 +377,13 @@ class View
 		});
 	}
 
-    RenderNotes(noteArray, color)
+    RenderNotes(noteArray, color, cursor)
     {
         var gridNoteClass = "gridNote";
         var mainGrid = v_this.Maingrid;
 
         var borderCssString = 'solid '+color+' 1px'
+
 		var initialNoteStartTimeTicks = 0;
 
         v_this.GridboxContainer.css('border',borderCssString);

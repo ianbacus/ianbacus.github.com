@@ -139,7 +139,6 @@ class Note
             });
         }
 
-        console.log("ON MOVE COMPLETE", this)
         this.StateWhenSelected = null;
     }
 
@@ -202,13 +201,13 @@ class Note
             {
                 this.StateWhenSelected = this.CaptureState();
                 m_this.AddNote(this, 0, m_this.SelectedNotes, false);
-                console.log("Added SELECT note, captured state ", this, m_this.SelectedNotes.length)
+                m_this.console.log("Added SELECT note, captured state ", this, m_this.SelectedNotes.length)
             }
 
             else
             {
                 m_this.DeleteNote(this, 0, m_this.SelectedNotes, false);
-                console.log("Deleted SELECT note ",m_this.SelectedNotes.length)
+                m_this.console.log("Deleted SELECT note ",m_this.SelectedNotes.length)
             }
         }
 
@@ -277,7 +276,7 @@ class Model
     InsertSorted(array, note)
     {
 		var index = m_this.BinarySearch(array, note, m_this.CompareNotes);
-		array.splice( index, 0, note );
+        array.splice( index, 0, note );
     }
 
     SortScoreByTicks()
@@ -320,6 +319,22 @@ class Model
 
     BinarySearch(array, note, compare_fn)
     {
+        // var lower = 0;
+        // var upper = array.length-1;
+        // while (lower <= upper) {
+        //     var k = (upper + lower) >> 1;
+        //     var cmp = m_this.CompareNotes(note, array[k]);
+        //     if (cmp > 0) {
+        //         lower = k + 1;
+        //     } else if(cmp < 0) {
+        //         upper = k - 1;
+        //     } else {
+        //         return k;
+        //     }
+        // }
+        // var returnIndex = -lower - 1;
+        // return returnIndex;
+
         var m = 0;
         var n = array.length - 1;
         while (m <= n) {
@@ -625,6 +640,8 @@ class Model
     DeleteNote(note, sequenceNumber, array=this.Score, pushAction=true)
     {
 		var deletionIndex = m_this.BinarySearch(array, note, m_this.CompareNotes);
+
         m_this.DeleteNoteWithIndex(deletionIndex,sequenceNumber,array,pushAction)
+
     }
 };

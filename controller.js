@@ -13,8 +13,8 @@ var editModeEnumeration = {
 
 var Modes =
 [
-    [2,2,1,2,2,1], //major
     [2,1,2,2,2,1,1,1], //minor
+    [2,2,1,2,2,2,1], //major
 ];
 
 let c_this = undefined;
@@ -32,7 +32,10 @@ class Controller
         this.Playing = false;
         this.Hovering = false;
         this.SelectingGroup = false;
+
         this.EditModeColors = ['orange','blue','green'];
+        this.EditModeCursors = ['none', 'crosshair', 'grab']
+
         this.DefaultNoteDuration = 4;
         this.MillisecondsPerTick = 100;
         this.NoteIndex = 0;
@@ -50,13 +53,14 @@ class Controller
     {
         var tonicOpacity = 0.25;
         var dominantOpacity = 0.20;
+        tonic += 11;
 		var modeBuffer = [{Pitch:tonic, Opacity: tonicOpacity}];
         var currentTone = tonic;
         var intervals = Modes[modeIndex]
 
 		intervals.some(function(interval)
 		{
-            var noteOpacity = 0.050;
+            var noteOpacity = 0.05;
             currentTone += interval;
             var relativeInterval = Math.abs(currentTone - tonic)
 
@@ -113,6 +117,7 @@ class Controller
             sequenceNumber = c_this.GetNextSequenceNumber();
         }
 
+        c_this.console.log("Delete all selected notes")
         for(var index = 0; index < score.length; index++)
         {
             var note = score[index]
@@ -146,7 +151,7 @@ class Controller
         else
         {
             var modifyIndex = noteArray.length;
-            while(modifyIndex --> 0)
+            while(modifyIndex-- > 0)
             {
     			var note = noteArray[modifyIndex];
                 modifyFunction(note);
@@ -274,13 +279,12 @@ class Controller
                 c_this.StopPlayingNotes();
             }
 
-            //Edit mode
+            //Enter edit mode
             else if(c_this.EditorMode != editModeEnumeration.EDIT)
             {
                 c_this.EditorMode = editModeEnumeration.EDIT;
                 c_this.HandleSelectionReset();
-                var previewNote = c_this.CreatePreviewNote();
-                c_this.Model.AddNote(previewNote, 0, c_this.Model.Score, false);
+                c_this.CreateUniqueEditNote();
             }
             else {
                 renderGrid = false;
@@ -528,7 +532,7 @@ class Controller
 
             //Search until the start ticks are out of range (a whole note)
             //Search until the start ticks are no longer equivalent
-            if((includeSuspensions && (searchNoteTickDifference > wholeNoteDurationTicks)) ||
+            if((includeSuspensions && (searchNoteTickDifference >= wholeNoteDurationTicks)) ||
                 (!includeSuspensions && (searchNoteTickDifference != 0)))
             {
                 break;
@@ -672,18 +676,25 @@ class Controller
         c_this.ExpectedTime = undefined;
         c_this.View.CancelScroll();
         clearTimeout(c_this.PendingTimeout);
-        c_this.RefreshEditBoxNotes();
 
+
+        c_this.CreateUniqueEditNote();
+        c_this.RefreshEditBoxNotes();
     }
 
-    CreatePreviewNote()
+    CreateUniqueEditNote()
     {
-        var startTicks = c_this.View.ConvertXIndexToTicks(c_this.CursorPosition.x);
-        var pitch = c_this.View.ConvertYIndexToPitch(c_this.CursorPosition.y);
+        var selectCount = c_this.CountSelectedNotes();
 
-        var previewNote = new Note(startTicks, pitch, c_this.DefaultNoteDuration, true);
+        //Create a new preview note if edit mode is active
+        if((c_this.EditorMode == editModeEnumeration.EDIT) && (selectCount == 0))
+        {
+            var startTicks = c_this.View.ConvertXIndexToTicks(c_this.CursorPosition.x);
+            var pitch = c_this.View.ConvertYIndexToPitch(c_this.CursorPosition.y);
+            var previewNote = new Note(startTicks, pitch, c_this.DefaultNoteDuration, true);
 
-        return previewNote;
+            c_this.Model.AddNote(previewNote, 0, c_this.Model.Score, false);
+        }
     }
 
     OnHoverBegin(event)
@@ -691,12 +702,9 @@ class Controller
         if(!c_this.Hovering)
         {
             c_this.Hovering = true;
-            if(c_this.EditorMode === editModeEnumeration.EDIT)
-            {
-                var previewNote = c_this.CreatePreviewNote();
-                c_this.Model.AddNote(previewNote, 0, c_this.Model.Score, false);
-				c_this.RefreshEditBoxNotes()
-            }
+
+            c_this.CreateUniqueEditNote();
+            c_this.RefreshEditBoxNotes();
         }
     }
 
@@ -705,6 +713,7 @@ class Controller
         if(c_this.Hovering)
         {
             c_this.Hovering = false;
+            c_this.console.log("Hover end. Resetting selected notes.");
             c_this.HandleSelectionReset();
         }
 
@@ -719,11 +728,13 @@ class Controller
 
     HandleSelectionReset()
     {
+        c_this.console.log("Resetting all selected notes:")
         c_this.ModifyNoteArray(c_this.Model.SelectedNotes, function(note)
         {
             //Unselect and reset the position of notes that existed before selection
 			if(note.StateWhenSelected != null)
 			{
+                c_this.console.log("Handling reset with reposition",note)
 				note.IsSelected = false;
 				note.ResetPosition();
 			}
@@ -731,6 +742,7 @@ class Controller
 			//Delete preview notes that were not initially selected
 			else
 			{
+                c_this.console.log("Handling reset with deletion",note)
 				c_this.Model.DeleteNote(note, 0, c_this.Model.Score, false);
 			}
         }, false);
@@ -943,15 +955,11 @@ class Controller
             }
         }
 
-		//Create a new preview note if edit mode is active
-        if(c_this.EditorMode == editModeEnumeration.EDIT)
-        {
-            var previewNote = c_this.CreatePreviewNote();
-            c_this.Model.AddNote(previewNote, 0, c_this.Model.Score, false);
-        }
+        c_this.CreateUniqueEditNote();
 
         c_this.RefreshGridPreview();
-    }
+
+    } //end OnMouseClickUp
 
     //Resize notes
     HandleControlScroll(scrollUp)
