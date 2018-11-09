@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<meta charset="utf-8"/>
+<html>
+<head>
+<title> 0.1023333333333333333 </title>
+
+<link rel="stylesheet" href="css/example.css">
+<link rel="stylesheet" href="css/bootstrap.min.css">
+
+<script src="jquery.min.js"></script>
+<script src="bootstrap.min.js"></script>
+<script src="timbre.js"></script>
+<script src="html2canvas.js"></script>
+
+
+<script src="model.js"></script>
+<script src="view.js"></script>
+<script src="controller.js"></script>
+<script src="mainjs.js"></script>
+
+</head>
+
+<body>
+<div class="container">
+	<div class="row">
+        <div class="col-sm-2">
+            <!--- This column contains edit palletes-->
+			<ul class="nav nav-tabs">
+				<li id="ktab"><a data-toggle="tab" href="#keys">🔑</a></li>
+				<li id="stab" class="active"><a data-toggle="tab" href="#settings">✌</a></li>
+				<li id="ptab" ><a data-toggle="tab" href="#preview">👁</a></li>
+			</ul>
+			<div class="tab-content">
+				<div id="keys" class="tab-pane fade">
+                    <div id="helpMenu">
+                        <br>
+                        Explore
+                        <br>
+                        <p>↑↓: Navigate</p>
+                        <p>[ ]: Play </p>
+                        <br>
+                        Modes
+                        <br>
+						<p>Z: Add</p>
+						<p>X: Select</p>
+                        <br>
+                        Commands
+                        <br>
+						<p>C: Copy</p>
+                        <p>V: Paste</p>
+                        <p>D: Delete</p>
+                        <p>E: Append</p>
+                        <p>c-A: Select all</p>
+						<p>c-Z: Undo</p>
+						<p>s-Z: Redo</p>
+                    </div>
+				</div>  <!-- end help tab -->
+				<div id="settings" class="tab-pane fade in active">
+                    <br>
+					Analysis
+					<div class="form-group" id="Analysis">
+						<div class="radio">
+						    <label><input type="radio" name="optradio" value=0>Invertible (10th)</label>
+						</div>
+						<div class="radio">
+						    <label><input type="radio" name="optradio" value=0>Invertible (12th)</label>
+						</div>
+						<div class="radio">
+						    <label><input type="radio" name="optradio" value=0>Invertible (15th)</label>
+						</div>
+						<div class="radio">
+						    <label><input type="radio" name="optradio" value=1>Canon</label>
+						</div>
+						<div class="radio">
+						    <label><input type="radio" name="optradio" value=2 checked="checked">Free</label>
+						</div>
+					</div>
+                    Preview Options
+					<div class="form-group" id="PlayPreview">
+						<div class="radio">
+    						<label><input type="radio" name="optradio1" value=0 checked="checked">Solo</label>
+						</div>
+						<div class="radio">
+						    <label><input type="radio" name="optradio1" value=1>Chords</label>
+						</div>
+						<div class="radio">
+						    <label><input type="radio" name="optradio1" value=2>Suspensions</label>
+						</div>
+					</div>
+
+                    Playback Options
+					<div class="form-group" id="Playback">
+						<div class="radio">
+    						<label><input type="radio" name="optradio2" value=0>Last edit</label>
+						</div>
+						<div class="radio">
+						    <label><input type="radio" name="optradio2" value=1 checked="checked">Current grid</label>
+						</div>
+						<div class="radio">
+						    <label><input type="radio" name="optradio2" value=2>All</label>
+						</div>
+					</div>
+
+					Track
+					<div class="form-group"  id="Track">
+						<div class="radio">
+						<label><input type="radio" name="optradio3" value=0 checked="checked">Free</label>
+						</div>
+						<div class="radio">
+						<label><input type="radio" name="optradio3" value=1>1</label>
+						</div>
+						<div class="radio">
+						<label><input type="radio" name="optradio3" value=2>2</label>
+						</div>
+					</div>
+				</div> <!-- end mode tab -->
+                <div id="preview" class="tab-pane fade">
+                    <div id="gridboxNavigator">
+                        <div id="GridboxArray" style="border: 1px solid black">
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- end tab content -->
+		</div> <!-- end column -->
+        <div class="col-sm-10">
+            <!--- This column contains the main editing box -->
+            <div id="gridboxContainer">
+                <div id="gridbox"></div>
+            </div>
+        </div>
+    </div> <!-- end row -->
+</div>
+</body>
+
+</html>
