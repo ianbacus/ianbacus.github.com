@@ -273,164 +273,9 @@ class Model
         this.GridImageList.push([]);
     }
 
-    InsertSorted(array, note)
-    {
-		var index = m_this.BinarySearch(array, note, m_this.CompareNotes);
-		// if(array !== m_this.Score)
-		// {
-			// array.some(function(note2)
-			// {
-				// console.log(note2);
-			// })
-			// console.log("binary search says ", note, " goes at index ", index)
-		// }
-        array.splice( index, 0, note );
-		array.sort(m_this.CompareNotes);
-    }
-
     SortScoreByTicks()
     {
         m_this.Score.sort(m_this.CompareNotes);
-    }
-
-    //Return the index of an exact match, or the index where the element would be if it were present
-    LinearSearch(array,searchNote)
-    {
-        var returnIndex2 = undefined;
-        var lastCompareResult = undefined;
-        m_this.console.log("Begin searching for ", searchNote);
-
-        for(var returnIndex in array)
-        {
-            var otherNote = array[returnIndex];
-            var compareResult = m_this.CompareNotes(searchNote, otherNote);
-
-            //1: searchNote > otherNote: keep going
-            //-1: searchNote < otherNoteotherNote: stop
-            //0: searchNote == otherNote: return the index of an exact match (the pitch and duration are the same), or the index after all 'inexact' matches
-
-            if((compareResult === 0) || ((lastCompareResult != undefined) && (lastCompareResult != compareResult)))
-            {
-                if(returnIndex2 == undefined)
-                {
-                    m_this.console.log("Search complete", compareResult, otherNote);
-                    returnIndex2 = returnIndex;
-                }
-            }
-
-            lastCompareResult = compareResult;
-
-        }
-
-        m_this.console.log("Search complete. Index ="+returnIndex);
-        return returnIndex2;
-    }
-
-    BinarySearch(array, note, compare_fn)
-    {
-        // var lower = 0;
-        // var upper = array.length-1;
-        // while (lower <= upper) {
-        //     var k = (upper + lower) >> 1;
-        //     var cmp = m_this.CompareNotes(note, array[k]);
-        //     if (cmp > 0) {
-        //         lower = k + 1;
-        //     } else if(cmp < 0) {
-        //         upper = k - 1;
-        //     } else {
-        //         return k;
-        //     }
-        // }
-        // var returnIndex = -lower - 1;
-        // return returnIndex;
-
-        var lowerIndex = 0;
-        var upperIndex = array.length - 1;
-		var pivotIndex = (upperIndex + lowerIndex) >> 1;
-		var returnIndex = 0;
-		
-        while (lowerIndex <= upperIndex) 
-		{
-			//Get index of middle element of range
-            var pivotIndex = (upperIndex + lowerIndex) >> 1; 
-			
-			//Compare note against middle element
-            var cmp = m_this.CompareNotes(note, array[pivotIndex]);
-			
-			//Note > middle: change lower bound to middle+1 to search right half
-            if (cmp > 0) 
-			{
-				var newLowerBound = pivotIndex + 1;
-                lowerIndex = newLowerBound;
-				returnIndex = newLowerBound;
-            } 
-			
-			//Note < middle: change upper bound to middle-1 to search left half
-			else if(cmp < 0) 
-			{
-				var newUpperBound = pivotIndex - 1;
-                upperIndex = newUpperBound;
-				returnIndex = newUpperBound;
-            } 
-			
-			//Note == middle: return index
-			else
-			{
-				returnIndex = pivotIndex;
-				return returnIndex;
-            }
-        }
-		
-		//console.log("binary search complete. l,p,u =",lowerIndex,pivotIndex,upperIndex)
-        //returnIndex = -lowerIndex - 1;
-        return returnIndex;
-    }
-
-    CompareNotes(note1, note2)
-    {
-		function assertInt1GreaterThanInt2(int1, int2)
-		{
-			//Same value: return immediately
-			if(int1 === int2)
-			{
-				return 0;
-			}
-
-			//Note 1 starts after note 2: place note 1 after note 2
-			if(int1 > int2)
-			{
-				return 1;
-			}
-
-			//Note 1 starts before note 2: place note 1 before note 2
-			else if(int1 < int2)
-			{
-				return -1;
-			}
-		}
-
-		//Same value: return immediately
-        if(note1 === note2)
-        {
-            return 0;
-        }
-
-		var compareResult = assertInt1GreaterThanInt2(note1.CurrentGridIndex, note2.CurrentGridIndex);
-
-		if(compareResult === 0)
-		{
-			compareResult = assertInt1GreaterThanInt2(note1.StartTimeTicks, note2.StartTimeTicks);
-			if(compareResult === 0)
-			{
-				compareResult = assertInt1GreaterThanInt2(note1.Duration, note2.Duration);
-				if(compareResult === 0)
-				{
-					compareResult = assertInt1GreaterThanInt2(note1.Pitch, note2.Pitch);
-				}
-			}
-		}
-
-		return compareResult;
     }
 
     HandleBatchInsertion(activityStack, action, targetString)
@@ -443,7 +288,6 @@ class Model
             var stackTop = activityStack[stackLength - 1];
 
             //If this move is part of the same sequence number's move, combine it with the top of the stack
-            //if((stackTop.Action === targetString) && (stackTop.SequenceNumber == action.SequenceNumber))
             if(stackTop.SequenceNumber == action.SequenceNumber)
             {
                 stackTop.MoveBuffer.push(action.MoveData);
@@ -455,7 +299,8 @@ class Model
         }
 
         return pushSuccessful;
-    }
+
+    } //end HandleBatchInsertion
 
     PushAction(action)
     {
@@ -486,6 +331,7 @@ class Model
         {
             //If a group of actions are happening, push them together
             var pushedToBatch = m_this.HandleBatchInsertion(activityStack, action, caseString);
+
             //Exit after a successful case is reached, since an event only can have one case
             if(pushedToBatch)
             {
@@ -510,7 +356,8 @@ class Model
 			"Push complete." +
 			"Activity stack index: "+
 			this.ActivityIndex+ "/"+(this.ActivityStack.length-1));
-    }
+
+    } //end PushAction
 
     Undo()
     {
@@ -615,8 +462,96 @@ class Model
 
             m_this.console.log("Redo complete. Activity stack index: "+ this.ActivityIndex+"/"+(this.ActivityStack.length-1));
         }
+    }
 
+    CompareNotes(note1, note2)
+    {
+        function assertInt1GreaterThanInt2(int1, int2)
+        {
+            if(int1 === int2) { return 0; }
+            if(int1 > int2) { return 1; }
+            else if(int1 < int2) { return -1; }
+        }
 
+        //Same note
+        if(note1 === note2)
+        {
+            return 0;
+        }
+
+        else
+        {
+            var compareResult = assertInt1GreaterThanInt2(note1.CurrentGridIndex, note2.CurrentGridIndex);
+
+            if(compareResult === 0)
+            {
+                compareResult = assertInt1GreaterThanInt2(note1.StartTimeTicks, note2.StartTimeTicks);
+                if(compareResult === 0)
+                {
+                    compareResult = assertInt1GreaterThanInt2(note1.Duration, note2.Duration);
+                    if(compareResult === 0)
+                    {
+                        compareResult = assertInt1GreaterThanInt2(note1.Pitch, note2.Pitch);
+                    }
+                }
+            }
+        }
+
+        return compareResult;
+
+    } //end CompareNotes
+
+    //Determine the index of an element or the index where an element should be inserted using an
+    //iterative binary search and a compare predicate
+    BinarySearch(array, note, compare_fn)
+    {
+        var lowerIndex = 0;
+        var upperIndex = array.length - 1;
+        var pivotIndex = (upperIndex + lowerIndex) >> 1;
+        var returnIndex = 0;
+
+        while (lowerIndex <= upperIndex)
+        {
+            //Get index of middle element of range
+            var pivotIndex = (upperIndex + lowerIndex) >> 1;
+            var pivotNote = array[pivotIndex];
+
+            //Compare note against middle element
+            var compareResult = m_this.CompareNotes(note, pivotNote);
+
+            //Note > pivot: change lower bound to middle+1 to search right half
+            if (compareResult > 0)
+            {
+                var newLowerBound = pivotIndex + 1;
+                lowerIndex = newLowerBound;
+                returnIndex = newLowerBound;
+            }
+
+            //Note < pivot: change upper bound to middle-1 to search left half
+            else if(compareResult < 0)
+            {
+                var newUpperBound = pivotIndex - 1;
+                upperIndex = newUpperBound;
+                returnIndex = newUpperBound;
+            }
+
+            //Note == pivot: return index
+            else
+            {
+                returnIndex = pivotIndex;
+                return returnIndex;
+            }
+        }
+
+        //Return 0 instead of -1 when the return index indicates the correct location is before the first element (0)
+        returnIndex = Math.max(0,returnIndex);
+        return returnIndex;
+    }
+
+    InsertSorted(array, note)
+    {
+        var index = m_this.BinarySearch(array, note, m_this.CompareNotes);
+        array.splice( index, 0, note );
     }
 
     //Public
@@ -672,8 +607,6 @@ class Model
     DeleteNote(note, sequenceNumber, array=this.Score, pushAction=true)
     {
 		var deletionIndex = m_this.BinarySearch(array, note, m_this.CompareNotes);
-
         m_this.DeleteNoteWithIndex(deletionIndex,sequenceNumber,array,pushAction)
-
     }
 };

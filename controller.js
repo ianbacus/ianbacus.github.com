@@ -626,8 +626,8 @@ class Controller
                 delta = Math.max(0, delta - elapsedTime);
 				console.log("Delta subbed elapsedTime", delta, elapsedTime)
             }
-	
-			
+
+
             c_this.PendingTimeout = setTimeout(c_this.OnPlayAllNotes, delta);
         }
         else
@@ -640,12 +640,12 @@ class Controller
     {
         c_this.NoteIndex = 0;
         c_this.StopPlayingNotes();
-		
+
 		noteArray.some(function(note)
 		{
 			console.log("Play all", note);
 		});
-		
+
         if(noteArray.length > 0)
         {
             c_this.PlaybackNoteArray = noteArray
@@ -802,12 +802,12 @@ class Controller
 			//If no selection rectangle is being drawn, move all selected notes
 			else if(selectCount > 0)
 			{
-				var x_offset = 
-					c_this.View.ConvertXIndexToTicks(c_this.CursorPosition.x) - 
+				var x_offset =
+					c_this.View.ConvertXIndexToTicks(c_this.CursorPosition.x) -
 					c_this.View.ConvertXIndexToTicks(c_this.LastCursorPosition.x);
-					
-				var y_offset = 
-					c_this.View.ConvertYIndexToPitch(c_this.CursorPosition.y) - 
+
+				var y_offset =
+					c_this.View.ConvertYIndexToPitch(c_this.CursorPosition.y) -
 					c_this.View.ConvertYIndexToPitch(c_this.LastCursorPosition.y);
 
 				c_this.ModifyNoteArray(c_this.Model.SelectedNotes, function(note){
@@ -854,7 +854,7 @@ class Controller
             var clickedNoteIndex = c_this.GetNoteIfClicked();
             var score = c_this.Model.Score;
 
-            //If a note is clicked, select it 
+            //If a note is clicked, select it
             if((0 <= clickedNoteIndex) && (clickedNoteIndex < score.length))
             {
                 score[clickedNoteIndex].IsSelected = true;
@@ -892,10 +892,10 @@ class Controller
     OnMouseClickUp(event)
     {
         event.preventDefault();
-		
+
         c_this.StopPlayingNotes();
 		var selectedNotes = c_this.Model.SelectedNotes;
-		
+
 		//Re-sort the score to account for notes being repositioned
         if(c_this.SelectingGroup === true)
         {
@@ -915,27 +915,18 @@ class Controller
 			//Play a single note
             if(playbackMode == 0)
             {
-				//console.log("Single case");
-                //Reverse iterate to allow deselection, reverse shift into playback buffer
+                //Reverse iterate to allow deselection, which removes notes from the selectedNotes buffer
                 c_this.ModifyNoteArray(selectedNotes, function(note)
                 {
 					c_this.Model.AddNote(note, 0, playbackBuffer, false);
-					// playbackBuffer.some(function(note2)
-					// {
-						// console.log(note2)
-					// });
-					// console.log("IT");
                     note.IsSelected = false;
                     note.OnMoveComplete(sequenceNumber);
                 }, false);
-				
-				
             }
 
 			//Play all intersecting chords and handle move completion
             else if(selectCount > 0)
             {
-				//console.log("Double case");
                 const selectedBufferEndIndex = selectedNotes.length-1;
 
                 const startTickBoundary = selectedNotes[0].StartTimeTicks;
@@ -956,8 +947,8 @@ class Controller
                     }
                 });
 
-                //Push all selected notes to the playback buffer, unselect them to place them and handle 
-				//move completion 
+                //Push all selected notes to the playback buffer, unselect them to place them and handle
+				//move completion
                 c_this.ModifyNoteArray(
                     selectedNotes,
                     function(note)
@@ -966,16 +957,16 @@ class Controller
                         note.IsSelected = false;
                         note.OnMoveComplete(sequenceNumber);
                     }, false);
-					
+
             }
-			
+
             if(playbackMode == 1)
             {
                 c_this.PlayNotes(playbackBuffer,false);
             }
             else
             {
-                c_this.PlayNotes(playbackBuffer,true);
+                c_this.PlayNotes(playbackBuffer,false);
             }
         }
 
@@ -1091,6 +1082,7 @@ class Controller
             });
         }
     }
+    
     OnMouseScroll(event)
     {
         var ctrl = event.ctrlKey;
