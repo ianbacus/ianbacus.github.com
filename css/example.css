@@ -6,6 +6,15 @@ html,body {
     margin:0;
     padding:0;
 }
+
+#PlaybackLine
+{
+    left: 20px;
+    width:10px;
+    height:100%;
+    position:relative;
+    border-left: thick solid red;
+}
 .container
 {
      padding-top: 50px;

@@ -31,6 +31,7 @@ class Note
     {
         this.StartTimeTicks += x_offset;
         this.Pitch += y_offset;
+
     }
 
     Play(millisecondsPerTick, caller, onStopCallback, instrumentCode=InstrumentEnum.Guitar)
@@ -252,19 +253,19 @@ class Model
 
     GotoPreviousGrid()
     {
-        if(m_this.GridPreviewIndex > 0)
+        if(this.GridPreviewIndex > 0)
         {
-            m_this.GridPreviewIndex--;
-            m_this.Score = m_this.GridPreviewList[m_this.GridPreviewIndex];
+            this.GridPreviewIndex--;
+            this.Score = this.GridPreviewList[this.GridPreviewIndex];
         }
     }
 
     GotoNextGrid()
     {
-        if(m_this.GridPreviewIndex < m_this.GridPreviewList.length-1)
+        if(this.GridPreviewIndex < this.GridPreviewList.length-1)
         {
-            m_this.GridPreviewIndex++;
-            m_this.Score = m_this.GridPreviewList[m_this.GridPreviewIndex];
+            this.GridPreviewIndex++;
+            this.Score = this.GridPreviewList[this.GridPreviewIndex];
         }
     }
 
@@ -276,7 +277,8 @@ class Model
 
     SortScoreByTicks()
     {
-        m_this.Score.sort(m_this.CompareNotes);
+        //this.Score.sort(this.CompareNotes);
+        this.MergeSort(this.Score);
     }
 
     HandleBatchInsertion(activityStack, action, targetString)
@@ -293,7 +295,7 @@ class Model
             {
                 stackTop.MoveBuffer.push(action.MoveData);
                 pushSuccessful = true;
-                m_this.console.log(
+                this.console.log(
 					"Group "+action.Action + ": " +
 					stackTop.MoveBuffer.length + " datums")
             }
@@ -305,7 +307,7 @@ class Model
 
     PushAction(action)
     {
-        var activityStack = m_this.ActivityStack;
+        var activityStack = this.ActivityStack;
         var stackLength = this.ActivityStack.length;
         var actionCases = ["MODIFY", "ADD", "DELETE"]
         var pushSuccessful = false;
@@ -314,7 +316,7 @@ class Model
         if(this.ActivityIndex != stackLength-1)
         {
             var resetIndex = this.ActivityIndex+1;
-            m_this.console.log(
+            this.console.log(
 				"Resetting stack up to and including index "+resetIndex);
             this.ActivityStack = this.ActivityStack.slice(0,resetIndex);
         }
@@ -322,7 +324,7 @@ class Model
         //Lose the last action if the stack is full
         if(stackLength >= this.MaximumActivityStackLength)
         {
-            m_this.console.log(
+            this.console.log(
 				"Maximum undo length reached. Discarding old state information.")
             this.ActivityStack.shift();
         }
@@ -331,7 +333,7 @@ class Model
         actionCases.some(function(caseString)
         {
             //If a group of actions are happening, push them together
-            var pushedToBatch = m_this.HandleBatchInsertion(activityStack, action, caseString);
+            var pushedToBatch = this.HandleBatchInsertion(activityStack, action, caseString);
 
             //Exit after a successful case is reached, since an event only can have one case
             if(pushedToBatch)
@@ -339,21 +341,21 @@ class Model
                 pushSuccessful = true;
                 return;
             }
-        });
+        }, this);
 
         //If a distinct move is happening, push it separately
         if(!pushSuccessful)
         {
             action.MoveBuffer.push(action.MoveData);
-            m_this.ActivityStack.push(action)
-            m_this.console.log(
+            this.ActivityStack.push(action)
+            this.console.log(
 				"Distinct "+action.Action +
 				". New stack length: "+this.ActivityStack.length);
         }
 
         this.ActivityIndex = this.ActivityStack.length - 1;
 
-		m_this.console.log(
+		this.console.log(
 			"Push complete." +
 			"Activity stack index: "+
 			this.ActivityIndex+ "/"+(this.ActivityStack.length-1));
@@ -368,7 +370,7 @@ class Model
             var moveBuffer = mostRecentAction.MoveBuffer;
             var gridBuffer = this.GridPreviewList[mostRecentAction.GridIndex];
 
-            m_this.console.log(
+            this.console.log(
 				"Undoing " + mostRecentAction.Action +
 				" on " + moveBuffer.length +
 				" notes, actionID = " + mostRecentAction.SequenceNumber);
@@ -381,8 +383,8 @@ class Model
                 moveBuffer.forEach(function(moveData)
                 {
                     var note = moveData.Note;
-                    m_this.DeleteNote(note, 0, gridBuffer, false)
-                });
+                    this.DeleteNote(note, 0, gridBuffer, false)
+                },this);
             }
 
             //Undo the deletion of a note by adding it
@@ -391,8 +393,8 @@ class Model
                 moveBuffer.forEach(function(moveData)
                 {
                     var note = moveData.Note;
-                    m_this.AddNote(note,  0, gridBuffer, false)
-                });
+                    this.AddNote(note,  0, gridBuffer, false)
+                }, this);
             }
 
             //Undo a move by moving in the opposite direction
@@ -404,10 +406,12 @@ class Model
                     var state = moveData.OriginalState;
                     note.RestoreState(state);
                 });
-				gridBuffer.sort(m_this.CompareNotes);
+
+				//gridBuffer.sort(this.CompareNotes);
+                this.MergeSort(gridBuffer);
             }
 
-            m_this.console.log(
+            this.console.log(
 				"Undo complete." +
 				"Activity stack index: "+
 				this.ActivityIndex+ "/"+(this.ActivityStack.length-1));
@@ -424,7 +428,7 @@ class Model
             var moveBuffer = mostRecentAction.MoveBuffer;
             var gridBuffer = this.GridPreviewList[mostRecentAction.GridIndex];
 
-            m_this.console.log(
+            this.console.log(
 				"Redoing " + mostRecentAction.Action +
 				" on " + moveBuffer.length +
 				" notes, actionID = " + mostRecentAction.SequenceNumber);
@@ -435,8 +439,8 @@ class Model
                 moveBuffer.forEach(function(moveData)
                 {
                     var note = moveData.Note;
-                    m_this.AddNote(note, 0, gridBuffer, false)
-                });
+                    this.AddNote(note, 0, gridBuffer, false)
+                }, this);
             }
 
             //Redo deletion
@@ -445,8 +449,8 @@ class Model
                 moveBuffer.forEach(function(moveData)
                 {
                     var note = moveData.Note;
-                    m_this.DeleteNote(note, 0, gridBuffer, false)
-                });
+                    this.DeleteNote(note, 0, gridBuffer, false)
+                }, this);
             }
 
             //Redo a move
@@ -457,11 +461,13 @@ class Model
                     var note = moveData.Note;
                     var state = moveData.TargetState;
                     note.RestoreState(state);
-                });
-				gridBuffer.sort(m_this.CompareNotes);
+                }, this);
+
+				//gridBuffer.sort(this.CompareNotes);
+                this.MergeSort(gridBuffer);
             }
 
-            m_this.console.log("Redo complete. Activity stack index: "+ this.ActivityIndex+"/"+(this.ActivityStack.length-1));
+            this.console.log("Redo complete. Activity stack index: "+ this.ActivityIndex+"/"+(this.ActivityStack.length-1));
         }
     }
 
@@ -509,7 +515,7 @@ class Model
 
     //Determine the index of an element or the index where an element should be inserted using an
     //iterative binary search and a compare predicate
-    BinarySearch(array, note, compare_fn, exactMatch)
+    BinarySearch(array, note, compare_fn=this.CompareNotes)
     {
         var lowerIndex = 0;
         var upperIndex = array.length - 1;
@@ -523,7 +529,7 @@ class Model
             var pivotNote = array[pivotIndex];
 
             //Compare note against middle element
-            var compareResult = m_this.CompareNotes(note, pivotNote);
+            var compareResult = this.CompareNotes(note, pivotNote);
 
             //Note > pivot: change lower bound to middle+1 to search right half
             if (compareResult > 0)
@@ -554,9 +560,81 @@ class Model
         return pivotIndex;
     }
 
+    MergeSort(array, comparefn=this.CompareNotes)
+    {
+        function merge(arr, aux, lo, mid, hi, comparefn)
+        {
+            var i = lo;
+            var j = mid + 1;
+            var k = lo;
+            while(true)
+            {
+                  var cmp = comparefn(arr[i], arr[j]);
+                  if(cmp <= 0)
+                  {
+                      aux[k++] = arr[i++];
+                      if(i > mid)
+                      {
+                          do
+                          {
+                              aux[k++] = arr[j++];
+                          }  while(j <= hi);
+                          break;
+                      }
+                  }
+                  else
+                  {
+                      aux[k++] = arr[j++];
+                      if(j > hi)
+                      {
+                          do
+                          {
+                            aux[k++] = arr[i++];
+                          }  while(i <= mid);
+                          break;
+                      }
+                  }
+              }
+          }
+
+        function sortarrtoaux(arr, aux, lo, hi, comparefn)
+        {
+            if (hi < lo)
+                return;
+            if (hi == lo)
+            {
+                aux[lo] = arr[lo];
+                return;
+            }
+
+            var mid = Math.floor(lo + (hi - lo) / 2);
+            sortarrtoarr(arr, aux, lo, mid, comparefn);
+            sortarrtoarr(arr, aux, mid + 1, hi, comparefn);
+            merge(arr, aux, lo, mid, hi, comparefn);
+        }
+
+        function sortarrtoarr(arr, aux, lo, hi, comparefn)
+        {
+            if (hi <= lo) return;
+            var mid = Math.floor(lo + (hi - lo) / 2);
+            sortarrtoaux(arr, aux, lo, mid, comparefn);
+            sortarrtoaux(arr, aux, mid + 1, hi, comparefn);
+            merge(aux, arr, lo, mid, hi, comparefn);
+        }
+
+        function merge_sort(arr, comparefn)
+        {
+            var aux = arr.slice(0);
+            sortarrtoarr(arr, aux, 0, arr.length - 1, comparefn);
+            return arr;
+        }
+
+        return merge_sort(array, comparefn);
+    }
+
     InsertSorted(array, note)
     {
-        var index = m_this.BinarySearch(array, note, m_this.CompareNotes, false);
+        var index = this.BinarySearch(array, note, this.CompareNotes);
 
         array.splice( index, 0, note );
     }
@@ -571,7 +649,7 @@ class Model
             this.PushAction({
                 Action:'ADD',
                 SequenceNumber:sequenceNumber,
-                GridIndex:m_this.GridPreviewIndex,
+                GridIndex:this.GridPreviewIndex,
                 MoveBuffer:[],
                 MoveData:{
                     Note:note
@@ -579,7 +657,7 @@ class Model
             });
         }
 
-        m_this.InsertSorted(array, note);
+        this.InsertSorted(array, note);
     }
 
     DeleteNoteWithIndex(deletionIndex, sequenceNumber, array=this.Score, pushAction=true)
@@ -590,7 +668,7 @@ class Model
 
         if((array===this.Score) && (deletedNote.IsSelected))
         {
-            m_this.DeleteNote(deletedNote, 0, m_this.SelectedNotes, false);
+            this.DeleteNote(deletedNote, 0, this.SelectedNotes, false);
         }
 
         if(pushAction)
@@ -600,7 +678,7 @@ class Model
             this.PushAction({
                 Action:'DELETE',
                 SequenceNumber:sequenceNumber,
-                GridIndex:m_this.GridPreviewIndex,
+                GridIndex:this.GridPreviewIndex,
                 MoveBuffer:[],
                 MoveData:{
                     Note:deletedNote
@@ -613,10 +691,11 @@ class Model
 
     DeleteNote(note, sequenceNumber, array=this.Score, pushAction=true)
     {
-		//var deletionIndex = m_this.BinarySearch(array, note, m_this.CompareNotes, true);
+		//var deletionIndex = this.BinarySearch(array, note, this.CompareNotes, true);
 
         var deletionIndex = 0;
         var index = 0;
+
         array.some(function(candidate)
         {
             if(candidate == note)
@@ -628,11 +707,8 @@ class Model
             {
                 index++;
             }
-        })
-        if(array[deletionIndex] != note)
-        {
-            console.log("wtf");
-        }
-        m_this.DeleteNoteWithIndex(deletionIndex,sequenceNumber,array,pushAction)
+        });
+
+        this.DeleteNoteWithIndex(deletionIndex,sequenceNumber,array,pushAction)
     }
 };

@@ -29,6 +29,9 @@ class Controller
         this.Model = model;
         this.CursorPosition = { x: -1, y: -1 };
         this.SelectorPosition = { x: -1, y: -1 };
+        this.PlaybackXCoordinate = 0;
+        this.CapturedPlaybackXCoordinate = 0;
+
         this.Playing = false;
         this.Hovering = false;
         this.SelectingGroup = false;
@@ -102,7 +105,7 @@ class Controller
     RefreshEditBoxNotes()
     {
         var editModeColor = this.EditModeColors[this.EditorMode];
-        this.View.RenderNotes(this.Model.Score, editModeColor);
+        this.View.RenderNotes(this.Model.Score, editModeColor, this.PlaybackXCoordinate);
     }
 
     DeleteSelectedNotes(pushAction)
@@ -222,6 +225,12 @@ class Controller
         }, this);
     }
 
+    CapturePlaybackStartPoint(xCoordinate)
+    {
+        this.PlaybackXCoordinate =xCoordinate;
+        this.CapturedPlaybackXCoordinate = undefined;
+    }
+
     OnKeyUp(event)
     {
         var keyupThisPointer = c_this;
@@ -308,17 +317,41 @@ class Controller
                 var playbackBuffer = []
 				keyupThisPointer.HandleSelectionReset();
 
-                //Add all unselected notes to the playback buffer
-                keyupThisPointer.Model.GridPreviewList.forEach(function(arrayBuffer)
+                //Find note closest to playback coordinate
+
+                if(this.PlaybackXCoordinate != this.CapturedPlaybackXCoordinate)
                 {
-                    arrayBuffer.forEach(function(note)
+                    keyupThisPointer.CapturePlaybackStartPoint(this.CapturedPlaybackXCoordinate);
+                }
+                else
+                {
+                    keyupThisPointer.CapturedPlaybackXCoordinate = keyupThisPointer.PlaybackXCoordinate;
+                }
+
+                var searchTicks = keyupThisPointer.View.ConvertXIndexToTicks(keyupThisPointer.PlaybackXCoordinate);
+                var sentryNote = new Note(searchTicks, 0, 0, false);
+                var searchIndex = keyupThisPointer.Model.BinarySearch(keyupThisPointer.Model.Score,sentryNote);
+                var score = keyupThisPointer.Model.Score;
+
+                //Add all unselected notes to the playback buffer
+                // keyupThisPointer.Model.GridPreviewList.forEach(function(arrayBuffer)
+                // {
+                //     arrayBuffer.forEach(function(note)
+                //     {
+                //         if(!note.IsSelected)
+                //         {
+                //             playbackBuffer.push(note);
+                //         }
+                //     });
+                // });
+                for(searchIndex; searchIndex<score.length;searchIndex++)
+                {
+                    var note = score[searchIndex];
+                    if(!note.IsSelected)
                     {
-                        if(!note.IsSelected)
-                        {
-                            playbackBuffer.push(note);
-                        }
-                    });
-                });
+                        playbackBuffer.push(note);
+                    }
+                }
 
                 keyupThisPointer.PlayNotes(playbackBuffer, false);
             }
@@ -610,13 +643,17 @@ class Controller
 
             this.PendingTimeout = setTimeout(
                 $.proxy(this.OnPlayAllNotes, this),delta);
-
-            var xOffset = this.View.ConvertTicksToXIndex(currentNote.StartTimeTicks);
         }
 
         else
         {
             this.StopPlayingNotes();
+        }
+        
+        var xOffset = this.View.ConvertTicksToXIndex(currentNote.StartTimeTicks);
+        if(this.CapturedPlaybackXCoordinate != undefined)
+        {
+            this.PlaybackXCoordinate = xOffset;
         }
     }
 
@@ -666,6 +703,7 @@ class Controller
     {
         this.Playing = false;
         this.ExpectedTime = undefined;
+
         this.View.CancelScroll();
         clearTimeout(this.PendingTimeout);
 
@@ -752,6 +790,7 @@ class Controller
             mouseMoveThisPointer.LastCursorPosition = mouseMoveThisPointer.CursorPosition;
 			mouseMoveThisPointer.CursorPosition = cursorPosition;
 
+
 			//If there are selected notes, move them
 			var selectCount = mouseMoveThisPointer.CountSelectedNotes();
 
@@ -789,6 +828,8 @@ class Controller
 			//If no selection rectangle is being drawn, move all selected notes
 			else if(selectCount > 0)
 			{
+                var selectedNotes = mouseMoveThisPointer.Model.SelectedNotes;
+
 				var x_offset =
 					mouseMoveThisPointer.View.ConvertXIndexToTicks(mouseMoveThisPointer.CursorPosition.x) -
 					mouseMoveThisPointer.View.ConvertXIndexToTicks(mouseMoveThisPointer.LastCursorPosition.x);
@@ -797,12 +838,13 @@ class Controller
 					mouseMoveThisPointer.View.ConvertYIndexToPitch(mouseMoveThisPointer.CursorPosition.y) -
 					mouseMoveThisPointer.View.ConvertYIndexToPitch(mouseMoveThisPointer.LastCursorPosition.y);
 
-				mouseMoveThisPointer.ModifyNoteArray(mouseMoveThisPointer.Model.SelectedNotes, function(note){
+				mouseMoveThisPointer.ModifyNoteArray(selectedNotes, function(note){
 					note.Move(x_offset, y_offset);
 				});
 
-                mouseMoveThisPointer.Model.SelectedNotes.sort(m_this.CompareNotes);
-                mouseMoveThisPointer.Model.Score.sort(m_this.CompareNotes);
+                mouseMoveThisPointer.Model.MergeSort(selectedNotes);
+                mouseMoveThisPointer.Model.MergeSort(mouseMoveThisPointer.Model.Score);
+
 				mouseMoveThisPointer.RefreshEditBoxNotes()
 			}
 		}
@@ -881,29 +923,31 @@ class Controller
         var clickUpThisPointer = c_this;
 
         event.preventDefault();
-
         clickUpThisPointer.StopPlayingNotes();
+
 		var selectedNotes = clickUpThisPointer.Model.SelectedNotes;
         var mainScore = clickUpThisPointer.Model.Score;
-        console.log("Clickup");
+        var selectCount = clickUpThisPointer.CountSelectedNotes();
+
+        clickUpThisPointer.Model.MergeSort(clickUpThisPointer.Model.Score);
 
         if(clickUpThisPointer.SelectingGroup === true)
         {
             clickUpThisPointer.View.DeleteSelectRectangle();
             clickUpThisPointer.SelectingGroup = false;
-
-            clickUpThisPointer.Model.Score.sort(m_this.CompareNotes);
+            if(selectCount === 0)
+            {
+                clickUpThisPointer.CapturePlaybackStartPoint(clickUpThisPointer.CursorPosition.x);
+            }
         }
 
         else
         {
-            var selectCount = clickUpThisPointer.CountSelectedNotes();
 			var playbackBuffer = [];
             var playbackMode = clickUpThisPointer.GetPlaybackMode();
             var sequenceNumber = clickUpThisPointer.GetNextSequenceNumber();
-
-    		//Re-sort the score to account for notes being repositioned
-            clickUpThisPointer.Model.Score.sort(m_this.CompareNotes);
+            clickUpThisPointer.PlaybackXCoordinate = clickUpThisPointer.CursorPosition.x;
+            clickUpThisPointer.CapturePlaybackStartPoint(clickUpThisPointer.CursorPosition.x);
 
 			//Play all intersecting chords and handle move completion
             if((selectCount > 0) && (playbackMode != 0))

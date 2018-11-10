@@ -6,6 +6,7 @@ class View
     {
         v_this = this;
 
+        this.PlaybackLine = null;
 		this.Maingrid = null;
         this.GridboxContainer = null;//"#gridboxContainer";
         this.GridArray = "#GridboxArray";
@@ -18,6 +19,7 @@ class View
         this.selectP = { x: 0, y: 0};
 
         this.gridSnap = 20;
+
 
         this.colorKey = [
             'red',    '#CC0099','yellow', '#669999',
@@ -52,6 +54,7 @@ class View
         this.Maingrid = $("#gridbox");
         this.GridboxContainer = $("#gridboxContainer");
         this.GridArray_ = $("#GridboxArray");
+        this.PlaybackLine =$("#PlaybackLine");
 
     	this.Maingrid
             .mousemove(this.OnMouseMove)
@@ -381,17 +384,19 @@ class View
 		});
 	}
 
-    RenderNotes(noteArray, color, cursor)
+    RenderNotes(noteArray, color, playbackXCoordinate)
     {
         var gridNoteClass = "gridNote";
-        var mainGrid = v_this.Maingrid;
+        var mainGrid = this.Maingrid;
 
         var borderCssString = 'solid '+color+' 1px'
 
 		var initialNoteStartTimeTicks = 0;
 
-        v_this.GridboxContainer.css('border',borderCssString);
+        this.GridboxContainer.css('border',borderCssString);
         $(".gridNote").remove();
+
+        this.PlaybackLine.css({'left':playbackXCoordinate})
 
 		noteArray.forEach(function(note)
 		{
