@@ -20,11 +20,43 @@ class View
 
         this.gridSnap = 20;
 
+        // this.IntervalColors =
+        // [
+        //     'olive', //octave or unison
+        //     'red', //minor second
+        //     'maroon', //major second
+        //     'cyan', //minor third
+        //     'blue', //major third
+        //     'blue', //perfect fourth
+        //     'magenta', //tritone
+        //     'gold', //perfect fifth
+        //     'green', //minor sixth
+        //     'darkgreen', //major sixth
+        //     'red', //minor seventh
+        //     'darkred', //major seventh
+        // ];
+
+        this.IntervalColors =
+        [
+            'gold', //octave or unison
+            'red', //minor second
+            'red', //major second
+            'green', //minor third
+            'green', //major third
+            'gold', //perfect fourth
+            'red', //tritone
+            'gold', //perfect fifth
+            'green', //minor sixth
+            'green', //major sixth
+            'red', //minor seventh
+            'red', //major seventh
+        ];
 
         this.colorKey = [
-            'red',    '#CC0099','yellow', '#669999',
+            '#DC143C','#CC0099','yellow', '#669999',
             '#003399','#990000','#000099','#ff6600',
             '#660066','#006600','#669999','#003399'];
+
 
         this.pitchKey = [
             261.626,277.183,293.665,311.127,
@@ -61,7 +93,10 @@ class View
             .mousedown(onMouseClickDown)
             .mouseup(onMouseClickUp)
             .mouseenter(onHoverBegin)
-            .mouseleave(onHoverEnd);
+            .mouseleave(onHoverEnd)
+            .on("contextmenu",function(){
+               return false;
+            });
 
         //$(this.PlayButton).click(onButtonPress);
         $('input[type=radio]').change(this.OnRadioButton);
@@ -384,7 +419,12 @@ class View
 		});
 	}
 
-    RenderNotes(noteArray, color, playbackXCoordinate)
+    RenderPlaybackLine(playbackXCoordinate)
+    {
+        this.PlaybackLine.css({'left':playbackXCoordinate})
+    }
+
+    RenderNotes(noteArray, color)
     {
         var gridNoteClass = "gridNote";
         var mainGrid = this.Maingrid;
@@ -396,7 +436,6 @@ class View
         this.GridboxContainer.css('border',borderCssString);
         $(".gridNote").remove();
 
-        this.PlaybackLine.css({'left':playbackXCoordinate})
 
 		noteArray.forEach(function(note)
 		{
@@ -408,7 +447,7 @@ class View
 			var offsetY = v_this.ConvertPitchToYIndex(pitch);
 			var offsetX = v_this.ConvertTicksToXIndex(noteGridStartTimeTicks);
 			var colorIndex = v_this.GetColorKey(pitch);
-
+            var borderColor = 'solid gray 1px';
 			var node = document.createElement('div');
 
 			if(note.IsHighlighted)
@@ -421,10 +460,16 @@ class View
 				noteOpacity = 0.5;
 			}
 
+            if(note.BassInterval !== undefined)
+            {
+                borderColor = this.IntervalColors[note.BassInterval];
+            }
+
 			$(node).addClass(gridNoteClass);
 			$(node).css({
 				'background':colorIndex,
-				'border': 'solid gray 1px',
+				//'border': 'solid '+borderColor+' 2px',
+                'box-shadow': '0px 0px 5px 5px '+ borderColor,
 				'top':offsetY,
 				'left':offsetX,
 				'opacity':noteOpacity,
@@ -435,6 +480,6 @@ class View
 
 			mainGrid.append(node);
 
-		});
+		},this);
 	}
 }

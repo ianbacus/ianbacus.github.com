@@ -30,6 +30,8 @@ html,body {
 
 .gridNote {
      pointer-events: none;
+     filter: saturate(70%) brightness(150%);
+
 }
 
 #GridboxArray{

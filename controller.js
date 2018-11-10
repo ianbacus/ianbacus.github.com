@@ -104,8 +104,11 @@ class Controller
 
     RefreshEditBoxNotes()
     {
+        this.AnalyzeIntervals(this.Model.Score);
         var editModeColor = this.EditModeColors[this.EditorMode];
-        this.View.RenderNotes(this.Model.Score, editModeColor, this.PlaybackXCoordinate);
+        this.View.RenderNotes(this.Model.Score, editModeColor);
+        this.View.RenderPlaybackLine(this.PlaybackXCoordinate);
+
     }
 
     DeleteSelectedNotes(pushAction)
@@ -520,19 +523,19 @@ class Controller
     ShouldIncludeNote(targetNote,searchNote,includeSuspensions)
     {
         var result = false;
-        if(!searchNote.IsSelected)
-        {
+        //if(!searchNote.IsSelected)
+        //{
             var overlapResult = this.DoNotesOverlap(targetNote, searchNote)
             var suspensionOrChordNote = overlapResult.Note1Subordinate;
             var chordNote = overlapResult.Note1Subordinate && overlapResult.Note2Subordinate;
 
             result = (includeSuspensions && suspensionOrChordNote) || (!includeSuspensions && chordNote);
-        }
+        //}
 
         return result;
     }
 
-    GetChordNotes(noteArray, noteIndex, includeSuspensions)
+    GetChordNotes(noteArray, noteIndex, includeSuspensions, includeSelectedNotes=false)
     {
         var leftSearchIndex = noteIndex - 1;
         var rightSearchIndex = noteIndex + 1;
@@ -540,51 +543,57 @@ class Controller
         var chordNotes = [currentNote];
         var returnIndex = noteArray.length;
         var currentNoteStartTicks = currentNote.StartTimeTicks;
-        var wholeNoteDurationTicks = 8;
+        var wholeNoteDurationTicks = 16;
 
         //search left
         while(leftSearchIndex >= 0)
         {
             var leftSearchNote = noteArray[leftSearchIndex];
-            var searchNoteTickDifference = currentNoteStartTicks - leftSearchNote.StartTimeTicks;
+            if(!leftSearchNote.IsSelected || includeSelectedNotes)
+            {
+                var searchNoteTickDifference = currentNoteStartTicks - leftSearchNote.StartTimeTicks;
 
-            //Search until the start ticks are out of range (a whole note)
-            //Search until the start ticks are no longer equivalent
-            if((includeSuspensions && (searchNoteTickDifference >= wholeNoteDurationTicks)) ||
-                (!includeSuspensions && (searchNoteTickDifference != 0)))
-            {
-                break;
-            }
-            else
-            {
-                var noteInChord = this.ShouldIncludeNote(currentNote,leftSearchNote, includeSuspensions);
-                if(noteInChord)
+                //includeSuspensions: Search left until the start ticks are out of range (a whole note)
+                //otherwise: Search until the start ticks are no longer equivalent
+                if((includeSuspensions && (searchNoteTickDifference >= wholeNoteDurationTicks)) ||
+                    (!includeSuspensions && (searchNoteTickDifference != 0)))
                 {
-                    chordNotes.push(leftSearchNote);
+                    break;
                 }
-
-                leftSearchIndex--;
+                else
+                {
+                    var noteInChord = this.ShouldIncludeNote(currentNote,leftSearchNote, includeSuspensions);
+                    if(noteInChord)
+                    {
+                        chordNotes.unshift(leftSearchNote);
+                    }
+                }
             }
+
+            leftSearchIndex--;
         }
 
         //search right
         while(rightSearchIndex < noteArray.length)
         {
             var rightSearchNote = noteArray[rightSearchIndex];
-            var noteInChord = this.ShouldIncludeNote(currentNote,rightSearchNote, includeSuspensions);
-            if(noteInChord)
+            var validSearchNote =  !rightSearchNote.IsSelected || includeSelectedNotes;
+            if(validSearchNote)
             {
-                chordNotes.push(rightSearchNote);
-            }
+                var noteInChord = this.ShouldIncludeNote(currentNote,rightSearchNote, includeSuspensions);
+                if(noteInChord)
+                {
+                    chordNotes.push(rightSearchNote);
+                }
 
-            //The first invalid unselected note on the right side will be the longest note of the next chord
-            //as a result of the note sorting order
-            else if(!rightSearchNote.IsSelected)
-            {
-                returnIndex = rightSearchIndex;
-                break;
+                //The first invalid unselected note on the right side will be the longest note of the next chord
+                //as a result of the note sorting order
+                else if(validSearchNote)
+                {
+                    returnIndex = rightSearchIndex;
+                    break;
+                }
             }
-
             rightSearchIndex++;
         }
 
@@ -649,11 +658,12 @@ class Controller
         {
             this.StopPlayingNotes();
         }
-        
+
         var xOffset = this.View.ConvertTicksToXIndex(currentNote.StartTimeTicks);
         if(this.CapturedPlaybackXCoordinate != undefined)
         {
             this.PlaybackXCoordinate = xOffset;
+            this.View.RenderPlaybackLine(this.PlaybackXCoordinate);
         }
     }
 
@@ -745,9 +755,8 @@ class Controller
             c_this.Hovering = false;
             c_this.console.log("Hover end. Resetting selected notes.");
             c_this.HandleSelectionReset();
+            c_this.RefreshEditBoxNotes()
         }
-
-        c_this.RefreshEditBoxNotes()
     }
 
     OnButtonPress(event)
@@ -789,7 +798,6 @@ class Controller
         {
             mouseMoveThisPointer.LastCursorPosition = mouseMoveThisPointer.CursorPosition;
 			mouseMoveThisPointer.CursorPosition = cursorPosition;
-
 
 			//If there are selected notes, move them
 			var selectCount = mouseMoveThisPointer.CountSelectedNotes();
@@ -930,6 +938,8 @@ class Controller
         var selectCount = clickUpThisPointer.CountSelectedNotes();
 
         clickUpThisPointer.Model.MergeSort(clickUpThisPointer.Model.Score);
+        clickUpThisPointer.Model.MergeSort(clickUpThisPointer.Model.SelectedNotes);
+
 
         if(clickUpThisPointer.SelectingGroup === true)
         {
@@ -946,10 +956,9 @@ class Controller
 			var playbackBuffer = [];
             var playbackMode = clickUpThisPointer.GetPlaybackMode();
             var sequenceNumber = clickUpThisPointer.GetNextSequenceNumber();
-            clickUpThisPointer.PlaybackXCoordinate = clickUpThisPointer.CursorPosition.x;
-            clickUpThisPointer.CapturePlaybackStartPoint(clickUpThisPointer.CursorPosition.x);
 
-			//Play all intersecting chords and handle move completion
+			//Play all intersecting chords and handle move completion. If playback mode == 0 (solo),
+            //do not search for intersecting chords.
             if((selectCount > 0) && (playbackMode != 0))
             {
                 const selectedBufferEndIndex = selectedNotes.length-1;
@@ -973,6 +982,12 @@ class Controller
                 });
             }
 
+            if(playbackBuffer.length > 0)
+            {
+                var ticksOffset = clickUpThisPointer.View.ConvertTicksToXIndex(playbackBuffer[0].StartTimeTicks);
+                clickUpThisPointer.CapturePlaybackStartPoint(ticksOffset);
+            }
+
             //Push all selected notes to the playback buffer, unselect them to place them and handle
             //move completion. Reverse iterate to allow deselection, which removes notes from the
             //selectedNotes buffer
@@ -983,13 +998,15 @@ class Controller
                     note.OnMoveComplete(sequenceNumber);
                 }, false);
 
+            //Chords
             if(playbackMode == 1)
             {
                 clickUpThisPointer.PlayNotes(playbackBuffer,false);
             }
+            //Suspensions and chords
             else
             {
-                clickUpThisPointer.PlayNotes(playbackBuffer,false);
+                clickUpThisPointer.PlayNotes(playbackBuffer,true);
             }
         }
 
@@ -1224,21 +1241,36 @@ class Controller
         return result;
     }
 
-        	/* analysis suite
-        function DrawBeats(meter)
-        {
-        	var gridWidth = parseInt($(maingrid).css('width'),10)/snapX;
-        	var divisions = gridWidth/meter;
-        	var currentLeftOffset = 0;
-        	for(var i=0;i<divisions;i++)
-        	{
-            currentLeftOffset += meter*snapX;
-            var node = document.createElement('div');
-            $(maingrid).append(node);
+    //Calculate the interval associated with each note relative to the bass
+    AnalyzeIntervals(noteArray)
+    {
+        var arrayLength = noteArray.length;
+        var noteIndex = 0;
+        var chordNotes = [];
 
-            $(node).css({'position':'absolute','top':0,'left':currentLeftOffset, 'height':'100%', 'width':1,'background':'black'});
-        	}
+        while(noteIndex < arrayLength)
+        {
+            //Include suspensions and allow selected notes to be analyzed
+            [chordNotes, noteIndex] = this.GetChordNotes(noteArray, noteIndex, true, true);
+
+            var bassNote = chordNotes[0];
+            chordNotes.some(function(note)
+            {
+                if(note.Pitch != bassNote.Pitch)
+                {
+                    var bassInterval = note.Pitch - bassNote.Pitch;
+                    note.BassInterval = bassInterval % 12;
+                }
+                else
+                {
+                    note.BassInterval = undefined;
+                }
+            });
+
         }
+    }
+
+        	/* analysis suite
 
         function getNoteArray()
         {

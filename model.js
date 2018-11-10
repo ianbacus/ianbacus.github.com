@@ -10,21 +10,27 @@ class Note
 {
     constructor(startTimeTicks, pitch, duration, selected, currentGridIndex=m_this.GridPreviewIndex)
     {
+        //State information
         this.Pitch = pitch;
         this.StartTimeTicks = startTimeTicks;
         this.Duration = duration;
         this.CurrentGridIndex = currentGridIndex;
 
+        //State meta-data
+        this.StateWhenSelected = null
+        this.SelectedGridIndex = m_this.GridPreviewIndex;
         this._IsSelected = selected;
+
+        //If a note is created and selected, append it to the selected notes buffer
         if(selected)
         {
             m_this.AddNote(this, 0, m_this.SelectedNotes, false);
-            //console.log("Added SELECT note ",m_this.SelectedNotes.length)
         }
-        this.IsHighlighted = false;
 
-        this.StateWhenSelected = null
-        this.SelectedGridIndex = m_this.GridPreviewIndex;
+        //Display and analysis information
+        this.IsHighlighted = false;
+        this.BassInterval = undefined;
+
     }
 
     Move(x_offset, y_offset)
@@ -495,10 +501,10 @@ class Model
                 compareResult = assertInt1GreaterThanInt2(note1.StartTimeTicks, note2.StartTimeTicks);
                 if(compareResult === 0)
                 {
-                    compareResult = assertInt1GreaterThanInt2(note1.Duration, note2.Duration);
+                    compareResult = assertInt1GreaterThanInt2(note1.Pitch, note2.Pitch);
                     if(compareResult === 0)
                     {
-                        compareResult = assertInt1GreaterThanInt2(note1.Pitch, note2.Pitch);
+                        compareResult = assertInt1GreaterThanInt2(note1.Duration, note2.Duration);
                         if(compareResult === 0)
                         {
                             compareResult = 1; //Not an exact match, just put one first
@@ -556,8 +562,10 @@ class Model
         }
 
         //Return 0 instead of -1 when the return index indicates the correct location is before the first element (0)
-        pivotIndex = Math.max(0,pivotIndex);
-        return pivotIndex;
+        // returnIndex = Math.max(0,pivotIndex);
+        returnIndex = Math.max(0,returnIndex);
+        return returnIndex;
+
     }
 
     MergeSort(array, comparefn=this.CompareNotes)
