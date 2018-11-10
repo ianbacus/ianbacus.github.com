@@ -40,6 +40,7 @@ class View
     }
 
     Initialize(
+        controller,
         onKeyUp,
         onMouseScroll,
         onMouseMove, onMouseClickUp, onMouseClickDown,
@@ -100,6 +101,9 @@ class View
 
         cursorPosition.x = (Math.ceil((event.pageX - offset.left) / gridSnap)*gridSnap)-gridSnap;
         cursorPosition.y = (Math.ceil(((event.pageY - offset.top)) / gridSnap)*gridSnap)-gridSnap;
+
+        // cursorPosition.x = (Math.ceil((event.pageX - offset.left) / gridSnap))-1;
+        // cursorPosition.y = (Math.ceil(((event.pageY - offset.top)) / gridSnap))-1;
 
         v_this.GridMouseHandler(cursorPosition);
     }

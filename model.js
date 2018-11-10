@@ -209,9 +209,10 @@ class Note
                 m_this.DeleteNote(this, 0, m_this.SelectedNotes, false);
                 m_this.console.log("Deleted SELECT note ",m_this.SelectedNotes.length)
             }
+
+            this._IsSelected = selected;
         }
 
-        this._IsSelected = selected;
     }
 
     get IsSelected()
@@ -492,6 +493,11 @@ class Model
                     if(compareResult === 0)
                     {
                         compareResult = assertInt1GreaterThanInt2(note1.Pitch, note2.Pitch);
+                        if(compareResult === 0)
+                        {
+                            compareResult = 1; //Not an exact match, just put one first
+                        }
+
                     }
                 }
             }
@@ -503,7 +509,7 @@ class Model
 
     //Determine the index of an element or the index where an element should be inserted using an
     //iterative binary search and a compare predicate
-    BinarySearch(array, note, compare_fn)
+    BinarySearch(array, note, compare_fn, exactMatch)
     {
         var lowerIndex = 0;
         var upperIndex = array.length - 1;
@@ -513,7 +519,7 @@ class Model
         while (lowerIndex <= upperIndex)
         {
             //Get index of middle element of range
-            var pivotIndex = (upperIndex + lowerIndex) >> 1;
+            pivotIndex = (upperIndex + lowerIndex) >> 1;
             var pivotNote = array[pivotIndex];
 
             //Compare note against middle element
@@ -544,13 +550,14 @@ class Model
         }
 
         //Return 0 instead of -1 when the return index indicates the correct location is before the first element (0)
-        returnIndex = Math.max(0,returnIndex);
-        return returnIndex;
+        pivotIndex = Math.max(0,pivotIndex);
+        return pivotIndex;
     }
 
     InsertSorted(array, note)
     {
-        var index = m_this.BinarySearch(array, note, m_this.CompareNotes);
+        var index = m_this.BinarySearch(array, note, m_this.CompareNotes, false);
+
         array.splice( index, 0, note );
     }
 
@@ -606,7 +613,26 @@ class Model
 
     DeleteNote(note, sequenceNumber, array=this.Score, pushAction=true)
     {
-		var deletionIndex = m_this.BinarySearch(array, note, m_this.CompareNotes);
+		//var deletionIndex = m_this.BinarySearch(array, note, m_this.CompareNotes, true);
+
+        var deletionIndex = 0;
+        var index = 0;
+        array.some(function(candidate)
+        {
+            if(candidate == note)
+            {
+                deletionIndex = index;
+                return;
+            }
+            else
+            {
+                index++;
+            }
+        })
+        if(array[deletionIndex] != note)
+        {
+            console.log("wtf");
+        }
         m_this.DeleteNoteWithIndex(deletionIndex,sequenceNumber,array,pushAction)
     }
 };

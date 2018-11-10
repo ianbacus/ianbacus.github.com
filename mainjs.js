@@ -21,6 +21,7 @@ ScoreController.console = console;
 $( function()
 {
     ScoreView.Initialize(
+        ScoreController,
         ScoreController.OnKeyUp,
         ScoreController.OnMouseScroll,
         ScoreController.OnMouseMove, ScoreController.OnMouseClickUp, ScoreController.OnMouseClickDown,
