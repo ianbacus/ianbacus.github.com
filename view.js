@@ -409,7 +409,7 @@ class View
                 functionRenderKeyRow(lowerOffset, colorIndex, noteOpacity, isTonicNote);
                 lowerOffset -= incrementOffset;
             }
-            while (upperOffset <= mainGridHeight)
+            while (upperOffset < mainGridHeight)
             {
                 functionRenderKeyRow(upperOffset, colorIndex, noteOpacity, isTonicNote);
                 upperOffset += incrementOffset;

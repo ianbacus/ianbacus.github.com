@@ -672,11 +672,6 @@ class Controller
         this.NoteIndex = 0;
         this.StopPlayingNotes();
 
-		noteArray.some(function(note)
-		{
-			console.log("Play all", note);
-		});
-
         if(noteArray.length > 0)
         {
             this.PlaybackNoteArray = noteArray
@@ -716,7 +711,6 @@ class Controller
 
         this.View.CancelScroll();
         clearTimeout(this.PendingTimeout);
-
 
         this.CreateUniqueEditNote();
         this.RefreshEditBoxNotes();
@@ -982,12 +976,6 @@ class Controller
                 });
             }
 
-            if(playbackBuffer.length > 0)
-            {
-                var ticksOffset = clickUpThisPointer.View.ConvertTicksToXIndex(playbackBuffer[0].StartTimeTicks);
-                clickUpThisPointer.CapturePlaybackStartPoint(ticksOffset);
-            }
-
             //Push all selected notes to the playback buffer, unselect them to place them and handle
             //move completion. Reverse iterate to allow deselection, which removes notes from the
             //selectedNotes buffer
@@ -997,6 +985,12 @@ class Controller
                     note.IsSelected = false;
                     note.OnMoveComplete(sequenceNumber);
                 }, false);
+
+            if(playbackBuffer.length > 0)
+            {
+                var ticksOffset = clickUpThisPointer.View.ConvertTicksToXIndex(playbackBuffer[0].StartTimeTicks);
+                clickUpThisPointer.CapturePlaybackStartPoint(ticksOffset);
+            }
 
             //Chords
             if(playbackMode == 1)

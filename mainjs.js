@@ -15,7 +15,7 @@ ScoreController.console = new disabledConsole();
 
 // ScoreView.console = console;
 // ScoreModel.console = console;
-ScoreController.console = console;
+//ScoreController.console = console;
 
 
 $( function()
