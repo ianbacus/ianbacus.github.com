@@ -673,6 +673,7 @@ class Model
         var deletedNote = array[deletionIndex];
         var gridIndex = this.GridPreviewIndex;
 
+        //If a note is deleted from the score, delete it from the select buffer
         if((array===this.Score) && (deletedNote.IsSelected))
         {
             this.DeleteNote(deletedNote, 0, this.SelectedNotes, false);

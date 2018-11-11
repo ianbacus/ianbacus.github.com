@@ -56,7 +56,7 @@ class Controller
     {
         var tonicOpacity = 0.25;
         var dominantOpacity = 0.20;
-        tonic += 11;
+
 		var modeBuffer = [{Pitch:tonic, Opacity: tonicOpacity}];
         var currentTone = tonic;
         var intervals = Modes[modeIndex]
@@ -200,7 +200,6 @@ class Controller
 
     InstantiatePasteBuffer(pasteBuffer)
     {
-        // this.console.log(pasteBuffer);
         //Reset the position of the selected notes in case they were dragged away from their start point
         this.HandleSelectionReset();
 
@@ -444,7 +443,6 @@ class Controller
     {
         var moveFunction;
         var copyBuffer = [];
-        var sequenceNumber = 0;
         var newGridIndex;
 
         if(upwardsDirection)
@@ -471,7 +469,7 @@ class Controller
             copyBuffer.push(copiedNote);
         });
 
-        this.DeleteSelectedNotes(false, sequenceNumber);
+        this.DeleteSelectedNotes(false, 0);
 
         //Change to the next grid
         moveFunction.call(this.Model);
@@ -481,7 +479,8 @@ class Controller
         {
             this.console.log("Transporting note: ", note, newGridIndex);
 			note.CurrentGridIndex = newGridIndex;
-            this.Model.AddNote(note, sequenceNumber, this.Model.Score, false);
+            this.Model.AddNote(note, 0, this.Model.Score, false);
+            this.Model.AddNote(note, 0, this.Model.SelectedNotes, false);
         },this);
 
         this.console.log("Transport end");
@@ -663,6 +662,14 @@ class Controller
 
             this.PendingTimeout = setTimeout(
                 $.proxy(this.OnPlayAllNotes, this),delta);
+
+            var xStart = this.View.ConvertTicksToXIndex(currentNote.StartTimeTicks);
+            var yStart = this.View.ConvertPitchToYIndex(currentNote.Pitch);
+            var xDestination = this.View.ConvertTicksToXIndex(nextNote.StartTimeTicks);
+            var yDestination =  this.View.ConvertPitchToYIndex(nextNote.Pitch);
+
+			//this.View.SmoothScroll(startX, endX, undefined, this.MillisecondsPerTick);
+            this.View.AutoScroll(xStart, yStart, xDestination, yDestination, this.MillisecondsPerTick)
         }
 
         else
@@ -695,8 +702,9 @@ class Controller
             var startX = this.View.ConvertTicksToXIndex(startTime);
             var endX = this.View.ConvertTicksToXIndex(endTime);
             var playbackDurationMilliseconds = (endTime - startTime)*this.MillisecondsPerTick;
-            this.OnPlayAllNotes(includeSuspensions);
 
+            //Begin scrolling along with the notes
+            //TODO: this needs to work better when the grid box is resized or when the voices go out of range
 			if(firstNote.StartTimeTicks != lastNote.StartTimeTicks)
 			{
 				var [chord,x] = this.GetChordNotes(noteArray, 0, includeSuspensions);
@@ -708,10 +716,10 @@ class Controller
 
 				var averagePitch = averagePitchSum / chord.length;
 				var ycoord = this.View.ConvertPitchToYIndex(averagePitch);
-				this.View.SmoothScroll(startX, startX,ycoord, 500);
-				this.View.SmoothScroll(startX, endX, undefined, this.MillisecondsPerTick);
+				this.View.SmoothScroll(startX, ycoord, 500);
 			}
 
+            this.OnPlayAllNotes(includeSuspensions);
         }
     }
 
@@ -720,7 +728,7 @@ class Controller
         this.Playing = false;
         this.ExpectedTime = undefined;
 
-        this.View.CancelScroll();
+        this.View.ResetAutoScroll();
         clearTimeout(this.PendingTimeout);
 
         this.CreateUniqueEditNote();
@@ -1034,18 +1042,39 @@ class Controller
         {
             noteArray = this.Model.SelectedNotes;
         }
+
+        //If no notes are selected, handle control+scroll as a zoom
         else
         {
-            if(scrollUp)
+            //Capture the position of the cursor in terms of ticks with the current pixels per tick
+            var cursorTickPosition =
             {
-                this.View.PixelsPerTick = Math.min(this.View.PixelsPerTick*2, 40);
+                x: this.View.ConvertXIndexToTicks(this.CursorPosition.x),
+                y: this.View.ConvertYIndexToPitch(this.CursorPosition.y),
+            };
+
+            //Change the pixels per tick
+            if(scrollUp && (this.View.PixelsPerTick < 40))
+            {
+                this.View.PixelsPerTick = this.View.PixelsPerTick*2;
+            }
+
+            else if(!scrollUp && (this.View.PixelsPerTick > 10))
+            {
+                this.View.PixelsPerTick = this.View.PixelsPerTick/2;
             }
             else
             {
-                this.View.PixelsPerTick = Math.max(this.View.PixelsPerTick/2, 10);
+                shouldScroll = false;
             }
 
-            this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
+            //Zoom into the area pointed to by the cursor
+            if(shouldScroll)
+            {
+                this.View.ScrollToPitchTickCenter(cursorTickPosition.x, cursorTickPosition.y);
+                this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
+            }
+
             return;
         }
 
@@ -1076,18 +1105,21 @@ class Controller
 
                 var noteOffset = (note.StartTimeTicks - firstNotePosition);
 
-                if(scrollUp)
-                {
-                    shouldScroll = note.Duration <= 8;
-                }
-                else
-                {
-                    shouldScroll = (note.Duration > 1)  && ((noteOffset % 2) == 0);
-                }
-
                 if(!shouldScroll)
                 {
                     return;
+                }
+
+                else
+                {
+                    if(scrollUp)
+                    {
+                        shouldScroll = note.Duration <= 8;
+                    }
+                    else
+                    {
+                        shouldScroll = (note.Duration > 1)  && ((noteOffset % 2) == 0);
+                    }
                 }
             }
         });
@@ -1156,7 +1188,7 @@ class Controller
         if(ctrl)
         {
             event.preventDefault();
-            c_this.HandleControlScroll(scrollUp)
+            c_this.HandleControlScroll(scrollUp);
             c_this.RefreshEditBoxNotes();
         }
         else if(shift)

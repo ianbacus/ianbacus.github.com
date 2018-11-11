@@ -15,7 +15,7 @@ class View
         this.previewObjs = ['cell', 'wire'];
         this.console = null;
 
-        this.MaximumPitch = 108;
+        this.MaximumPitch = 88;
 
         this.selectP = { x: 0, y: 0};
 
@@ -39,24 +39,35 @@ class View
 
         this.IntervalColors =
         [
-            'gold', //octave or unison
+            'blue', //octave or unison
             'red', //minor second
             'red', //major second
             'green', //minor third
             'green', //major third
-            'gold', //perfect fourth
+            'blue', //perfect fourth
             'red', //tritone
-            'gold', //perfect fifth
+            'blue', //perfect fifth
             'green', //minor sixth
             'green', //major sixth
             'red', //minor seventh
             'red', //major seventh
         ];
 
-        this.colorKey = [
-            '#DC143C','#CC0099','yellow', '#669999',
-            '#003399','#990000','#000099','#ff6600',
-            '#660066','#006600','#669999','#003399'];
+        this.colorKey =
+        [
+            'red', //C
+            'palevioletred', //
+            'yellow', //D
+            'mediumvioletred', //
+            'lightblue', //E
+            'maroon', //F
+            'royalblue', //
+            'darkorange', //G
+            'mediumorchid', //
+            'limegreen', //A
+            'brown', //
+            'cornflowerblue', //B
+        ];
 
 
         this.pitchKey = [
@@ -211,6 +222,23 @@ class View
         $(".selectionRectangle").remove();
     }
 
+    ScrollToPitchTickCenter(ticks, pitch)
+    {
+        var gridContainer = this.GridboxContainer;
+
+        var gridContainerWidthHalf = gridContainer.width()/2;
+        var gridContainerHeightHalf = gridContainer.height()/2;
+
+        var newXCenter =  this.ConvertTicksToXIndex(ticks);
+        var newYCenter = this.ConvertPitchToYIndex(pitch);
+
+        var leftOffset =  newXCenter - gridContainerWidthHalf;
+        var topOffset = newYCenter - gridContainerHeightHalf;
+
+        this.GridboxContainer.scrollTop(topOffset);
+        this.GridboxContainer.scrollLeft(leftOffset);
+    }
+
 	ScrollVertical(yOffset)
 	{
         var mainDiv = this.GridboxContainer;
@@ -223,10 +251,13 @@ class View
 		var newScrollPosition = mainDiv.scrollTop();
 		var actualOffset = newScrollPosition - currentScroll;
 		if(actualOffset > 0)
+        {
 			actualOffset = Math.ceil(actualOffset/gridSnap) * gridSnap;
-		else if( actualOffset < 0)
-			actualOffset = Math.floor(actualOffset/gridSnap) * gridSnap;
-
+		}
+        else if( actualOffset < 0)
+		{
+            actualOffset = Math.floor(actualOffset/gridSnap) * gridSnap;
+        }
 		return actualOffset;
 	}
 
@@ -253,53 +284,109 @@ class View
 		return actualOffset;
     }
 
-    CancelScroll()
-    {
-        this.GridboxContainer.stop();
-        this.TickCount = 0;
-    }
-
     ScrollDelegate()
     {
-        if(this.TickCount > 0)
+        var shouldScroll = false;
+        var x = this.GridboxContainer.scrollLeft();
+        var y = this.GridboxContainer.scrollTop();
+
+        if(this.XTickCount > 0)
         {
-            var x = this.GridboxContainer.scrollLeft();
-            var y = this.GridboxContainer.scrollTop();
-            this.GridboxContainer.scrollLeft(x+10,y); // horizontal and vertical scroll increments
-            this.TickCount--;
+            x += this.PixelsPerTick/2;
+            this.XTickCount--;
+            shouldScroll = true;
+        }
+
+        if(this.PositiveYTickCount > 0)
+        {
+            y += this.PixelsPerTick/2;
+            this.PositiveYTickCount--;
+            shouldScroll = true;
+        }
+
+        else if(this.NegativeYTickCount > 0)
+        {
+            y -= this.PixelsPerTick/2;
+            this.NegativeYTickCount--;
+            shouldScroll = true;
+        }
+
+        if(shouldScroll)
+        {
+            this.GridboxContainer.scrollLeft(x); // horizontal and vertical scroll increments
+            this.GridboxContainer.scrollTop(y); // horizontal and vertical scroll increments
+            console.log("Scrolling to ",x,y,this.MillisecondsPerTick);
+
             this.PendingTimeout = setTimeout(
                 $.proxy(this.ScrollDelegate, this), this.MillisecondsPerTick);
         }
+        else {
+            console.log("Not scrolling");
+        }
     }
 
-    SmoothScroll(startx, xCoordinate, yCoordinate, millisecondsPerTick)
+    SmoothScroll(xCoordinate, yCoordinate)
     {
         var mainDiv = this.GridboxContainer;
         var gridWidth = mainDiv.width();
 
         var halfGridWidth = gridWidth/2;
-
         var xAdjustedCoordinate = xCoordinate - halfGridWidth;
-        var currentScrollLeft = mainDiv.scrollLeft();
 
+        this.ResetAutoScroll();
+
+		var gridHeight = mainDiv.height();
+		var halfGridheight = gridHeight/2;
+		var yAdjustedCoordinate = yCoordinate - halfGridheight;
+
+		mainDiv.animate({scrollTop:yAdjustedCoordinate, scrollLeft:xAdjustedCoordinate},500);
+
+    }
+
+    ResetAutoScroll()
+    {
         clearTimeout(this.PendingTimeout);
-		if(yCoordinate === undefined)
-		{
-			//mainDiv.animate({scrollLeft:xAdjustedCoordinate},milliseconds);
+        //this.GridboxContainer.stop();
+        this.XTickCount = 0;
+        this.NegativeYTickCount = 0;
+        this.PositiveYTickCount = 0;
+        this.MillisecondsPerTick = 0;
+    }
 
-            this.MillisecondsPerTick = millisecondsPerTick/2;
-            this.TickCount = (xAdjustedCoordinate - startx)/10;
-            this.ScrollDelegate();
+    AutoScroll(xStart, yStart, xDestination, yDestination, millisecondsPerTick)
+    {
+        var gridContainer = this.GridboxContainer;
 
-		}
-		else
-		{
-			var gridHeight = mainDiv.height();
-			var halfGridheight = gridHeight/2;
-			var yAdjustedCoordinate = yCoordinate - halfGridheight;
+        var halfGridWidth = gridContainer.width()/2;
+        var halfGridHeight = gridContainer.height()/2;
+        var yAxisHysteresis = halfGridHeight;
+        var currentScrollTop = gridContainer.scrollTop();
 
-			mainDiv.animate({scrollTop:yAdjustedCoordinate, scrollLeft:xAdjustedCoordinate},500);
-		}
+        var xAdjustedCoordinate = xDestination;
+        var yAdjustedCoordinate = yDestination - halfGridHeight;
+        this.ResetAutoScroll();
+
+        this.MillisecondsPerTick = millisecondsPerTick/2;
+        this.XTickCount = 2*(xAdjustedCoordinate - xStart)/(this.PixelsPerTick);
+
+        var yPixelDifference = (yAdjustedCoordinate - currentScrollTop);
+
+        if(Math.abs(yPixelDifference) > yAxisHysteresis)
+        {
+            var yTicks = 2*yPixelDifference/(this.PixelsPerTick);
+
+            if(yTicks < 0)
+            {
+                this.NegativeYTickCount = -yTicks;
+            }
+
+            else
+            {
+                this.PositiveYTickCount = yTicks;
+            }
+        }
+
+        this.ScrollDelegate();
     }
 
     GetGridboxThumbnail(instance, imageCallback, index)
@@ -344,7 +431,7 @@ class View
                     context.drawImage(image, 0, 0, cWidth,cHeight);
                 }
             } catch (e) {
-
+                console.log(e);
             } finally {
 
                 nodeIndex++;
@@ -397,6 +484,7 @@ class View
 		var mainGridWidth = this.Maingrid.width();
 		var mainGridHeight = this.Maingrid.height();
         var isTonicNote = true;
+        var maximumPitch = this.MaximumPitch;
         $(".keynote").remove();
 
         function functionRenderKeyRow(offsetY, colorIndex, noteOpacity, isTonicNote)
@@ -422,11 +510,12 @@ class View
             v_this.Maingrid.append(node);
         }
 
-		//Give the tonic more opacity than other notes
+		//Color all octaves of a given note in each iteration.
 		modeArray.some(function(modeSlot)
 		{
 			const pitch = modeSlot.Pitch;
 			const colorIndex = this.GetColorKey(pitch);
+
             const incrementOffset = 12 * this.PixelsPerTick;
 			const noteOpacity = modeSlot.Opacity;
             const keyOffsetY = this.ConvertPitchToYIndex(pitch);
@@ -482,7 +571,7 @@ class View
 			var offsetY = this.ConvertPitchToYIndex(pitch);
 			var offsetX = this.ConvertTicksToXIndex(noteGridStartTimeTicks);
 			var colorIndex = this.GetColorKey(pitch);
-            var borderColor = 'solid gray 1px';
+            var borderColor = '';
 			var node = document.createElement('div');
 
 			if(note.IsHighlighted)
@@ -497,14 +586,15 @@ class View
 
             if(note.BassInterval !== undefined)
             {
-                borderColor = this.IntervalColors[note.BassInterval];
+                borderColor = '0px 0px 10px 5px ' + this.IntervalColors[note.BassInterval];
             }
 
 			$(node).addClass(gridNoteClass);
 			$(node).css({
 				'background':colorIndex,
 				//'border': 'solid '+borderColor+' 2px',
-                'box-shadow': '0px 0px 5px 5px '+ borderColor,
+                'border':'solid gray 1px',
+                'box-shadow': borderColor,
 				'top':offsetY,
 				'left':offsetX,
 				'opacity':noteOpacity,
