@@ -87,7 +87,7 @@ class Note
     StopPlaying()
     {
         this.IsHighlighted = false;
-		this.OnStopCallback.Callback.call(this.OnStopCallback.Caller);
+		this.OnStopCallback.Callback.call(this.OnStopCallback.Caller,this);
     }
 
     HorizontalModify(startTime,duration, sequenceNumber)

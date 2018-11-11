@@ -39,12 +39,12 @@ class View
 
         this.IntervalColors =
         [
-            'blue', //octave or unison
+            'white', //octave or unison
             'red', //minor second
             'red', //major second
             'green', //minor third
             'green', //major third
-            'blue', //perfect fourth
+            'purple', //perfect fourth
             'red', //tritone
             'blue', //perfect fifth
             'green', //minor sixth
@@ -315,13 +315,9 @@ class View
         {
             this.GridboxContainer.scrollLeft(x); // horizontal and vertical scroll increments
             this.GridboxContainer.scrollTop(y); // horizontal and vertical scroll increments
-            console.log("Scrolling to ",x,y,this.MillisecondsPerTick);
 
             this.PendingTimeout = setTimeout(
                 $.proxy(this.ScrollDelegate, this), this.MillisecondsPerTick);
-        }
-        else {
-            console.log("Not scrolling");
         }
     }
 
@@ -548,63 +544,93 @@ class View
         this.RestartPlaybackLine.css({'left':restartPlaybackXCoordinate})
     }
 
-    RenderNotes(noteArray, color)
+    //Apply style to an existing note
+    ApplyNoteStyle(note)
+    {
+        var node = note.JqueryKey;
+        var noteWidth = note.Duration*this.PixelsPerTick;
+        var pitch = note.Pitch;
+        var noteOpacity = 1.0;
+
+        var noteGridStartTimeTicks = note.StartTimeTicks;
+        var offsetY = this.ConvertPitchToYIndex(pitch);
+        var offsetX = this.ConvertTicksToXIndex(noteGridStartTimeTicks);
+        var colorIndex = this.GetColorKey(pitch);
+        var borderColor = '';
+
+        if(note.IsHighlighted)
+        {
+            colorIndex = 'white';
+        }
+
+        if(note.IsSelected)
+        {
+            noteOpacity = 0.5;
+        }
+
+        if(note.BassInterval !== undefined)
+        {
+            borderColor = '0px 0px 10px 5px ' + this.IntervalColors[note.BassInterval];
+        }
+
+        $(node).css({
+            'background':colorIndex,
+            'border':'solid gray 1px',
+            'box-shadow': borderColor,
+            'top':offsetY,
+            'left':offsetX,
+            'opacity':noteOpacity,
+            'height':this.PixelsPerTick,
+            'width':noteWidth,
+            'position':'absolute'
+        });
+    }
+
+
+    //Apply style to existing notes from an array
+    UpdateExistingNotes(noteArray)
+    {
+        noteArray.forEach(function(note)
+		{
+            this.ApplyNoteStyle(note);
+
+		},this);
+    }
+
+    //Add notes to the DOM and apply style to them
+    InstantiateNotes(noteArray)
     {
         var gridNoteClass = "gridNote";
         var mainGrid = this.Maingrid;
-
-        var borderCssString = 'solid '+color+' 1px'
-
-		var initialNoteStartTimeTicks = 0;
-
-        this.GridboxContainer.css('border',borderCssString);
-        $(".gridNote").remove();
-
-
-		noteArray.forEach(function(note)
-		{
-			var noteWidth = note.Duration*this.PixelsPerTick;
-			var pitch = note.Pitch;
-			var noteOpacity = 1.0;
-
-			var noteGridStartTimeTicks = note.StartTimeTicks - initialNoteStartTimeTicks;
-			var offsetY = this.ConvertPitchToYIndex(pitch);
-			var offsetX = this.ConvertTicksToXIndex(noteGridStartTimeTicks);
-			var colorIndex = this.GetColorKey(pitch);
-            var borderColor = '';
+        noteArray.forEach(function(note)
+        {
 			var node = document.createElement('div');
-
-			if(note.IsHighlighted)
-			{
-				colorIndex = 'white';
-			}
-
-			if(note.IsSelected)
-			{
-				noteOpacity = 0.5;
-			}
-
-            if(note.BassInterval !== undefined)
-            {
-                borderColor = '0px 0px 10px 5px ' + this.IntervalColors[note.BassInterval];
-            }
-
-			$(node).addClass(gridNoteClass);
-			$(node).css({
-				'background':colorIndex,
-				//'border': 'solid '+borderColor+' 2px',
-                'border':'solid gray 1px',
-                'box-shadow': borderColor,
-				'top':offsetY,
-				'left':offsetX,
-				'opacity':noteOpacity,
-				'height':this.PixelsPerTick,
-				'width':noteWidth,
-				'position':'absolute'
-			});
-
+            note.JqueryKey = node;
+            $(node).addClass(gridNoteClass);
+            this.ApplyNoteStyle(note);
 			mainGrid.append(node);
+        },this);
+    }
 
-		},this);
+    //Delete notes from the DOM
+    DeleteNotes(noteArray)
+    {
+        noteArray.forEach(function(note)
+        {
+            note.JqueryKey.remove();
+        },this);
+    }
+    SetBorderColor(color)
+    {
+        var borderCssString = 'solid '+color+' 1px';
+        this.GridboxContainer.css('border',borderCssString);
+    }
+
+    //Handle deletions and additions and reset jquery assignments
+    RenderNotes(noteArray)
+    {
+        var mainGrid = this.Maingrid;
+        $(".gridNote").remove();
+        this.InstantiateNotes(noteArray);
 	}
 }

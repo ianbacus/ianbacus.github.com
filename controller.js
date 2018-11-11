@@ -106,9 +106,8 @@ class Controller
     {
         this.AnalyzeIntervals(this.Model.Score);
         var editModeColor = this.EditModeColors[this.EditorMode];
-        this.View.RenderNotes(this.Model.Score, editModeColor);
+        this.View.RenderNotes(this.Model.Score);
         this.View.RenderPlaybackLine(this.MainPlaybackStartTicks,  this.CapturedPlaybackStartTicks);
-
     }
 
     DeleteSelectedNotes(pushAction)
@@ -243,8 +242,9 @@ class Controller
             if(keyupThisPointer.EditorMode != editModeEnumeration.SELECT)
             {
                 keyupThisPointer.EditorMode = editModeEnumeration.SELECT;
+                var editModeColor = keyupThisPointer.EditModeColors[keyupThisPointer.EditorMode];
                 keyupThisPointer.HandleSelectionReset();
-                keyupThisPointer.RefreshEditBoxNotes()
+                keyupThisPointer.View.SetBorderColor(editModeColor);
             }
 
             break;
@@ -277,8 +277,10 @@ class Controller
             else if(keyupThisPointer.EditorMode != editModeEnumeration.EDIT)
             {
                 keyupThisPointer.EditorMode = editModeEnumeration.EDIT;
+                var editModeColor = keyupThisPointer.EditModeColors[this.EditorMode];
                 keyupThisPointer.HandleSelectionReset();
                 keyupThisPointer.CreateUniqueEditNote();
+                keyupThisPointer.View.SetBorderColor(editModeColor);
             }
             else {
                 renderGrid = false;
@@ -317,17 +319,21 @@ class Controller
 
             if(!keyupThisPointer.Playing)
             {
-                var shiftKey = event.shiftKey;
-
                 var playbackBuffer = []
 				keyupThisPointer.HandleSelectionReset();
 
                 //Find note closest to playback coordinate
-
                 //Shift space: reset the play index to the last captured point
-                if(shiftKey)
+                if(event.shiftKey)
                 {
                     keyupThisPointer.ResetPlaybackStartTicks(keyupThisPointer.CapturedPlaybackStartTicks);
+                }
+
+                //Ctrl space: reset play index to beginning of grid
+                else if(event.ctrlKey)
+                {
+                    keyupThisPointer.ResetPlaybackStartTicks(0);
+                    keyupThisPointer.CapturedPlaybackStartTicks = keyupThisPointer.MainPlaybackStartTicks;
                 }
 
                 //Regular space: overwrite the last captured point and play from wherever the playback cursor is
@@ -359,6 +365,7 @@ class Controller
                 if(searchIndex >= 0)
                 {
                     //Add all unselected notes after the playback index to the playback buffer
+                    var [playbackBuffer,x] = keyupThisPointer.GetChordNotes(score, searchIndex, false);
                     for(searchIndex; searchIndex<score.length;searchIndex++)
                     {
                         var note = score[searchIndex];
@@ -367,9 +374,10 @@ class Controller
                             playbackBuffer.push(note);
                         }
                     }
+
+                    keyupThisPointer.PlayNotes(playbackBuffer, false);
                 }
 
-                keyupThisPointer.PlayNotes(playbackBuffer, false);
             }
             else
             {
@@ -411,9 +419,10 @@ class Controller
                 keyupThisPointer.ModifyNoteArray(keyupThisPointer.Model.Score, function(note)
                 {
                     note.IsSelected = true;
+                    this.View.ApplyNoteStyle(note);
                 });
             }
-            keyupThisPointer.RefreshEditBoxNotes();
+
         case 81: //"q" key
             break;
 
@@ -545,6 +554,9 @@ class Controller
         return result;
     }
 
+    //Search a given note array for chord notes. If suspensions are included, then notes that begin
+    //before the note with the given note index will be included if they overlap with the note at the
+    //note index. Return the chord notes and the index of the first note in the next chord
     GetChordNotes(noteArray, noteIndex, includeSuspensions, includeSelectedNotes=false)
     {
         var leftSearchIndex = noteIndex - 1;
@@ -607,26 +619,25 @@ class Controller
             rightSearchIndex++;
         }
 
+        //Return the chord notes and the index of the first note in the next chord
         return [chordNotes,returnIndex];
     }
 
-	OnStopNote()
+	OnStopNote(note)
 	{
-        this.RefreshEditBoxNotes();
+        this.View.ApplyNoteStyle(note)
 	}
 
     PlayChord(noteArray, noteIndex, includeSuspensions)
     {
         //Get all notes that play during this note, return the index of the first note that won't be played in this chord
-
         var [chordNotes,returnIndex] = this.GetChordNotes(noteArray, noteIndex, includeSuspensions)
 
         this.ModifyNoteArray(chordNotes, function(note)
         {
             note.Play(this.MillisecondsPerTick, this, this.OnStopNote);
+            this.View.ApplyNoteStyle(note);
         });
-
-        this.RefreshEditBoxNotes();
 
         return returnIndex;
     }
@@ -635,16 +646,14 @@ class Controller
     {
         var playbackNoteArray = this.PlaybackNoteArray;
         const noteIndex = this.NoteIndex;
-        const nextNoteIndex = this.PlayChord(playbackNoteArray, noteIndex, includeSuspensions);
         const currentNote = playbackNoteArray[noteIndex];
-
-        var delta = 0;
+        const nextNoteIndex = this.PlayChord(playbackNoteArray, noteIndex, includeSuspensions);
 
         if(nextNoteIndex < playbackNoteArray.length)
         {
             const nextNote = playbackNoteArray[nextNoteIndex];
             const relativeDelta = nextNote.StartTimeTicks - currentNote.StartTimeTicks;
-            delta = relativeDelta*this.MillisecondsPerTick;
+            var delta = relativeDelta*this.MillisecondsPerTick;
 
             this.NoteIndex = nextNoteIndex;
 
@@ -653,11 +662,14 @@ class Controller
             {
                 this.ExpectedTime = Date.now() + delta;
             }
+            //Find the difference between the actual time and the expected time
+            //negative skew time: event happened early
+            //positive skew time: event happened late
             else
             {
-                var elapsedTime = Date.now() - this.ExpectedTime;
+                var skewTime = Date.now() - this.ExpectedTime;
                 this.ExpectedTime += delta;
-                delta = Math.max(0, delta - elapsedTime);
+                delta = Math.max(0, delta - skewTime);
             }
 
             this.PendingTimeout = setTimeout(
@@ -668,27 +680,25 @@ class Controller
             var xDestination = this.View.ConvertTicksToXIndex(nextNote.StartTimeTicks);
             var yDestination =  this.View.ConvertPitchToYIndex(nextNote.Pitch);
 
-			//this.View.SmoothScroll(startX, endX, undefined, this.MillisecondsPerTick);
             this.View.AutoScroll(xStart, yStart, xDestination, yDestination, this.MillisecondsPerTick)
+
+            //Update playback line after playing each chord
+            this.MainPlaybackStartTicks = currentNote.StartTimeTicks;
+            this.View.RenderPlaybackLine(this.MainPlaybackStartTicks, this.CapturedPlaybackStartTicks);
         }
 
         else
         {
+            this.MainPlaybackStartTicks = currentNote.StartTimeTicks;
             this.StopPlayingNotes();
         }
-
-        //Update playback line after playing each chord
-        //var xOffset = this.View.ConvertTicksToXIndex(currentNote.StartTimeTicks);
-
-        this.MainPlaybackStartTicks = currentNote.StartTimeTicks;
-        this.View.RenderPlaybackLine(this.MainPlaybackStartTicks, this.CapturedPlaybackStartTicks);
 
     }
 
     PlayNotes(noteArray, includeSuspensions)
     {
         this.NoteIndex = 0;
-        this.StopPlayingNotes();
+        this.ResetPlayback();
 
         if(noteArray.length > 0)
         {
@@ -704,9 +714,9 @@ class Controller
             var playbackDurationMilliseconds = (endTime - startTime)*this.MillisecondsPerTick;
 
             //Begin scrolling along with the notes
-            //TODO: this needs to work better when the grid box is resized or when the voices go out of range
 			if(firstNote.StartTimeTicks != lastNote.StartTimeTicks)
 			{
+                //Find the middle Y coordinate
 				var [chord,x] = this.GetChordNotes(noteArray, 0, includeSuspensions);
 				var averagePitchSum = 0;
 				chord.forEach(function(note)
@@ -716,6 +726,7 @@ class Controller
 
 				var averagePitch = averagePitchSum / chord.length;
 				var ycoord = this.View.ConvertPitchToYIndex(averagePitch);
+
 				this.View.SmoothScroll(startX, ycoord, 500);
 			}
 
@@ -723,16 +734,20 @@ class Controller
         }
     }
 
+    ResetPlayback()
+    {
+        this.ExpectedTime = undefined;
+        this.View.ResetAutoScroll();
+        clearTimeout(this.PendingTimeout);
+        this.View.RenderPlaybackLine(this.MainPlaybackStartTicks,  this.CapturedPlaybackStartTicks);
+    }
+
     StopPlayingNotes()
     {
         this.Playing = false;
-        this.ExpectedTime = undefined;
-
-        this.View.ResetAutoScroll();
-        clearTimeout(this.PendingTimeout);
+        this.ResetPlayback();
 
         this.CreateUniqueEditNote();
-        this.RefreshEditBoxNotes();
     }
 
     CreateUniqueEditNote()
@@ -740,13 +755,14 @@ class Controller
         var selectCount = this.CountSelectedNotes();
 
         //Create a new preview note if edit mode is active
-        if((this.EditorMode == editModeEnumeration.EDIT) && (selectCount == 0))
+        if((this.EditorMode == editModeEnumeration.EDIT) && (selectCount == 0) && (!this.Playing))
         {
             var startTicks = this.View.ConvertXIndexToTicks(this.CursorPosition.x);
             var pitch = this.View.ConvertYIndexToPitch(this.CursorPosition.y);
             var previewNote = new Note(startTicks, pitch, this.DefaultNoteDuration, true);
 
             this.Model.AddNote(previewNote, 0, this.Model.Score, false);
+            c_this.View.InstantiateNotes([previewNote]);
         }
     }
 
@@ -757,7 +773,6 @@ class Controller
             c_this.Hovering = true;
 
             c_this.CreateUniqueEditNote();
-            c_this.RefreshEditBoxNotes();
         }
     }
 
@@ -796,8 +811,12 @@ class Controller
 			{
                 this.console.log("Handling reset with deletion",note)
 				this.Model.DeleteNote(note, 0, this.Model.Score, false);
+                this.View.DeleteNotes([note]);
 			}
         }, false);
+
+        this.AnalyzeIntervals(this.Model.Score);
+        this.View.UpdateExistingNotes(this.Model.Score);
     }
 
     ///Update the cursor position, move all selected notes
@@ -841,9 +860,8 @@ class Controller
 					{
 						note.IsSelected = false;
 					}
+                    this.View.ApplyNoteStyle(note);
 				});
-
-				mouseMoveThisPointer.RefreshEditBoxNotes()
 			}
 
 			//If no selection rectangle is being drawn, move all selected notes
@@ -859,14 +877,16 @@ class Controller
 					mouseMoveThisPointer.View.ConvertYIndexToPitch(mouseMoveThisPointer.CursorPosition.y) -
 					mouseMoveThisPointer.View.ConvertYIndexToPitch(mouseMoveThisPointer.LastCursorPosition.y);
 
+
 				mouseMoveThisPointer.ModifyNoteArray(selectedNotes, function(note){
 					note.Move(x_offset, y_offset);
 				});
 
+
                 mouseMoveThisPointer.Model.MergeSort(selectedNotes);
                 mouseMoveThisPointer.Model.MergeSort(mouseMoveThisPointer.Model.Score);
+                mouseMoveThisPointer.AnalyzeIntervals(mouseMoveThisPointer.Model.Score);
 
-				mouseMoveThisPointer.RefreshEditBoxNotes()
 			}
 		}
     } //end OnMouseMove
@@ -970,14 +990,15 @@ class Controller
 			var playbackBuffer = [];
             var playbackMode = clickUpThisPointer.GetPlaybackMode();
             var sequenceNumber = clickUpThisPointer.GetNextSequenceNumber();
+            var includeSuspensions = playbackMode == 2;
 
 			//Play all intersecting chords and handle move completion. If playback mode == 0 (solo),
             //do not search for intersecting chords.
             if((selectCount > 0) && (playbackMode != 0))
             {
                 const selectedBufferEndIndex = selectedNotes.length-1;
-
-                const startTickBoundary = selectedNotes[0].StartTimeTicks;
+                const firstSelectedNote = selectedNotes[0];
+                const startTickBoundary = firstSelectedNote.StartTimeTicks;
                 const endTickBoundary =
                     selectedNotes[selectedBufferEndIndex].StartTimeTicks +
                     selectedNotes[selectedBufferEndIndex].Duration;
@@ -985,14 +1006,33 @@ class Controller
                 //Find all notes in the score that intersect with the selected notes
                 clickUpThisPointer.ModifyNoteArray(clickUpThisPointer.Model.Score, function(note)
                 {
-                    var intersectsSelectedNote =
-                        (startTickBoundary <= note.StartTimeTicks) &&
-                        (note.StartTimeTicks < endTickBoundary);
 
-                    if(!note.IsSelected && intersectsSelectedNote)
+                    if(!note.IsSelected)
                     {
-						clickUpThisPointer.Model.AddNote(note, 0, playbackBuffer, false);
-                    }
+                        var intersectsSelectedNote =
+                            (startTickBoundary <= note.StartTimeTicks) &&
+                            (note.StartTimeTicks < endTickBoundary);
+
+                        var suspendsOverFirstNote =
+                            this.ShouldIncludeNote(firstSelectedNote,note,includeSuspensions);
+
+                            // if(suspendsOverFirstNote || intersectsSelectedNote)
+                            // {
+    			            //     clickUpThisPointer.Model.AddNote(note, 0, playbackBuffer, false);
+                            // }
+
+                        if(intersectsSelectedNote)
+                        {
+    		                clickUpThisPointer.Model.AddNote(note, 0, playbackBuffer, false);
+                        }
+                        else if(suspendsOverFirstNote)
+                        {
+                            var suspendDummyNote = new Note(firstSelectedNote.StartTimeTicks, note.Pitch, firstSelectedNote.Duration, false);
+    		                clickUpThisPointer.Model.AddNote(suspendDummyNote, 0, playbackBuffer, false);
+                        }
+
+
+                     }
                 });
             }
 
@@ -1004,14 +1044,13 @@ class Controller
                     clickUpThisPointer.Model.AddNote(note, 0, playbackBuffer, false);
                     note.IsSelected = false;
                     note.OnMoveComplete(sequenceNumber);
+                    this.View.ApplyNoteStyle(note);
                 }, false);
 
+            //Move the playback line
             if(playbackBuffer.length > 0)
             {
-                // var ticksOffset = clickUpThisPointer.View.ConvertTicksToXIndex(playbackBuffer[0].StartTimeTicks);
-                // clickUpThisPointer.ResetPlaybackStartTicks(ticksOffset);
                 clickUpThisPointer.ResetPlaybackStartTicks(playbackBuffer[0].StartTimeTicks);
-
             }
 
             //Chords
@@ -1019,6 +1058,7 @@ class Controller
             {
                 clickUpThisPointer.PlayNotes(playbackBuffer,false);
             }
+
             //Suspensions and chords
             else
             {
@@ -1027,7 +1067,7 @@ class Controller
         }
 
         clickUpThisPointer.CreateUniqueEditNote();
-        clickUpThisPointer.RefreshGridPreview();
+        clickUpThisPointer.View.RenderPlaybackLine(clickUpThisPointer.MainPlaybackStartTicks,  clickUpThisPointer.CapturedPlaybackStartTicks);
 
     } //end OnMouseClickUp
 
@@ -1189,7 +1229,8 @@ class Controller
         {
             event.preventDefault();
             c_this.HandleControlScroll(scrollUp);
-            c_this.RefreshEditBoxNotes();
+            c_this.View.UpdateExistingNotes(c_this.Model.Score);
+            c_this.View.RenderPlaybackLine(this.MainPlaybackStartTicks,  this.CapturedPlaybackStartTicks);
         }
         else if(shift)
         {
@@ -1347,7 +1388,8 @@ class Controller
                 {
                     note.BassInterval = undefined;
                 }
-            });
+                this.View.ApplyNoteStyle(note);
+            },this);
 
         }
     }
