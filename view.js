@@ -9,17 +9,17 @@ class View
         this.MainPlaybackLine = null;
         this.RestartPlaybackLine = null;
 		this.Maingrid = null;
-        this.GridboxContainer = null;//"#gridboxContainer";
-        this.GridArray = "#GridboxArray";
+        this.GridboxContainer = null;
+        this.GridArray = null;
 
         this.previewObjs = ['cell', 'wire'];
         this.console = null;
 
-        this.MaximumPitch = 83;
+        this.MaximumPitch = 108;
 
         this.selectP = { x: 0, y: 0};
 
-        this.gridSnap = 20;
+        this._PixelsPerTick = 20;
 
         // this.IntervalColors =
         // [
@@ -86,9 +86,10 @@ class View
 
         this.Maingrid = $("#gridbox");
         this.GridboxContainer = $("#gridboxContainer");
-        this.GridArray_ = $("#GridboxArray");
+        this.GridArray = $("#GridboxArray");
         this.MainPlaybackLine =$("#MainPlaybackLine");
         this.RestartPlaybackLine =$("#RestartPlaybackLine");
+        this.PixelsPerTick = 20;
 
     	this.Maingrid
             .mousemove(this.OnMouseMove)
@@ -100,7 +101,6 @@ class View
                return false;
             });
 
-        //$(this.PlayButton).click(onButtonPress);
         $('input[type=radio]').change(this.OnRadioButton);
 
         $(document).keydown(onKeyUp);
@@ -108,7 +108,35 @@ class View
         this.RadioButtonHandler = radioButtonHandler;
 
         this.Maingrid.bind('mousewheel DOMMouseScroll', onMouseScroll);
+    }
 
+    set PixelsPerTick(pixelsPerTick)
+    {
+        this._PixelsPerTick = pixelsPerTick;
+        var maximumPitchRange = 87;
+        var mainGridHeight = pixelsPerTick*maximumPitchRange;
+        var gridboxContainerHeight = 800;
+
+        //Gridbox container should be smaller than gridbox
+        //Gridbox container should be
+        if(gridboxContainerHeight > mainGridHeight)
+        {
+            gridboxContainerHeight = mainGridHeight+20;
+        };
+
+        this.GridboxContainer.css({
+            'height':gridboxContainerHeight,
+        })
+
+        this.Maingrid.css({
+            'height':mainGridHeight,
+            'width':pixelsPerTick*240,
+        });
+    }
+
+    get PixelsPerTick()
+    {
+        return this._PixelsPerTick;
     }
 
     OnRadioButton(event)
@@ -137,7 +165,7 @@ class View
     {
         var cursorPosition = { x: -1, y: -1 };
         var offset = v_this.Maingrid.offset();
-        var gridSnap = v_this.gridSnap;
+        var gridSnap = v_this.PixelsPerTick;
 
         cursorPosition.x = (Math.ceil((event.pageX - offset.left) / gridSnap)*gridSnap)-gridSnap;
         cursorPosition.y = (Math.ceil(((event.pageY - offset.top)) / gridSnap)*gridSnap)-gridSnap;
@@ -150,32 +178,32 @@ class View
 
     ConvertPitchToYIndex(pitch)
     {
-        var pitchOffset = v_this.MaximumPitch - pitch;
-		var mainGridHeight = v_this.Maingrid.height();
+        var pitchOffset = this.MaximumPitch - pitch;
+		var mainGridHeight = this.Maingrid.height();
 
-        var result = (v_this.gridSnap*pitchOffset) % mainGridHeight;
+        var result = (this.PixelsPerTick*pitchOffset) % mainGridHeight;
         return result;
     }
 
     ConvertTicksToXIndex(ticks)
     {
-        return v_this.gridSnap*ticks;
+        return this.PixelsPerTick*ticks;
     }
 
     ConvertYIndexToPitch(yIndex)
     {
-        return v_this.MaximumPitch - (yIndex/v_this.gridSnap);
+        return this.MaximumPitch - (yIndex/this.PixelsPerTick);
     }
 
     ConvertXIndexToTicks(xIndex)
     {
-        return xIndex/v_this.gridSnap;
+        return xIndex/this.PixelsPerTick;
     }
 
     GetColorKey(pitch)
     {
         var colorIndex = pitch % 12;
-        return v_this.colorKey[colorIndex];
+        return this.colorKey[colorIndex];
     }
 
     DeleteSelectRectangle()
@@ -189,7 +217,7 @@ class View
 
 		var currentScroll = mainDiv.scrollTop();
         var newOffset = currentScroll+yOffset;
-		var gridSnap = v_this.gridSnap;
+		var gridSnap = this.PixelsPerTick;
         mainDiv.scrollTop(newOffset);
 
 		var newScrollPosition = mainDiv.scrollTop();
@@ -208,7 +236,7 @@ class View
 
 		var currentScroll = mainDiv.scrollLeft();
         var newOffset = currentScroll+xOffset;
-		var gridSnap = v_this.gridSnap;
+		var gridSnap = this.PixelsPerTick;
         mainDiv.scrollLeft(newOffset);
 
 		var newScrollPosition = mainDiv.scrollLeft();
@@ -259,9 +287,9 @@ class View
 		{
 			//mainDiv.animate({scrollLeft:xAdjustedCoordinate},milliseconds);
 
-            v_this.MillisecondsPerTick = millisecondsPerTick/2;
-            v_this.TickCount = (xAdjustedCoordinate - startx)/10;
-            v_this.ScrollDelegate();
+            this.MillisecondsPerTick = millisecondsPerTick/2;
+            this.TickCount = (xAdjustedCoordinate - startx)/10;
+            this.ScrollDelegate();
 
 		}
 		else
@@ -288,7 +316,7 @@ class View
     RenderGridArray(gridImages, selectedIndex)
     {
         var numberOfEntries = gridImages.length;
-        var domGridArray = $(v_this.GridArray);
+        var domGridArray = this.GridArray;
         domGridArray.empty();
         var nodeIndex = 0;
 
@@ -359,36 +387,37 @@ class View
 			'height':rect_height
 		});
 
-		v_this.DeleteSelectRectangle();
-        v_this.Maingrid.append(node);
+		this.DeleteSelectRectangle();
+        this.Maingrid.append(node);
     }
 
 	RenderKeys(modeArray)
 	{
         var keyNoteClass = "keynote";
-		var mainGridWidth = v_this.Maingrid.width();
-		var mainGridHeight = v_this.Maingrid.height();
+		var mainGridWidth = this.Maingrid.width();
+		var mainGridHeight = this.Maingrid.height();
         var isTonicNote = true;
         $(".keynote").remove();
 
         function functionRenderKeyRow(offsetY, colorIndex, noteOpacity, isTonicNote)
         {
             var node = document.createElement('div');
-
+            var bottomBorder = 'solid gray 1px'
+            if(isTonicNote)
+            {
+                bottomBorder = 'solid black 2px';
+            }
             $(node).addClass(keyNoteClass);
             $(node).css({
 				'background':colorIndex,
 				'top':offsetY,
 				'left':0,
 				"opacity":noteOpacity,
-				"height":v_this.gridSnap,
+				"height":v_this.PixelsPerTick,
 				"width":mainGridWidth,
+                "border-bottom":'solid black 2px',
 				"position":"absolute"});
 
-            if(isTonicNote)
-            {
-                $(node).css({"border-bottom":'solid black 2px'});
-            }
 
             v_this.Maingrid.append(node);
         }
@@ -397,10 +426,10 @@ class View
 		modeArray.some(function(modeSlot)
 		{
 			const pitch = modeSlot.Pitch;
-			const colorIndex = v_this.GetColorKey(pitch);
-            const incrementOffset = 12 * v_this.gridSnap;
+			const colorIndex = this.GetColorKey(pitch);
+            const incrementOffset = 12 * this.PixelsPerTick;
 			const noteOpacity = modeSlot.Opacity;
-            const keyOffsetY = v_this.ConvertPitchToYIndex(pitch);
+            const keyOffsetY = this.ConvertPitchToYIndex(pitch);
 
             var lowerOffset = keyOffsetY-incrementOffset;
             var upperOffset = keyOffsetY+incrementOffset;
@@ -418,11 +447,14 @@ class View
             }
 
             isTonicNote = false;
-		});
+		}, this);
 	}
 
-    RenderPlaybackLine(mainPlaybackXCoordinate, restartPlaybackXCoordinate)
+    RenderPlaybackLine(mainPlaybackCursorStartTicks, restartPlaybackCursorStartTicks)
     {
+        var mainPlaybackXCoordinate = this.ConvertTicksToXIndex(mainPlaybackCursorStartTicks);
+        var restartPlaybackXCoordinate = this.ConvertTicksToXIndex(restartPlaybackCursorStartTicks);
+
         this.MainPlaybackLine.css({'left':mainPlaybackXCoordinate})
         this.RestartPlaybackLine.css({'left':restartPlaybackXCoordinate})
     }
@@ -442,14 +474,14 @@ class View
 
 		noteArray.forEach(function(note)
 		{
-			var noteWidth = note.Duration*v_this.gridSnap;
+			var noteWidth = note.Duration*this.PixelsPerTick;
 			var pitch = note.Pitch;
 			var noteOpacity = 1.0;
 
 			var noteGridStartTimeTicks = note.StartTimeTicks - initialNoteStartTimeTicks;
-			var offsetY = v_this.ConvertPitchToYIndex(pitch);
-			var offsetX = v_this.ConvertTicksToXIndex(noteGridStartTimeTicks);
-			var colorIndex = v_this.GetColorKey(pitch);
+			var offsetY = this.ConvertPitchToYIndex(pitch);
+			var offsetX = this.ConvertTicksToXIndex(noteGridStartTimeTicks);
+			var colorIndex = this.GetColorKey(pitch);
             var borderColor = 'solid gray 1px';
 			var node = document.createElement('div');
 
@@ -476,7 +508,7 @@ class View
 				'top':offsetY,
 				'left':offsetX,
 				'opacity':noteOpacity,
-				'height':v_this.gridSnap,
+				'height':this.PixelsPerTick,
 				'width':noteWidth,
 				'position':'absolute'
 			});

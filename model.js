@@ -562,7 +562,6 @@ class Model
         }
 
         //Return 0 instead of -1 when the return index indicates the correct location is before the first element (0)
-        // returnIndex = Math.max(0,pivotIndex);
         returnIndex = Math.max(0,returnIndex);
         return returnIndex;
 

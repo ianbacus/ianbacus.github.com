@@ -29,8 +29,8 @@ class Controller
         this.Model = model;
         this.CursorPosition = { x: -1, y: -1 };
         this.SelectorPosition = { x: -1, y: -1 };
-        this.PlaybackXCoordinate = 0;
-        this.CapturedPlaybackXCoordinate = 0;
+        this.MainPlaybackStartTicks = 0;
+        this.CapturedPlaybackStartTicks = 0;
 
         this.Playing = false;
         this.Hovering = false;
@@ -107,7 +107,7 @@ class Controller
         this.AnalyzeIntervals(this.Model.Score);
         var editModeColor = this.EditModeColors[this.EditorMode];
         this.View.RenderNotes(this.Model.Score, editModeColor);
-        this.View.RenderPlaybackLine(this.PlaybackXCoordinate,  this.CapturedPlaybackXCoordinate);
+        this.View.RenderPlaybackLine(this.MainPlaybackStartTicks,  this.CapturedPlaybackStartTicks);
 
     }
 
@@ -228,9 +228,9 @@ class Controller
         }, this);
     }
 
-    CapturePlaybackStartPoint(xCoordinate)
+    ResetPlaybackStartTicks(ticks)
     {
-        this.PlaybackXCoordinate = xCoordinate;
+        this.MainPlaybackStartTicks = ticks;
     }
 
     OnKeyUp(event)
@@ -328,21 +328,23 @@ class Controller
                 //Shift space: reset the play index to the last captured point
                 if(shiftKey)
                 {
-                    keyupThisPointer.CapturePlaybackStartPoint(keyupThisPointer.CapturedPlaybackXCoordinate);
+                    keyupThisPointer.ResetPlaybackStartTicks(keyupThisPointer.CapturedPlaybackStartTicks);
                 }
 
                 //Regular space: overwrite the last captured point and play from wherever the playback cursor is
                 else
                 {
-                    keyupThisPointer.CapturedPlaybackXCoordinate = keyupThisPointer.PlaybackXCoordinate;
+                    keyupThisPointer.CapturedPlaybackStartTicks = keyupThisPointer.MainPlaybackStartTicks;
                 }
 
                 var score = keyupThisPointer.Model.Score;
+                var playbackStartXCoordinate = keyupThisPointer.View.ConvertTicksToXIndex(keyupThisPointer.MainPlaybackStartTicks);
+
                 var selectionRectangle =
                 {
-                    x1: keyupThisPointer.PlaybackXCoordinate,
+                    x1: playbackStartXCoordinate,
                     y1: 0,
-                    x2: keyupThisPointer.PlaybackXCoordinate,
+                    x2: playbackStartXCoordinate,
                     y2: 'Infinity',
                 };
 
@@ -472,7 +474,7 @@ class Controller
         this.DeleteSelectedNotes(false, sequenceNumber);
 
         //Change to the next grid
-        moveFunction();
+        moveFunction.call(this.Model);
 
         //Instantiate the copied notes in the next buffer
         copyBuffer.forEach(function(note)
@@ -668,12 +670,12 @@ class Controller
             this.StopPlayingNotes();
         }
 
-        var xOffset = this.View.ConvertTicksToXIndex(currentNote.StartTimeTicks);
-        //if(this.CapturedPlaybackXCoordinate != undefined)
-        {
-            this.PlaybackXCoordinate = xOffset;
-            this.View.RenderPlaybackLine(this.PlaybackXCoordinate, this.CapturedPlaybackXCoordinate);
-        }
+        //Update playback line after playing each chord
+        //var xOffset = this.View.ConvertTicksToXIndex(currentNote.StartTimeTicks);
+
+        this.MainPlaybackStartTicks = currentNote.StartTimeTicks;
+        this.View.RenderPlaybackLine(this.MainPlaybackStartTicks, this.CapturedPlaybackStartTicks);
+
     }
 
     PlayNotes(noteArray, includeSuspensions)
@@ -950,7 +952,8 @@ class Controller
             clickUpThisPointer.SelectingGroup = false;
             if(selectCount === 0)
             {
-                clickUpThisPointer.CapturePlaybackStartPoint(clickUpThisPointer.CursorPosition.x);
+                var clickupTicks = clickUpThisPointer.View.ConvertXIndexToTicks(clickUpThisPointer.CursorPosition.x);
+                clickUpThisPointer.ResetPlaybackStartTicks(clickupTicks);
             }
         }
 
@@ -997,8 +1000,10 @@ class Controller
 
             if(playbackBuffer.length > 0)
             {
-                var ticksOffset = clickUpThisPointer.View.ConvertTicksToXIndex(playbackBuffer[0].StartTimeTicks);
-                clickUpThisPointer.CapturePlaybackStartPoint(ticksOffset);
+                // var ticksOffset = clickUpThisPointer.View.ConvertTicksToXIndex(playbackBuffer[0].StartTimeTicks);
+                // clickUpThisPointer.ResetPlaybackStartTicks(ticksOffset);
+                clickUpThisPointer.ResetPlaybackStartTicks(playbackBuffer[0].StartTimeTicks);
+
             }
 
             //Chords
@@ -1028,6 +1033,20 @@ class Controller
         if(selectCount != 0)
         {
             noteArray = this.Model.SelectedNotes;
+        }
+        else
+        {
+            if(scrollUp)
+            {
+                this.View.PixelsPerTick = Math.min(this.View.PixelsPerTick*2, 40);
+            }
+            else
+            {
+                this.View.PixelsPerTick = Math.max(this.View.PixelsPerTick/2, 10);
+            }
+
+            this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
+            return;
         }
 
         //Only allow all selected notes or all unselected notes, depending on the select count.
@@ -1143,7 +1162,7 @@ class Controller
         else if(shift)
         {
             event.preventDefault();
-            var xOffset = c_this.DefaultNoteDuration*c_this.View.gridSnap;
+            var xOffset = c_this.DefaultNoteDuration*c_this.View.PixelsPerTick;
 
 			var cursorPosition =
 			{
@@ -1164,7 +1183,7 @@ class Controller
         else
         {
             event.preventDefault();
-            var yOffset = c_this.View.gridSnap;
+            var yOffset = c_this.View.PixelsPerTick;
 
 			var cursorPosition =
 			{
@@ -1193,7 +1212,7 @@ class Controller
     {
         var x1Value = this.View.ConvertTicksToXIndex(note.StartTimeTicks);
         var y1Value = this.View.ConvertPitchToYIndex(note.Pitch);
-        var gridSnap = this.View.gridSnap;
+        var gridSnap = this.View.PixelsPerTick;
 
         var noteRectangle = {
             x1: x1Value,
