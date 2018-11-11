@@ -325,29 +325,46 @@ class Controller
 
                 //Find note closest to playback coordinate
 
+                //Shift space: reset the play index to the last captured point
                 if(shiftKey)
                 {
                     keyupThisPointer.CapturePlaybackStartPoint(keyupThisPointer.CapturedPlaybackXCoordinate);
                 }
 
+                //Regular space: overwrite the last captured point and play from wherever the playback cursor is
                 else
                 {
                     keyupThisPointer.CapturedPlaybackXCoordinate = keyupThisPointer.PlaybackXCoordinate;
                 }
 
-                var searchTicks = keyupThisPointer.View.ConvertXIndexToTicks(keyupThisPointer.PlaybackXCoordinate);
-                var sentryNote = new Note(searchTicks, 0, 0, false);
-                var searchIndex = keyupThisPointer.Model.BinarySearch(keyupThisPointer.Model.Score,sentryNote);
-
                 var score = keyupThisPointer.Model.Score;
-
-                //Add all unselected notes after the playback index to the playback buffer
-                for(searchIndex; searchIndex<score.length;searchIndex++)
+                var selectionRectangle =
                 {
-                    var note = score[searchIndex];
-                    if(!note.IsSelected)
+                    x1: keyupThisPointer.PlaybackXCoordinate,
+                    y1: 0,
+                    x2: keyupThisPointer.PlaybackXCoordinate,
+                    y2: 'Infinity',
+                };
+
+                //
+                var searchResult = keyupThisPointer.GetNoteIndexOfOverlappingNote(selectionRectangle);
+                var [searchIndex, binarySearchResult] = [searchResult.ClickedNoteIndex, searchResult.BinarySearchIndex]
+
+                //Handle case where playback cursor is before any notes
+                if((searchIndex < 0) && (binarySearchResult < score.length))
+                {
+                    searchIndex = binarySearchResult-1;
+                }
+                if(searchIndex >= 0)
+                {
+                    //Add all unselected notes after the playback index to the playback buffer
+                    for(searchIndex; searchIndex<score.length;searchIndex++)
                     {
-                        playbackBuffer.push(note);
+                        var note = score[searchIndex];
+                        if(!note.IsSelected)
+                        {
+                            playbackBuffer.push(note);
+                        }
                     }
                 }
 
@@ -517,14 +534,12 @@ class Controller
     ShouldIncludeNote(targetNote,searchNote,includeSuspensions)
     {
         var result = false;
-        //if(!searchNote.IsSelected)
-        //{
-            var overlapResult = this.DoNotesOverlap(targetNote, searchNote)
-            var suspensionOrChordNote = overlapResult.Note1Subordinate;
-            var chordNote = overlapResult.Note1Subordinate && overlapResult.Note2Subordinate;
 
-            result = (includeSuspensions && suspensionOrChordNote) || (!includeSuspensions && chordNote);
-        //}
+        var overlapResult = this.DoNotesOverlap(targetNote, searchNote)
+        var suspensionOrChordNote = overlapResult.Note1Subordinate;
+        var chordNote = overlapResult.Note1Subordinate && overlapResult.Note2Subordinate;
+
+        result = (includeSuspensions && suspensionOrChordNote) || (!includeSuspensions && chordNote);
 
         return result;
     }
@@ -894,7 +909,7 @@ class Controller
         if(clickdownThisPointer.EditorMode == editModeEnumeration.SELECT)
         {
             var selectCount = clickdownThisPointer.CountSelectedNotes();
-            var clickedNoteIndex = clickdownThisPointer.GetNoteIfClicked();
+            var clickedNoteIndex = clickdownThisPointer.GetNoteIndexOfOverlappingNote().ClickedNoteIndex;
             var score = clickdownThisPointer.Model.Score;
 
             //If a note is clicked, select it
@@ -1190,7 +1205,7 @@ class Controller
         return noteRectangle;
     }
 
-    GetNoteIfClicked(cursorRectangle=undefined)
+    GetNoteIndexOfOverlappingNote(cursorRectangle=undefined)
     {
         //Get the index of a clicked note. Return -1 if no notes were clicked
         var clickedNoteIndex = -1;
@@ -1207,16 +1222,20 @@ class Controller
             }
         }
         var score = this.Model.Score;
-        //Add one to the start ticks so
+
+        //Add one to the start ticks so that the left search is guaranteed include all notes whose durations cover the
+        //clicked coordinate
         var startTicks = this.View.ConvertXIndexToTicks(cursorRectangle.x1)+1;
         var sentryNote = new Note(startTicks, 0, 0, false);
-        var searchIndex = Math.min(this.Model.BinarySearch(score,sentryNote)+1, score.length);
+        var initialGuessIndex = Math.min(this.Model.BinarySearch(score,sentryNote)+1, score.length);
+        var searchIndex = initialGuessIndex;
 
+        //Search left for overlaps because notes to the right of this index should start after the target note
         while(searchIndex-- > 0)
         {
             var note = score[searchIndex];
             var noteRectangle = this.GetNoteRectangle(note);
-            var noteWasClicked = this.DoesRectangle1CoverRectangle2(noteRectangle, cursorRectangle);
+            var noteWasClicked = this.DoesRectangle1OverlapRectangle2(noteRectangle, cursorRectangle);
 
             if(noteWasClicked)
             {
@@ -1225,14 +1244,30 @@ class Controller
             }
         }
 
-        return clickedNoteIndex;
+        //Return -1 clickednoteIndex if search invalid
+        var result =
+        {
+            ClickedNoteIndex:clickedNoteIndex,
+            BinarySearchIndex:initialGuessIndex
+        };
+
+        return result;
     }
 
+    DoesRectangle1OverlapRectangle2(rectangle1, rectangle2)
+    {
+        var xCovered = (rectangle1.x1 <= rectangle2.x2) && (rectangle1.x2 > rectangle2.x1) ;
+        var yCovered = (rectangle1.y1 <= rectangle2.y2) && (rectangle1.y2 > rectangle2.y1) ;
+
+        var result = xCovered && yCovered;
+        return result;
+    }
 
     DoesRectangle1CoverRectangle2(rectangle1, rectangle2)
     {
         var xCovered = (rectangle1.x1 <= rectangle2.x1) && (rectangle1.x2 >= rectangle2.x2) ;
         var yCovered = (rectangle1.y1 <= rectangle2.y1) && (rectangle1.y2 >= rectangle2.y2) ;
+
         var result = xCovered && yCovered;
         return result;
     }
