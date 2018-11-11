@@ -107,7 +107,7 @@ class Controller
         this.AnalyzeIntervals(this.Model.Score);
         var editModeColor = this.EditModeColors[this.EditorMode];
         this.View.RenderNotes(this.Model.Score, editModeColor);
-        this.View.RenderPlaybackLine(this.PlaybackXCoordinate);
+        this.View.RenderPlaybackLine(this.PlaybackXCoordinate,  this.CapturedPlaybackXCoordinate);
 
     }
 
@@ -230,8 +230,7 @@ class Controller
 
     CapturePlaybackStartPoint(xCoordinate)
     {
-        this.PlaybackXCoordinate =xCoordinate;
-        this.CapturedPlaybackXCoordinate = undefined;
+        this.PlaybackXCoordinate = xCoordinate;
     }
 
     OnKeyUp(event)
@@ -315,17 +314,22 @@ class Controller
             keyupThisPointer.SetKeyReference(keyupThisPointer.TonicKey, keyupThisPointer.MusicalModeIndex);
             break;
         case 32: //spacebar
+            event.preventDefault();
+
             if(!keyupThisPointer.Playing)
             {
+                var shiftKey = event.shiftKey;
+
                 var playbackBuffer = []
 				keyupThisPointer.HandleSelectionReset();
 
                 //Find note closest to playback coordinate
 
-                if(this.PlaybackXCoordinate != this.CapturedPlaybackXCoordinate)
+                if(shiftKey)
                 {
-                    keyupThisPointer.CapturePlaybackStartPoint(this.CapturedPlaybackXCoordinate);
+                    keyupThisPointer.CapturePlaybackStartPoint(keyupThisPointer.CapturedPlaybackXCoordinate);
                 }
+
                 else
                 {
                     keyupThisPointer.CapturedPlaybackXCoordinate = keyupThisPointer.PlaybackXCoordinate;
@@ -334,19 +338,10 @@ class Controller
                 var searchTicks = keyupThisPointer.View.ConvertXIndexToTicks(keyupThisPointer.PlaybackXCoordinate);
                 var sentryNote = new Note(searchTicks, 0, 0, false);
                 var searchIndex = keyupThisPointer.Model.BinarySearch(keyupThisPointer.Model.Score,sentryNote);
+
                 var score = keyupThisPointer.Model.Score;
 
-                //Add all unselected notes to the playback buffer
-                // keyupThisPointer.Model.GridPreviewList.forEach(function(arrayBuffer)
-                // {
-                //     arrayBuffer.forEach(function(note)
-                //     {
-                //         if(!note.IsSelected)
-                //         {
-                //             playbackBuffer.push(note);
-                //         }
-                //     });
-                // });
+                //Add all unselected notes after the playback index to the playback buffer
                 for(searchIndex; searchIndex<score.length;searchIndex++)
                 {
                     var note = score[searchIndex];
@@ -362,7 +357,6 @@ class Controller
             {
                 keyupThisPointer.StopPlayingNotes();
             }
-            event.preventDefault();
             break;
 
         case 67: //"c" key"
@@ -660,10 +654,10 @@ class Controller
         }
 
         var xOffset = this.View.ConvertTicksToXIndex(currentNote.StartTimeTicks);
-        if(this.CapturedPlaybackXCoordinate != undefined)
+        //if(this.CapturedPlaybackXCoordinate != undefined)
         {
             this.PlaybackXCoordinate = xOffset;
-            this.View.RenderPlaybackLine(this.PlaybackXCoordinate);
+            this.View.RenderPlaybackLine(this.PlaybackXCoordinate, this.CapturedPlaybackXCoordinate);
         }
     }
 
@@ -917,7 +911,7 @@ class Controller
                 clickdownThisPointer.View.RenderSelectRectangle(clickdownThisPointer.SelectorPosition, clickdownThisPointer.CursorPosition);
             }
         }
-    }
+    } //end OnMouseClickDown
 
     ///Unselect all selected notes to anchor them and play them
     OnMouseClickUp(event)
@@ -1196,32 +1190,40 @@ class Controller
         return noteRectangle;
     }
 
-    GetNoteIfClicked()
+    GetNoteIfClicked(cursorRectangle=undefined)
     {
         //Get the index of a clicked note. Return -1 if no notes were clicked
         var clickedNoteIndex = -1;
 
-        var cursorPosition = this.CursorPosition;
-        var cursorRectangle =
+        if(cursorRectangle == undefined)
         {
-            x1: cursorPosition.x,
-            y1: cursorPosition.y,
-            x2: cursorPosition.x,
-            y2: cursorPosition.y,
+            var cursorPosition = this.CursorPosition;
+            cursorRectangle =
+            {
+                x1: cursorPosition.x,
+                y1: cursorPosition.y,
+                x2: cursorPosition.x,
+                y2: cursorPosition.y,
+            }
         }
+        var score = this.Model.Score;
+        //Add one to the start ticks so
+        var startTicks = this.View.ConvertXIndexToTicks(cursorRectangle.x1)+1;
+        var sentryNote = new Note(startTicks, 0, 0, false);
+        var searchIndex = Math.min(this.Model.BinarySearch(score,sentryNote)+1, score.length);
 
-        var noteIndex = 0;
-        this.ModifyNoteArray(this.Model.Score, function(note)
+        while(searchIndex-- > 0)
         {
+            var note = score[searchIndex];
             var noteRectangle = this.GetNoteRectangle(note);
             var noteWasClicked = this.DoesRectangle1CoverRectangle2(noteRectangle, cursorRectangle);
 
             if(noteWasClicked)
             {
-                clickedNoteIndex = noteIndex;
+                clickedNoteIndex = searchIndex;
+                break;
             }
-            noteIndex++;
-        });
+        }
 
         return clickedNoteIndex;
     }

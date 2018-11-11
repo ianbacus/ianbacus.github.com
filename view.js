@@ -6,7 +6,8 @@ class View
     {
         v_this = this;
 
-        this.PlaybackLine = null;
+        this.MainPlaybackLine = null;
+        this.RestartPlaybackLine = null;
 		this.Maingrid = null;
         this.GridboxContainer = null;//"#gridboxContainer";
         this.GridArray = "#GridboxArray";
@@ -86,7 +87,8 @@ class View
         this.Maingrid = $("#gridbox");
         this.GridboxContainer = $("#gridboxContainer");
         this.GridArray_ = $("#GridboxArray");
-        this.PlaybackLine =$("#PlaybackLine");
+        this.MainPlaybackLine =$("#MainPlaybackLine");
+        this.RestartPlaybackLine =$("#RestartPlaybackLine");
 
     	this.Maingrid
             .mousemove(this.OnMouseMove)
@@ -419,9 +421,10 @@ class View
 		});
 	}
 
-    RenderPlaybackLine(playbackXCoordinate)
+    RenderPlaybackLine(mainPlaybackXCoordinate, restartPlaybackXCoordinate)
     {
-        this.PlaybackLine.css({'left':playbackXCoordinate})
+        this.MainPlaybackLine.css({'left':mainPlaybackXCoordinate})
+        this.RestartPlaybackLine.css({'left':restartPlaybackXCoordinate})
     }
 
     RenderNotes(noteArray, color)

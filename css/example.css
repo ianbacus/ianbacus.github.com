@@ -7,13 +7,21 @@ html,body {
     padding:0;
 }
 
-#PlaybackLine
+.PlaybackLine
 {
-    left: 20px;
-    width:10px;
     height:100%;
-    position:relative;
+    width:1px;
+    position:absolute;
+}
+
+#MainPlaybackLine
+{
     border-left: thick solid red;
+}
+
+#RestartPlaybackLine
+{
+    border-left: thick solid green;
 }
 .container
 {
