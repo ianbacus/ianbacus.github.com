@@ -15,7 +15,7 @@ class View
         this.previewObjs = ['cell', 'wire'];
         this.console = null;
 
-        this.MaximumPitch = 88;
+        this.MaximumPitch = 12*7;
 
         this.selectP = { x: 0, y: 0};
 
@@ -91,7 +91,7 @@ class View
         onMouseScroll,
         onMouseMove, onMouseClickUp, onMouseClickDown,
         onHoverBegin, onHoverEnd,
-        onButtonPress,
+        onSliderChange, onSelectChange,
         radioButtonHandler)
     {
 
@@ -109,22 +109,54 @@ class View
             .mouseenter(onHoverBegin)
             .mouseleave(onHoverEnd)
             .on("contextmenu",function(){
+                //No right clicking
                return false;
             });
 
         $('input[type=radio]').change(this.OnRadioButton);
+        $('select').change(this.OnSelectChange);
 
         $(document).keydown(onKeyUp);
         this.GridMouseHandler = onMouseMove;
         this.RadioButtonHandler = radioButtonHandler;
+        this.SliderHandler = onSliderChange;
+        this.SelectHandler = onSelectChange;
+
+        $(document).on('input change', '#TempoSlider',this.OnSliderChange);
 
         this.Maingrid.bind('mousewheel DOMMouseScroll', onMouseScroll);
+
+        //Call slider handler to initialize tempo text
+        this.OnSliderChange();
+    }
+
+    OnSelectChange(event)
+    {
+        v_this.SelectHandler(this.value);
+        $('select').blur();
+        //v_this.Maingrid.focus();
+    }
+
+    OnSliderChange()
+    {
+        var tempo = $("#TempoSlider").val();
+        $("#TempoPreview").text("Tempo: "+tempo);
+        v_this.SliderHandler(tempo);
+    }
+
+    PopulateSelectMenu(selectEntryCodes)
+    {
+        var $dropdown = $("#InstrumentSelection");
+        selectEntryCodes.forEach(function(entry)
+        {
+            $dropdown.append($("<option />").val(entry).text(entry));
+        });
     }
 
     set PixelsPerTick(pixelsPerTick)
     {
         this._PixelsPerTick = pixelsPerTick;
-        var maximumPitchRange = 87;
+        var maximumPitchRange = this.MaximumPitch;
         var mainGridHeight = pixelsPerTick*maximumPitchRange;
         var gridboxContainerHeight = 800;
 
@@ -491,6 +523,7 @@ class View
             {
                 bottomBorder = 'solid black 2px';
             }
+
             $(node).addClass(keyNoteClass);
             $(node).css({
 				'background':colorIndex,

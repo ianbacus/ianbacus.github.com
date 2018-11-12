@@ -1,10 +1,10 @@
 let m_this = undefined;
 
-var InstrumentEnum = {
-	Violin: 0,
-	Guitar: 1,
-	Flute: 2
-};
+var AudioContextFunc = window.AudioContext || window.webkitAudioContext;
+var audioContext = new AudioContextFunc();
+var player=new WebAudioFontPlayer();
+
+
 
 class Note
 {
@@ -15,6 +15,7 @@ class Note
         this.StartTimeTicks = startTimeTicks;
         this.Duration = duration;
         this.CurrentGridIndex = currentGridIndex;
+        this.Playback = {}
 
         //State meta-data
         this.StateWhenSelected = null
@@ -40,43 +41,20 @@ class Note
 
     }
 
-    Play(millisecondsPerTick, caller, onStopCallback, instrumentCode=InstrumentEnum.Guitar)
+    Play(millisecondsPerTick, caller, onStopCallback, instrumentCode)
     {
-        var milliseconds = millisecondsPerTick * this.Duration
+        var milliseconds = millisecondsPerTick * this.Duration;
+        var playback = this.Playback;
+        playback.key = this.Pitch;
 
-        var env;
-        var synth;
-        switch(instrumentCode)
-        {
-            //TODO: improve instruments
-            case InstrumentEnum.Violin:
-                env = T("perc", {a:655, r:milliseconds*1.5});
-                synth  = T("PluckGen", {env:env, mul:0.75}).play();
-                break;
+		playback.envelope=player.queueWaveTable(
+            audioContext,   //audio context
+            audioContext.destination, //audio destination
+            instrumentCode, //instrument
+            0,  //start time
+            playback.key, //pitch
+            milliseconds/1000); //duration
 
-            case InstrumentEnum.Guitar:
-                env = T("perc", {a:100, r:milliseconds*1.0});
-                synth  = T("PluckGen", {env:env, mul:0.75}).play();
-                break;
-
-            case InstrumentEnum.Flute:
-                //fami, saw, tri, pulse, konami, cos, sin
-                var table = [10,
-                    [10, milliseconds/10], [50, milliseconds/9], [100, milliseconds/8],
-                    [50, milliseconds/7], [150, milliseconds/6], [200, milliseconds/5],
-                    [150, milliseconds/4], [100, milliseconds/3], [50, milliseconds/2],
-                    [10, milliseconds]];
-                //env   = T("env", {table:table, loopNode:0}).bang();
-                env = T("perc", {a:450, ar:false, r:milliseconds*1.0});
-                synth = T("OscGen", {env:env, wave: "cos", mul: 0.075 }).play();
-                break;
-
-            default:
-                env = T("perc", {a:5, r:milliseconds*1.0});
-                synth  = T("PluckGen", {env:env, mul:0.75}).play();
-                break;
-        }
-        synth.noteOn(this.Pitch, 200);
 		this.OnStopCallback = {Caller:caller, Callback: onStopCallback};
         this.IsHighlighted = true;
 
@@ -250,6 +228,35 @@ class Model
         this.ActivityIndex = 0;
         this.MaximumActivityStackLength = 100;
         this.SelectedNotes = [];
+
+        this.InstrumentEnum =
+        {
+            piano : '_tone_0000_GeneralUserGS_sf2_file',
+            harpsichord : '_tone_0060_SBLive_sf2',
+            flute : '_tone_0731_SoundBlasterOld_sf2',
+            ocarina : '_tone_0790_SoundBlasterOld_sf2',
+            sitar : '_tone_1040_GeneralUserGS_sf2_file',
+            choir : '_tone_0540_JCLive_sf2_file',
+            choir2 : '_tone_0530_Soul_Ahhs_sf2_file',
+            horn : '_tone_0560_JCLive_sf2_file',
+            guitar : '_tone_0240_JCLive_sf2_file',
+
+            //rock: '_tone_0300_Chaos_sf2_file',
+            harp: '_tone_0461_FluidR3_GM_sf2_file',
+            synth: '_tone_0900_SBLive_sf2',
+            fiddle: '_tone_1100_SBLive_sf2',
+        };
+    }
+
+    Initialize()
+    {
+        var instrumentEnumeration = this.InstrumentEnum;
+        Object.keys(instrumentEnumeration).forEach(function(key)
+        {
+            var synthString = instrumentEnumeration[key];
+            player.loader.decodeAfterLoading(audioContext,synthString);
+            this.InstrumentEnum[key] = eval(synthString);
+        },this);
     }
 
     SetCurrentGridPreview(noteArray)
@@ -306,7 +313,7 @@ class Model
 					stackTop.MoveBuffer.length + " datums")
             }
         }
-
+        
         return pushSuccessful;
 
     } //end HandleBatchInsertion

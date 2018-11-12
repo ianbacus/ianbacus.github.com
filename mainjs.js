@@ -20,13 +20,16 @@ ScoreController.console = new disabledConsole();
 
 $( function()
 {
+    ScoreModel.Initialize();
     ScoreView.Initialize(
         ScoreController,
         ScoreController.OnKeyUp,
         ScoreController.OnMouseScroll,
         ScoreController.OnMouseMove, ScoreController.OnMouseClickUp, ScoreController.OnMouseClickDown,
         ScoreController.OnHoverBegin, ScoreController.OnHoverEnd,
-        ScoreController.OnButtonPress, ScoreController.OnRadioButtonPress,
+        ScoreController.OnSliderChange, ScoreController.OnSelectChange,
+        ScoreController.OnRadioButtonPress,
     );
+
     ScoreController.Initialize();
 });

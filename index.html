@@ -4,13 +4,41 @@
 <head>
 <title> Browser Composer </title>
 
-<link rel="stylesheet" href="css/example.css">
 <link rel="stylesheet" href="css/bootstrap.min.css">
+<link rel="stylesheet" href="css/example.css">
 
 <script src="jquery.min.js"></script>
 <script src="bootstrap.min.js"></script>
 <script src="timbre.js"></script>
+
+<script src='https://surikov.github.io/webaudiofont/npm/dist/WebAudioFontPlayer.js'></script>
+
+<script src='sound/0000_GeneralUserGS_sf2_file.js'></script>
+<script src='sound/0060_SBLive_sf2.js'></script>
+<script src='sound/0731_SoundBlasterOld_sf2.js'></script>
+<script src='sound/0790_SoundBlasterOld_sf2.js'></script>
+<script src='sound/1040_GeneralUserGS_sf2_file.js'></script>
+<script src='sound/1090_SoundBlasterOld_sf2.js'></script>
+<script src='sound/0540_JCLive_sf2_file.js'></script>
+<script src='sound/0530_Soul_Ahhs_sf2_file.js'></script>
+<script src='sound/0560_JCLive_sf2_file.js'></script>
+<script src='sound/0240_JCLive_sf2_file.js'></script>
+
+
+<script src='https://surikov.github.io/webaudiofontdata/sound/0140_FluidR3_GM_sf2_file.js'></script>
+<script src='https://surikov.github.io/webaudiofontdata/sound/0300_Chaos_sf2_file.js'></script>
+<script src='https://surikov.github.io/webaudiofontdata/sound/0461_FluidR3_GM_sf2_file.js'></script>
+<script src='https://surikov.github.io/webaudiofontdata/sound/0900_SBLive_sf2.js'></script>
+<script src='https://surikov.github.io/webaudiofontdata/sound/1231_GeneralUserGS_sf2_file.js'></script>
+<script src='https://surikov.github.io/webaudiofontdata/sound/1100_SBLive_sf2.js'></script>
+<script src='https://surikov.github.io/webaudiofontdata/sound/1230_Chaos_sf2_file.js'></script>
+
+
+
+
 <script src="html2canvas.js"></script>
+
+
 
 
 <script src="model.js"></script>
@@ -64,23 +92,17 @@
                     <br>
 					Analysis
 					<div class="form-group" id="Analysis">
+                        <div class="radio">
+                            <label><input type="radio" name="optradio0" value=0 checked="checked">Free</label>
+                        </div>
 						<div class="radio">
-						    <label><input type="radio" name="optradio" value=0>Invertible (10th)</label>
+						    <label><input type="radio" name="optradio0" value=2>Canon</label>
 						</div>
 						<div class="radio">
-						    <label><input type="radio" name="optradio" value=0>Invertible (12th)</label>
-						</div>
-						<div class="radio">
-						    <label><input type="radio" name="optradio" value=0>Invertible (15th)</label>
-						</div>
-						<div class="radio">
-						    <label><input type="radio" name="optradio" value=1>Canon</label>
-						</div>
-						<div class="radio">
-						    <label><input type="radio" name="optradio" value=2 checked="checked">Free</label>
+						    <label><input type="radio" name="optradio0" value=1>Invertible</label>
 						</div>
 					</div>
-                    Preview Options
+                    Playback Options
 					<div class="form-group" id="PlayPreview">
 						<div class="radio">
     						<label><input type="radio" name="optradio1" value=0 checked="checked">Solo</label>
@@ -93,11 +115,8 @@
 						</div>
 					</div>
 
-                    Playback Options
+                    Play Duration
 					<div class="form-group" id="Playback">
-						<div class="radio">
-    						<label><input type="radio" name="optradio2" value=0>Last edit</label>
-						</div>
 						<div class="radio">
 						    <label><input type="radio" name="optradio2" value=1 checked="checked">Current grid</label>
 						</div>
@@ -118,17 +137,25 @@
 						<label><input type="radio" name="optradio3" value=2>2</label>
 						</div>
 					</div>
+                    <div class="slidecontainer">
+                        <p id="TempoPreview">Tempo:</p>
+                        <input type="range" min="60" max="180" value="120" class="slider" id="TempoSlider">
+                    </div>
+                    <select id="InstrumentSelection">
+                    </select>
 				</div> <!-- end mode tab -->
+
                 <div id="preview" class="tab-pane fade">
                     <div id="gridboxNavigator">
                         <div id="GridboxArray" style="border: 1px solid black">
                         </div>
                     </div>
-                </div>
-            </div> <!-- end tab content -->
+                </div> <!-- end preview tab -->
+            </div> <!-- end tabular content -->
 		</div> <!-- end column -->
+
+        <!--- This column contains the main editing box -->
         <div class="col-sm-10">
-            <!--- This column contains the main editing box -->
             <div id="gridboxContainer">
                 <div id="gridbox">
                     <div id="RestartPlaybackLine" class="PlaybackLine"></div>

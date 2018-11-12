@@ -82,9 +82,23 @@ class Controller
 
     Initialize()
     {
+        var instrumentOptions = [];
+        var instrumentEnumeration = this.Model.InstrumentEnum;
         this.RefreshGridPreview();
         this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
+        this.CurrentInstrument = m_this.InstrumentEnum.piano;
 
+        Object.keys(instrumentEnumeration).forEach(function(key)
+        {
+            instrumentOptions.push(key);
+        });
+
+        this.View.PopulateSelectMenu(instrumentOptions);
+    }
+
+    OnSelectChange(instrumentCode)
+    {
+        c_this.CurrentInstrument = m_this.InstrumentEnum[instrumentCode];
     }
 
     OnThumbnailRender(eventData)
@@ -234,7 +248,7 @@ class Controller
     OnKeyUp(event)
     {
         var keyupThisPointer = c_this;
-
+        event.preventDefault();
         switch(event.keyCode)
         {
         //Mode control: select, edit, delete
@@ -315,6 +329,7 @@ class Controller
             keyupThisPointer.SetKeyReference(keyupThisPointer.TonicKey, keyupThisPointer.MusicalModeIndex);
             break;
         case 32: //spacebar
+            event.stopPropagation();
             event.preventDefault();
 
             if(!keyupThisPointer.Playing)
@@ -635,7 +650,7 @@ class Controller
 
         this.ModifyNoteArray(chordNotes, function(note)
         {
-            note.Play(this.MillisecondsPerTick, this, this.OnStopNote);
+            note.Play(this.MillisecondsPerTick, this, this.OnStopNote, this.CurrentInstrument);
             this.View.ApplyNoteStyle(note);
         });
 
@@ -787,9 +802,12 @@ class Controller
         }
     }
 
-    OnButtonPress(event)
+    OnSliderChange(tempo)
     {
-        //Play
+        //60,000ms = 1 minute
+        //1 Tempo = 1 beat / minute = (8 ticks)/60,000ms = K ticks/ms
+        //milliseconds per tick = K/Tempo
+        c_this.MillisecondsPerTick = 7500/tempo;
 
     }
 
