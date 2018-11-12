@@ -1232,6 +1232,7 @@ class Controller
                     note.HorizontalModify(newPosition, newDuration, sequenceNumber);
                 }
             });
+            this.AnalyzeIntervals(this.Model.Score);
         }
     }
 
@@ -1242,17 +1243,16 @@ class Controller
         var shift = event.shiftKey;
         var scrollUp = (event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0);
 
+        event.preventDefault();
         //Change horizontal scale
         if(ctrl)
         {
-            event.preventDefault();
             c_this.HandleControlScroll(scrollUp);
             c_this.View.UpdateExistingNotes(c_this.Model.Score);
             c_this.View.RenderPlaybackLine(this.MainPlaybackStartTicks,  this.CapturedPlaybackStartTicks);
         }
         else if(shift)
         {
-            event.preventDefault();
             var xOffset = c_this.DefaultNoteDuration*c_this.View.PixelsPerTick;
 
 			var cursorPosition =
@@ -1273,7 +1273,6 @@ class Controller
 
         else
         {
-            event.preventDefault();
             var yOffset = c_this.View.PixelsPerTick;
 
 			var cursorPosition =
@@ -1296,7 +1295,6 @@ class Controller
     OnRadioButtonPress(eventData)
     {
         c_this.console.log(eventData);
-
     }
 
     GetNoteRectangle(note)
