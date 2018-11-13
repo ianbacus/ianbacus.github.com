@@ -1536,7 +1536,6 @@ class Controller
             var bassNote = chordNotes[0];
             var invertibleNote = chordNotes[chordNotes.length - 1];
             bassNote.BassInterval = undefined;
-            console.log("Analyzing chord,bass,invertible",chordNotes,bassNote,invertibleNote)
             chordNotes.some(function(note)
             {
                 //Upper voice
@@ -1544,7 +1543,6 @@ class Controller
                 {
                     var bassInterval = note.Pitch - bassNote.Pitch;
                     note.BassInterval = bassInterval % 12;
-                    console.log("upper voice: ", note.BassInterval);
                 }
 
                 //Bass
@@ -1552,14 +1550,9 @@ class Controller
                 {
                     var bassInterval = invertibleNote.Pitch - bassNote.Pitch;
                     note.BassInterval = this.IntervalTranslator(bassInterval);
-                    console.log("bass voice: ", note.BassInterval);
                 }
 
                 //unpaired note
-                else
-                {
-                    console.log("unpaired voice");
-                }
 
                 this.View.ApplyNoteStyle(note);
             },this);

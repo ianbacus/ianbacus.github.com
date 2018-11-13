@@ -23,7 +23,6 @@ ScoreController.console = new disabledConsole();
 $( function()
 {
     var deserializedData = JSON.parse(localStorage.getItem("ianbacus.github.io.saves"));
-    console.log("SERIALIZED",deserializedData);
 
     function OnPageUnload()
     {
