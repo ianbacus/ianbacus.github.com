@@ -228,15 +228,8 @@ class Model
     constructor()
     {
         m_this = this;
-        this.Score = [];
-        this.GridPreviewList = [];
-        this.GridImageList = [null]
-        this.GridPreviewIndex = 0;
-        this.ActivityStack = []
-        this.ActivityIndex = 0;
-        this.MaximumActivityStackLength = 100;
-        this.SelectedNotes = [];
 
+		//Constants
         this.InstrumentEnum =
         {
             piano : '_tone_0000_GeneralUserGS_sf2_file',
@@ -254,9 +247,21 @@ class Model
             synth: '_tone_0900_SBLive_sf2',
             fiddle: '_tone_1100_SBLive_sf2',
         };
+        this.MaximumActivityStackLength = 100;
+		
+		//Session data 
+        this.SelectedNotes = [];
+        this.ActivityStack = []
+        this.ActivityIndex = 0;
+		
+		//Restorable data 
+        this.Score = [];
+        this.GridPreviewList = [];
+        this.GridImageList = [];
+        this.GridPreviewIndex = 0;
     }
 
-    Initialize(initialGridlist)
+    Initialize(initializationParameters)
     {
         var instrumentEnumeration = this.InstrumentEnum;
         Object.keys(instrumentEnumeration).forEach(function(key)
@@ -266,19 +271,40 @@ class Model
             this.InstrumentEnum[key] = eval(synthString);
         },this);
 
-        initialGridlist.forEach(function(noteArray)
-        {
-            var reconstructedNoteArray = [];
-            noteArray.forEach(function(noteToCopy)
-            {
-                var copiedNote = new Note(noteToCopy.StartTimeTicks, noteToCopy.Pitch, noteToCopy.Duration, noteToCopy.CurrentTrack, false);
+		if(initializationParameters == null)
+		{
+			this.GridPreviewList = [[]];
+			this.GridImageList = [null];
+		}
+		else 
+		{
+			console.log(initializationParameters);
+			
+			var initialGridlist = initializationParameters.GridList;
+			
+			initialGridlist.forEach(function(noteArray)
+			{
+				var reconstructedNoteArray = [];
+				noteArray.forEach(function(noteToCopy)
+				{
+					var copiedNote = new Note(
+						noteToCopy.StartTimeTicks, 
+						noteToCopy.Pitch, 
+						noteToCopy.Duration, 
+						noteToCopy.CurrentTrack, 
+						false,
+						noteToCopy.GridIndex);
 
-                reconstructedNoteArray.push(copiedNote);
-            });
+					reconstructedNoteArray.push(copiedNote);
+				});
 
-            this.GridPreviewList.push(reconstructedNoteArray);
-        },this);
-
+				this.GridImageList.push(null);
+				this.GridPreviewList.push(reconstructedNoteArray);
+			},this);
+			
+			this.GridPreviewIndex = initializationParameters.GridPreviewIndex;
+		}
+		
         this.Score = this.GridPreviewList[0];
     }
 
@@ -301,7 +327,11 @@ class Model
             gridListArray.push(serializedArray);
         });
 
-        var serializedGridListArray = '['+gridListArray.join(',')+']';
+		var gridStateData =  {GridPreviewIndex: this.GridPreviewIndex};
+        var serializedGridListArray = 
+			'{"GridList" : ['+gridListArray.join(',')+'],'+
+			'"GridPreviewIndex" :'+this.GridPreviewIndex+'}'
+		
         return serializedGridListArray;
     }
 

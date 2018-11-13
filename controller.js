@@ -25,82 +25,65 @@ class Controller
 {
     constructor(view, model)
     {
+		//Member objects
         c_this = this;
-        this.EditorMode = editModeEnumeration.EDIT;
+        this.console = null;
         this.View = view;
         this.Model = model;
-        this.CursorPosition = { x: -1, y: -1 };
-        this.SelectorPosition = { x: -1, y: -1 };
-        this.MainPlaybackStartTicks = 0;
-        this.CapturedPlaybackStartTicks = 0;
 
-        this.Playing = false;
-        this.Hovering = false;
-        this.SelectingGroup = false;
-
+		//lookup tables
         this.EditModeColors = ['orange','blue','green'];
-        this.EditModeCursors = ['none', 'crosshair', 'grab']
-
-        this.DefaultNoteDuration = 4;
-        this.MillisecondsPerTick = 100;
-        this.NoteIndex = 0;
-        this.PendingTimeout = null;
-        this.SequenceNumber = 0;
-        this.console = null;
-        this.TonicKey = 0;
-        this.MusicalModeIndex = 0;
-        this.CurrentTrack = 0;
-
-        this.PasteBuffer = []
-
         this.InvertibleCounterpointIntervals =
         [
+			// 12, //free: everything goes down an octave
+			// 12, //15th: a perfect octave
+			// 7,  //12th: a fifth
+			// 4, //10th: a 3rd (3 or 4?)
+
             function(interval) {return undefined;},
-            function(interval) {return 12 - (interval%12);}, //Fifteenth:
+            function(interval) {return (12 - (interval%12))%12;}, //Fifteenth:
             function(interval) {return (19 - (interval%12))%12;}, //Twelfth:
             function(interval) {return (15 - (interval%12))%12;}, //Tenth:
         ];
-
-
-            // 12, //free: everything goes down an octave
-            // 12, //15th: a perfect octave
-            // 7,  //12th: a fifth
-            // 4, //10th: a 3rd (3 or 4?)
-
+		
+		//Session state data 
+        this.Playing = false;
+        this.PendingTimeout = null;
+        this.SequenceNumber = 0;
+        this.NoteIndex = 0;
+        this.MainPlaybackStartTicks = 0;
+        this.CapturedPlaybackStartTicks = 0;
+        this.Hovering = false;
+        this.SelectingGroup = false;
+        this.CursorPosition = { x: -1, y: -1 };
+        this.SelectorPosition = { x: -1, y: -1 };
+        this.DefaultNoteDuration = 4;
+        this.PasteBuffer = []
+		
+        this.MillisecondsPerTick = 100;
         this.IntervalTranslator = this.InvertibleCounterpointIntervals[0];
+		this.CurrentInstrument = null;
+
+		//Recoverable state data
+        this.TonicKey = 0;
+        this.MusicalModeIndex = 0;
+        this.CurrentTrack = 0;
+		this.NoteColorationMode = false;
+        this.EditorMode = editModeEnumeration.EDIT;
 
     }
-
-    SetKeyReference(tonic, modeIndex)
+	
+    Initialize(initializationParameters)
     {
-        var tonicOpacity = 0.25;
-        var dominantOpacity = 0.20;
-
-		var modeBuffer = [{Pitch:tonic, Opacity: tonicOpacity}];
-        var currentTone = tonic;
-        var intervals = Modes[modeIndex]
-
-		intervals.some(function(interval)
+		if(initializationParameters != null)
 		{
-            var noteOpacity = 0.05;
-            currentTone += interval;
-            var relativeInterval = Math.abs(currentTone - tonic)
-
-            //Dominant
-            if(relativeInterval === 7)
-            {
-                noteOpacity = dominantOpacity;
-            }
-
-            var modeSlot = {Pitch:currentTone, Opacity: noteOpacity};
-            modeBuffer.push(modeSlot);
-		});
-
-		this.View.RenderKeys(modeBuffer);
-    }
-
-    Initialize()
-    {
+			this.TonicKey = initializationParameters.TonicKey;
+			this.MusicalModeIndex = initializationParameters.MusicalModeIndex;
+			this.CurrentTrack = initializationParameters.CurrentTrack;
+			this.NoteColorationMode = initializationParameters.NoteColorationMode;
+			this.EditorMode = initializationParameters.EditorMode;
+		}
+		
         //Instruments
         var instrumentOptions = [];
         var instrumentEnumeration = this.Model.InstrumentEnum;
@@ -119,6 +102,20 @@ class Controller
         var editModeColor = this.EditModeColors[this.EditorMode];
         this.View.SetBorderColor(editModeColor);
     }
+	
+	Serialize()
+	{
+		var serializedData = 
+		{
+			TonicKey: this.TonicKey,
+			MusicalModeIndex: this.MusicalModeIndex,
+			CurrentTrack: this.CurrentTrack,
+			NoteColorationMode: this.NoteColorationMode,
+			EditorMode: this.EditorMode,
+		}
+		
+		return JSON.stringify(serializedData);
+	}
 
     OnSelectChange(instrumentCode)
     {
@@ -134,6 +131,35 @@ class Controller
         c_this.View.RenderGridArray(c_this.Model.GridImageList, index);
     }
 
+    SetKeyReference(tonic, modeIndex)
+    {
+        var tonicOpacity = 0.25;
+        var dominantOpacity = 0.20;
+
+		var modeBuffer = [{Pitch:tonic, Opacity: tonicOpacity}];
+        var currentTone = tonic;
+        var intervals = Modes[modeIndex]
+
+		intervals.some(function(interval)
+		{
+            var noteOpacity = 0.15;
+            currentTone += interval;
+            var relativeInterval = Math.abs(currentTone - tonic)
+
+            //Dominant
+            if(relativeInterval === 7)
+            {
+                noteOpacity = dominantOpacity;
+            }
+
+            var modeSlot = {Pitch:currentTone, Opacity: noteOpacity};
+            modeBuffer.push(modeSlot);
+		});
+
+		this.View.RenderKeys(modeBuffer);
+    }
+
+
     RefreshGridPreview()
     {
         this.RefreshEditBoxNotes();
@@ -144,7 +170,7 @@ class Controller
     {
         this.AnalyzeIntervals(this.Model.Score);
         var editModeColor = this.EditModeColors[this.EditorMode];
-        this.View.RenderNotes(this.Model.Score);
+        this.View.RenderNotes(this.Model.Score, this.NoteColorationMode);
         this.View.RenderPlaybackLine(this.MainPlaybackStartTicks,  this.CapturedPlaybackStartTicks);
     }
 
@@ -159,8 +185,8 @@ class Controller
             sequenceNumber = this.GetNextSequenceNumber();
         }
         var index = score.length
+		
         while(index-- > 0)
-        // for(var index = 0; index < score.length; index++)
         {
             var note = score[index]
             if(note.IsSelected)
@@ -358,12 +384,18 @@ class Controller
             keyupThisPointer.SetKeyReference(keyupThisPointer.TonicKey, keyupThisPointer.MusicalModeIndex);
 
             break;
-        case 192: //` tilde key
+			
+		case 75: //"k" key : change coloration mode
+			keyupThisPointer.NoteColorationMode = !keyupThisPointer.NoteColorationMode;
+			keyupThisPointer.View.UpdateExistingNotes(keyupThisPointer.Model.Score, keyupThisPointer.NoteColorationMode);
+			break;
+			
+        case 192: //` tilde key: change mode 
             keyupThisPointer.MusicalModeIndex = (keyupThisPointer.MusicalModeIndex+1) % Modes.length;
             keyupThisPointer.SetKeyReference(keyupThisPointer.TonicKey, keyupThisPointer.MusicalModeIndex);
             break;
+			
         case 32: //spacebar
-            event.stopPropagation();
             event.preventDefault();
 
             if(!keyupThisPointer.Playing)
@@ -468,7 +500,7 @@ class Controller
                 keyupThisPointer.ModifyNoteArray(keyupThisPointer.Model.Score, function(note)
                 {
                     note.IsSelected = true;
-                    this.View.ApplyNoteStyle(note);
+                    this.View.ApplyNoteStyle(note, this.NoteColorationMode);
                 });
             }
 
@@ -491,7 +523,7 @@ class Controller
             keyupThisPointer.ModifyNoteArray(keyupThisPointer.Model.SelectedNotes, function(note)
             {
                 note.CurrentTrack = keyupThisPointer.CurrentTrack;
-                this.View.ApplyNoteStyle(note);
+                this.View.ApplyNoteStyle(note, this.NoteColorationMode);
             });
             break;
 
@@ -500,7 +532,7 @@ class Controller
 
             var analysisMode = keyupThisPointer.GetModeSettings().AnalysisMode;
             const analysisOffsets = [
-                12, //free: everything goes down an octave
+                -12, //free: everything goes down an octave
                 12, //15th: a perfect octave
                 7,  //12th: a fifth
                 4, //10th: a 3rd (3 or 4?)
@@ -521,8 +553,7 @@ class Controller
             {
                 bassOffset = analysisOffset;
                 upperVoiceOffset = 12;
-            }
-
+			}
 
             keyupThisPointer.ModifyNoteArray(keyupThisPointer.Model.SelectedNotes, function(candidateNote)
             {
@@ -539,25 +570,38 @@ class Controller
                 }
             });
 
-            const topTrack = noteWithHighestPitch.CurrentTrack;
-            const bassTrack = noteWithLowestPitch.CurrentTrack;
+			var highestNewPosition = (lowestPitch + bassOffset);
+			var lowestNewPosition = (highestPitch - upperVoiceOffset);
+			var upperBoundCheck = 
+				(0 < highestNewPosition) &&
+				(highestNewPosition <= keyupThisPointer.View.MaximumPitch);
+				
+			var lowerBoundCheck = 
+				(0 < lowestNewPosition) &&
+				(lowestNewPosition <= keyupThisPointer.View.MaximumPitch);
+			
+			if(lowerBoundCheck && upperBoundCheck)
+			{
+				const topTrack = noteWithHighestPitch.CurrentTrack;
+				const bassTrack = noteWithLowestPitch.CurrentTrack;
 
-            keyupThisPointer.ModifyNoteArray(keyupThisPointer.Model.SelectedNotes, function(note)
-            {
-                if(note.CurrentTrack == bassTrack)
-                {
-                    note.Pitch += bassOffset;
-                    note.CurrentTrack = topTrack;
-                    this.View.ApplyNoteStyle(note);
-                }
+				keyupThisPointer.ModifyNoteArray(keyupThisPointer.Model.SelectedNotes, function(note)
+				{
+					if(note.CurrentTrack == bassTrack)
+					{
+						note.Pitch += bassOffset;
+						note.CurrentTrack = topTrack;
+						this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+					}
 
-                else if(note.CurrentTrack == topTrack)
-                {
-                    note.Pitch -= upperVoiceOffset;
-                    note.CurrentTrack = bassTrack;
-                    this.View.ApplyNoteStyle(note);
-                }
-            });
+					else if(note.CurrentTrack == topTrack)
+					{
+						note.Pitch -= upperVoiceOffset;
+						note.CurrentTrack = bassTrack;
+						this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+					}
+				});
+			}
 
             break;
 
@@ -570,7 +614,6 @@ class Controller
             keyupThisPointer.HandleGridMove(true);
             keyupThisPointer.RefreshGridPreview();
             break;
-
         case 40: //down arrow: select grid
             event.preventDefault();
             keyupThisPointer.HandleGridMove(false);
@@ -756,7 +799,7 @@ class Controller
 
 	OnStopNote(note)
 	{
-        this.View.ApplyNoteStyle(note)
+        this.View.ApplyNoteStyle(note, this.NoteColorationMode)
 	}
 
     PlayChord(noteArray, noteIndex, includeSuspensions)
@@ -767,7 +810,7 @@ class Controller
         this.ModifyNoteArray(chordNotes, function(note)
         {
             note.Play(this.MillisecondsPerTick, this, this.OnStopNote, this.CurrentInstrument);
-            this.View.ApplyNoteStyle(note);
+            this.View.ApplyNoteStyle(note, this.NoteColorationMode);
         });
 
         return returnIndex;
@@ -899,7 +942,7 @@ class Controller
                 true);
 
             this.Model.AddNote(previewNote, 0, this.Model.Score, false);
-            c_this.View.InstantiateNotes([previewNote]);
+            c_this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
         }
     }
 
@@ -956,7 +999,7 @@ class Controller
         }, false);
 
         this.AnalyzeIntervals(this.Model.Score);
-        this.View.UpdateExistingNotes(this.Model.Score);
+        this.View.UpdateExistingNotes(this.Model.Score, this.NoteColorationMode);
     }
 
     ///Update the cursor position, move all selected notes
@@ -1000,7 +1043,7 @@ class Controller
 					{
 						note.IsSelected = false;
 					}
-                    this.View.ApplyNoteStyle(note);
+                    this.View.ApplyNoteStyle(note, this.NoteColorationMode);
 				});
 			}
 
@@ -1192,7 +1235,8 @@ class Controller
                 clickUpThisPointer.Model.AddNote(note, 0, playbackBuffer, false);
                 note.IsSelected = false;
                 note.OnMoveComplete(sequenceNumber);
-                this.View.ApplyNoteStyle(note);
+                this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+				console.log("Clicked note: ", note)
             }, false);
 
 
@@ -1379,7 +1423,7 @@ class Controller
         if(ctrl)
         {
             c_this.HandleControlScroll(scrollUp);
-            c_this.View.UpdateExistingNotes(c_this.Model.Score);
+            c_this.View.UpdateExistingNotes(c_this.Model.Score, c_this.NoteColorationMode);
             c_this.View.RenderPlaybackLine(this.MainPlaybackStartTicks,  this.CapturedPlaybackStartTicks);
         }
         else if(shift)
@@ -1527,6 +1571,11 @@ class Controller
         var arrayLength = noteArray.length;
         var noteIndex = 0;
         var chordNotes = [];
+		
+		this.ModifyNoteArray(noteArray, function(note)
+		{
+			note.BassInterval = undefined;
+		});
 
         while(noteIndex < arrayLength)
         {
@@ -1535,26 +1584,30 @@ class Controller
 
             var bassNote = chordNotes[0];
             var invertibleNote = chordNotes[chordNotes.length - 1];
-            bassNote.BassInterval = undefined;
             chordNotes.some(function(note)
             {
-                //Upper voice
-                if(note.Pitch != bassNote.Pitch)
-                {
-                    var bassInterval = note.Pitch - bassNote.Pitch;
-                    note.BassInterval = bassInterval % 12;
-                }
+				if(note.BassInterval == undefined)
+				{
+					//Upper voice(s)
+					if(note.Pitch > bassNote.Pitch) 
+					{
+						var bassInterval = note.Pitch - bassNote.Pitch;
+						note.BassInterval = bassInterval % 12;
+					}
 
-                //Bass
-                else if(invertibleNote != bassNote)
-                {
-                    var bassInterval = invertibleNote.Pitch - bassNote.Pitch;
-                    note.BassInterval = this.IntervalTranslator(bassInterval);
-                }
+					//Paired bass note
+					else if(
+						(note.Pitch == bassNote.Pitch) && 
+						(invertibleNote.Pitch != bassNote.Pitch))
+					{
+						var bassInterval = invertibleNote.Pitch - bassNote.Pitch;
+						note.BassInterval = this.IntervalTranslator(bassInterval);
+					}
+				}
 
                 //unpaired note
-
-                this.View.ApplyNoteStyle(note);
+                this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+				
             },this);
         }
     }

@@ -6,19 +6,17 @@ class View
     {
         v_this = this;
 
+		//Constants
         this.MainPlaybackLine = null;
         this.RestartPlaybackLine = null;
 		this.Maingrid = null;
         this.GridboxContainer = null;
         this.GridArray = null;
-
-        this.previewObjs = ['cell', 'wire'];
         this.console = null;
-
         this.MaximumPitch = 12*7;
-
         this.selectP = { x: 0, y: 0};
 
+		//Restorable state information
         this._PixelsPerTick = 20;
 
         // this.IntervalColors =
@@ -85,6 +83,7 @@ class View
     }
 
     Initialize(
+		initializationParameters,
         controller,
         onKeyUp,
         onMouseScroll,
@@ -100,8 +99,21 @@ class View
         this.GridArray = $("#GridboxArray");
         this.MainPlaybackLine =$("#MainPlaybackLine");
         this.RestartPlaybackLine =$("#RestartPlaybackLine");
-        this.PixelsPerTick = 20;
+		
+		//Restore state 
+		if(initializationParameters != null)
+		{
+			this.PixelsPerTick = initializationParameters.PixelsPerTick;
+			this.GridboxContainer.scrollTop(initializationParameters.ScrollLeft); 
+			this.GridboxContainer.scrollLeft(initializationParameters.ScrollTop); 
+			console.log(initializationParameters)
+		}
+		else
+		{
+			this.PixelsPerTick = 20;
+		}
 
+		//Bind handlers
     	this.Maingrid
             .mousemove(this.OnMouseMove)
             .mousedown(onMouseClickDown)
@@ -135,6 +147,18 @@ class View
         //Call slider handler to initialize tempo text
         this.OnSliderChange();
     }
+	
+	Serialize()
+	{
+		var serializedData = 
+		{
+			PixelsPerTick: this._PixelsPerTick,
+			ScrollLeft: this.GridboxContainer.scrollTop(),
+			ScrollTop: this.GridboxContainer.scrollLeft(),
+		};
+		
+		return JSON.stringify(serializedData);
+	}
 
     OnSelectChange(event)
     {
@@ -187,7 +211,15 @@ class View
     {
         return this._PixelsPerTick;
     }
-
+	
+	get MinimumPitch()
+	{
+		// var mainGridHeight = this.Maingrid.height();
+		// return mainGridHeight*pixelsPerTick;
+		
+		return 0;
+	}
+	
     OnRadioButton(event)
     {
         var eventData = v_this.GetFormData();
@@ -633,17 +665,17 @@ class View
 
 
     //Apply style to existing notes from an array
-    UpdateExistingNotes(noteArray)
+    UpdateExistingNotes(noteArray, noteColorationMode)
     {
         noteArray.forEach(function(note)
 		{
-            this.ApplyNoteStyle(note);
+            this.ApplyNoteStyle(note, noteColorationMode);
 
 		},this);
     }
 
     //Add notes to the DOM and apply style to them
-    InstantiateNotes(noteArray)
+    InstantiateNotes(noteArray, noteColorationMode)
     {
         var gridNoteClass = "gridNote";
         var mainGrid = this.Maingrid;
@@ -652,7 +684,7 @@ class View
 			var node = document.createElement('div');
             note.JqueryKey = node;
             $(node).addClass(gridNoteClass);
-            this.ApplyNoteStyle(note);
+            this.ApplyNoteStyle(note, noteColorationMode);
 			mainGrid.append(node);
         },this);
     }
@@ -672,10 +704,10 @@ class View
     }
 
     //Handle deletions and additions and reset jquery assignments
-    RenderNotes(noteArray)
+    RenderNotes(noteArray, noteColorationMode)
     {
         var mainGrid = this.Maingrid;
         $(".gridNote").remove();
-        this.InstantiateNotes(noteArray);
+        this.InstantiateNotes(noteArray, noteColorationMode);
 	}
 }

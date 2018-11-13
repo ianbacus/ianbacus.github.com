@@ -22,16 +22,26 @@ ScoreController.console = new disabledConsole();
 
 $( function()
 {
-    var deserializedData = JSON.parse(localStorage.getItem("ianbacus.github.io.saves"));
+	var modelLocalStorageString = "ianbacus.github.io.saves";
+	var viewLocalStorageString = "ianbacus.github.io.viewdata";
+	var controllerLocalStorageString = "ianbacus.github.io.state";
+	
+    var deserializedModelData = JSON.parse(localStorage.getItem(modelLocalStorageString));
+	var deserializedViewData = JSON.parse(localStorage.getItem(viewLocalStorageString));
+	var deserializedControllerData = JSON.parse(localStorage.getItem(controllerLocalStorageString));
 
     function OnPageUnload()
     {
-        localStorage.setItem("ianbacus.github.io.saves",ScoreModel.Serialize());
+        localStorage.setItem(modelLocalStorageString,ScoreModel.Serialize());
+		localStorage.setItem(viewLocalStorageString,ScoreView.Serialize());
+		localStorage.setItem(controllerLocalStorageString,ScoreController.Serialize());
+		
         return true;
     }
 
-    ScoreModel.Initialize(deserializedData);
+    ScoreModel.Initialize(deserializedModelData);
     ScoreView.Initialize(
+		deserializedViewData,
         ScoreController,
         ScoreController.OnKeyUp,
         ScoreController.OnMouseScroll,
@@ -42,5 +52,5 @@ $( function()
         ScoreController.OnRadioButtonPress,
     );
 
-    ScoreController.Initialize();
+    ScoreController.Initialize(deserializedControllerData);
 });
