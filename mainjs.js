@@ -18,9 +18,20 @@ ScoreController.console = new disabledConsole();
 //ScoreController.console = console;
 
 
+
+
 $( function()
 {
-    ScoreModel.Initialize();
+    var deserializedData = JSON.parse(localStorage.getItem("ianbacus.github.io.saves"));
+    console.log("SERIALIZED",deserializedData);
+
+    function OnPageUnload()
+    {
+        localStorage.setItem("ianbacus.github.io.saves",ScoreModel.Serialize());
+        return true;
+    }
+
+    ScoreModel.Initialize(deserializedData);
     ScoreView.Initialize(
         ScoreController,
         ScoreController.OnKeyUp,
@@ -28,6 +39,7 @@ $( function()
         ScoreController.OnMouseMove, ScoreController.OnMouseClickUp, ScoreController.OnMouseClickDown,
         ScoreController.OnHoverBegin, ScoreController.OnHoverEnd,
         ScoreController.OnSliderChange, ScoreController.OnSelectChange,
+        OnPageUnload,
         ScoreController.OnRadioButtonPress,
     );
 

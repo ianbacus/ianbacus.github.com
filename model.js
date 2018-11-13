@@ -4,17 +4,16 @@ var AudioContextFunc = window.AudioContext || window.webkitAudioContext;
 var audioContext = new AudioContextFunc();
 var player=new WebAudioFontPlayer();
 
-
-
 class Note
 {
-    constructor(startTimeTicks, pitch, duration, selected, currentGridIndex=m_this.GridPreviewIndex)
+    constructor(startTimeTicks, pitch, duration, currentTrack, selected,  currentGridIndex=m_this.GridPreviewIndex)
     {
         //State information
         this.Pitch = pitch;
         this.StartTimeTicks = startTimeTicks;
         this.Duration = duration;
         this.CurrentGridIndex = currentGridIndex;
+        this.CurrentTrack = currentTrack;
         this.Playback = {}
 
         //State meta-data
@@ -31,14 +30,64 @@ class Note
         //Display and analysis information
         this.IsHighlighted = false;
         this.BassInterval = undefined;
+    }
 
+    Serialize()
+    {
+        var serialString = JSON.stringify(this.CaptureState());
+
+        return serialString;
+    }
+
+    StatesAreEqual(state1, state2)
+    {
+        var exactMatch =
+            (state1.Pitch === state2.Pitch) &&
+            (state1.StartTimeTicks === state2.StartTimeTicks) &&
+            (state1.Duration === state2.Duration) &&
+            (state1.GridIndex === state2.GridIndex) &&
+            (state1.CurrentTrack === state2.CurrentTrack)
+
+        return exactMatch;
+    }
+
+    CaptureState()
+    {
+        var capturedState =
+        {
+            Pitch : this.Pitch,
+            StartTimeTicks : this.StartTimeTicks,
+            Duration : this.Duration,
+            GridIndex : this.CurrentGridIndex,
+            CurrentTrack : this.CurrentTrack,
+        }
+
+        return capturedState;
+    }
+
+    RestoreState(capturedState)
+    {
+        var currentGridIndex = this.CurrentGridIndex;
+        var selectedGridIndex = capturedState.GridIndex;
+
+        if(currentGridIndex != selectedGridIndex)
+        {
+            this.HandleGridMoveReset(currentGridIndex,selectedGridIndex);
+        }
+
+        this.Pitch = capturedState.Pitch;
+        this.StartTimeTicks = capturedState.StartTimeTicks;
+        this.Duration = capturedState.Duration;
+        this.CurrentGridIndex = selectedGridIndex;
+        this.CurrentTrack = capturedState.CurrentTrack;
+
+        this.StateWhenSelected = null;
     }
 
     Move(x_offset, y_offset)
     {
         this.StartTimeTicks += x_offset;
         this.Pitch += y_offset;
-
     }
 
     Play(millisecondsPerTick, caller, onStopCallback, instrumentCode)
@@ -127,47 +176,6 @@ class Note
         this.StateWhenSelected = null;
     }
 
-    StatesAreEqual(state1, state2)
-    {
-        var exactMatch =
-            (state1.Pitch === state2.Pitch) &&
-            (state1.StartTimeTicks === state2.StartTimeTicks) &&
-            (state1.Duration === state2.Duration) &&
-            (state1.GridIndex === state2.GridIndex);
-
-        return exactMatch;
-    }
-
-    CaptureState()
-    {
-        var capturedState =
-        {
-            Pitch : this.Pitch,
-            StartTimeTicks : this.StartTimeTicks,
-            Duration : this.Duration,
-            GridIndex : this.CurrentGridIndex
-        }
-
-        return capturedState;
-    }
-
-    RestoreState(capturedState)
-    {
-        var currentGridIndex = this.CurrentGridIndex;
-        var selectedGridIndex = capturedState.GridIndex;
-
-        if(currentGridIndex != selectedGridIndex)
-        {
-            this.HandleGridMoveReset(currentGridIndex,selectedGridIndex);
-        }
-
-        this.Pitch = capturedState.Pitch;
-        this.StartTimeTicks = capturedState.StartTimeTicks;
-        this.Duration = capturedState.Duration;
-        this.CurrentGridIndex = selectedGridIndex;
-
-        this.StateWhenSelected = null;
-    }
 
     ResetPosition()
     {
@@ -221,7 +229,7 @@ class Model
     {
         m_this = this;
         this.Score = [];
-        this.GridPreviewList = [this.Score];
+        this.GridPreviewList = [];
         this.GridImageList = [null]
         this.GridPreviewIndex = 0;
         this.ActivityStack = []
@@ -248,7 +256,7 @@ class Model
         };
     }
 
-    Initialize()
+    Initialize(initialGridlist)
     {
         var instrumentEnumeration = this.InstrumentEnum;
         Object.keys(instrumentEnumeration).forEach(function(key)
@@ -257,7 +265,47 @@ class Model
             player.loader.decodeAfterLoading(audioContext,synthString);
             this.InstrumentEnum[key] = eval(synthString);
         },this);
+
+        initialGridlist.forEach(function(noteArray)
+        {
+            var reconstructedNoteArray = [];
+            noteArray.forEach(function(noteToCopy)
+            {
+                var copiedNote = new Note(noteToCopy.StartTimeTicks, noteToCopy.Pitch, noteToCopy.Duration, noteToCopy.CurrentTrack, false);
+
+                reconstructedNoteArray.push(copiedNote);
+            });
+
+            this.GridPreviewList.push(reconstructedNoteArray);
+        },this);
+
+        this.Score = this.GridPreviewList[0];
     }
+
+    Serialize()
+    {
+        var gridListArray = [];
+        this.GridPreviewList.forEach(function(noteArray)
+        {
+            var unserializedArray = [];
+            noteArray.forEach(function(note)
+            {
+                if(!note.IsSelected)
+                {
+                    var serializedNote = note.Serialize();
+                    unserializedArray.push(serializedNote);
+                }
+            });
+
+            var serializedArray = '['+unserializedArray.join(',')+']';
+            gridListArray.push(serializedArray);
+        });
+
+        var serializedGridListArray = '['+gridListArray.join(',')+']';
+        return serializedGridListArray;
+    }
+
+
 
     SetCurrentGridPreview(noteArray)
     {
@@ -313,7 +361,7 @@ class Model
 					stackTop.MoveBuffer.length + " datums")
             }
         }
-        
+
         return pushSuccessful;
 
     } //end HandleBatchInsertion

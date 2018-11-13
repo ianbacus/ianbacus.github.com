@@ -69,20 +69,19 @@ class View
             'cornflowerblue', //B
         ];
 
-
-        this.pitchKey = [
-            261.626,277.183,293.665,311.127,
-            329.628,349.228,369.994,391.995,
-            415.305,440.000,466.164,493.883,
-
-            523.251,554.365,587.330,622.254,
-            659.255,698.456,739.989,783.991,
-            830.609,880.000,932.328,987.767,
-
-            1046.50,1108.73,1174.66,1244.51,
-            1318.51,1396.61,1479.98,1567.98];
-
-
+        this.TrackColors =
+        [
+            'black', //track 1
+            'white', //track 2
+            'purple', //track 3
+            'red', //track 4
+            'green', //track 5
+            'deepPink', //track 6
+            'darkgoldenrod', //track 7
+            'purple', //track 8
+            'dimgray', //track 9
+            'red', //track 10
+        ];
     }
 
     Initialize(
@@ -92,6 +91,7 @@ class View
         onMouseMove, onMouseClickUp, onMouseClickDown,
         onHoverBegin, onHoverEnd,
         onSliderChange, onSelectChange,
+        onPageUnload,
         radioButtonHandler)
     {
 
@@ -123,6 +123,12 @@ class View
         this.SelectHandler = onSelectChange;
 
         $(document).on('input change', '#TempoSlider',this.OnSliderChange);
+
+        $(window).on('beforeunload', function ()
+        {
+            onPageUnload();
+            return true;
+        });
 
         this.Maingrid.bind('mousewheel DOMMouseScroll', onMouseScroll);
 
@@ -511,30 +517,24 @@ class View
         var keyNoteClass = "keynote";
 		var mainGridWidth = this.Maingrid.width();
 		var mainGridHeight = this.Maingrid.height();
-        var isTonicNote = true;
         var maximumPitch = this.MaximumPitch;
         $(".keynote").remove();
 
-        function functionRenderKeyRow(offsetY, colorIndex, noteOpacity, isTonicNote)
+        function functionRenderKeyRow(offsetY, colorIndex, noteOpacity)
         {
             var node = document.createElement('div');
-            var bottomBorder = 'solid gray 1px'
-            if(isTonicNote)
-            {
-                bottomBorder = 'solid black 2px';
-            }
 
             $(node).addClass(keyNoteClass);
             $(node).css({
 				'background':colorIndex,
 				'top':offsetY,
-				'left':0,
 				"opacity":noteOpacity,
 				"height":v_this.PixelsPerTick,
-				"width":mainGridWidth,
+                "left":0,
                 "border-bottom":'solid black 2px',
-				"position":"absolute"});
-
+                "position":"absolute",
+				"width":mainGridWidth
+            });
 
             v_this.Maingrid.append(node);
         }
@@ -552,19 +552,18 @@ class View
             var lowerOffset = keyOffsetY-incrementOffset;
             var upperOffset = keyOffsetY+incrementOffset;
 
-            functionRenderKeyRow(keyOffsetY, colorIndex, noteOpacity, isTonicNote);
+            functionRenderKeyRow(keyOffsetY, colorIndex, noteOpacity);
             while(lowerOffset >= 0)
             {
-                functionRenderKeyRow(lowerOffset, colorIndex, noteOpacity, isTonicNote);
+                functionRenderKeyRow(lowerOffset, colorIndex, noteOpacity);
                 lowerOffset -= incrementOffset;
             }
             while (upperOffset < mainGridHeight)
             {
-                functionRenderKeyRow(upperOffset, colorIndex, noteOpacity, isTonicNote);
+                functionRenderKeyRow(upperOffset, colorIndex, noteOpacity);
                 upperOffset += incrementOffset;
             }
 
-            isTonicNote = false;
 		}, this);
 	}
 
@@ -578,7 +577,7 @@ class View
     }
 
     //Apply style to an existing note
-    ApplyNoteStyle(note)
+    ApplyNoteStyle(note, keyColoration=true)
     {
         var node = note.JqueryKey;
         var noteWidth = note.Duration*this.PixelsPerTick;
@@ -588,12 +587,25 @@ class View
         var noteGridStartTimeTicks = note.StartTimeTicks;
         var offsetY = this.ConvertPitchToYIndex(pitch);
         var offsetX = this.ConvertTicksToXIndex(noteGridStartTimeTicks);
-        var colorIndex = this.GetColorKey(pitch);
+        var colorIndex = undefined;
         var borderColor = '';
 
+        //TODO: neaten this part
         if(note.IsHighlighted)
         {
             colorIndex = 'white';
+        }
+        //Key coloration
+        else if(!keyColoration)
+        {
+            colorIndex = this.GetColorKey(pitch);
+        }
+
+        //Track coloration
+        else
+        {
+            var trackNumber = note.CurrentTrack;
+            colorIndex = this.TrackColors[trackNumber];
         }
 
         if(note.IsSelected)
