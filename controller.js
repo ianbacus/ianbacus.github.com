@@ -17,8 +17,6 @@ var Modes =
     [2,2,1,2,2,2,1], //major
 ];
 
-
-
 let c_this = undefined;
 
 class Controller
@@ -1060,9 +1058,19 @@ class Controller
 					mouseMoveThisPointer.View.ConvertYIndexToPitch(mouseMoveThisPointer.CursorPosition.y) -
 					mouseMoveThisPointer.View.ConvertYIndexToPitch(mouseMoveThisPointer.LastCursorPosition.y);
 
-
-				mouseMoveThisPointer.ModifyNoteArray(selectedNotes, function(note){
+				var previousNote = undefined;
+				function IsScaleDegree(pitch)
+				{
+					return false;
+				}
+				
+				mouseMoveThisPointer.ModifyNoteArray(selectedNotes, function(note)
+				{
+					//Tonal transpose?
+					
 					note.Move(x_offset, y_offset);
+					previousNote = note;
+					
 				});
 
 

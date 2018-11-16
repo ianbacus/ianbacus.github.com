@@ -294,10 +294,10 @@ class Model
 						noteToCopy.CurrentTrack, 
 						false,
 						noteToCopy.GridIndex);
-
+					
 					reconstructedNoteArray.push(copiedNote);
 				});
-
+				
 				this.GridImageList.push(null);
 				this.GridPreviewList.push(reconstructedNoteArray);
 			},this);
@@ -305,7 +305,7 @@ class Model
 			this.GridPreviewIndex = initializationParameters.GridPreviewIndex;
 		}
 		
-        this.Score = this.GridPreviewList[0];
+        this.Score = this.GridPreviewList[this.GridPreviewIndex];
     }
 
     Serialize()
