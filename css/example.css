@@ -65,6 +65,7 @@ html,body {
 	background:whitesmoke url('grid_horizontal.png') repeat;
 }
 
+
 #feedback { font-size: 1.4em; }
 #selectable .ui-selecting { background: #FECA40; }
 #selectable .ui-selected { background: #F39814; color: white; }

@@ -6,10 +6,12 @@
 
 <link rel="stylesheet" href="css/bootstrap.min.css">
 <link rel="stylesheet" href="css/example.css">
+<link rel="stylesheet" href="css/dropzone.css">
 
 <script src="jquery.min.js"></script>
 <script src="bootstrap.min.js"></script>
 <script src='WebAudioFontPlayer.js'></script>
+<script src='dropzone.js'></script>
 
 <script src='sound/0000_GeneralUserGS_sf2_file.js'></script>
 <script src='sound/0060_SBLive_sf2.js'></script>
@@ -30,8 +32,11 @@
 <script src='https://surikov.github.io/webaudiofontdata/sound/1100_SBLive_sf2.js'></script>
 <script src='https://surikov.github.io/webaudiofontdata/sound/1230_Chaos_sf2_file.js'></script>
 
+<script src='https://gitcdn.link/repo/colxi/midi-parser-js/master/src/midi-parser.js'></script>
+
 <script src="html2canvas.js"></script>
 
+<script src="js_tabber.js"></script>
 <script src="model.js"></script>
 <script src="view.js"></script>
 <script src="controller.js"></script>
@@ -46,8 +51,8 @@
             <!--- This column contains edit palletes-->
 			<ul class="nav nav-tabs">
 				<li id="ktab"><a data-toggle="tab" href="#keys">🔑</a></li>
-				<li id="stab" class="active"><a data-toggle="tab" href="#settings">✌</a></li>
-				<li id="ptab" ><a data-toggle="tab" href="#preview">👁</a></li>
+				<li id="stab" ><a data-toggle="tab" href="#settings">✌</a></li>
+				<li id="ptab" class="active"><a data-toggle="tab" href="#preview">👁</a></li>
 			</ul>
 			<div class="tab-content">
 				<div id="keys" class="tab-pane fade">
@@ -83,7 +88,7 @@
 						<p>s-Z: Redo</p>
                     </div>
 				</div>  <!-- end help tab -->
-				<div id="settings" class="tab-pane fade in active">
+				<div id="settings" class="tab-pane fade in ">
                     <br>
 					Analysis
 					<div class="form-group" id="Analysis">
@@ -147,10 +152,11 @@
                     </select>
 				</div> <!-- end mode tab -->
 
-                <div id="preview" class="tab-pane fade">
+                <div id="preview" class="tab-pane fade active">
                     <div id="gridboxNavigator">
-                        <div id="GridboxArray" style="border: 1px solid black">
-                        </div>
+                        <form action="/file-upload"  class="dropzone" id="import-dropzone"></form>
+                        <!-- end preview tab <div id="GridboxArray" style="border: 1px solid black"></div> -->
+
                     </div>
                 </div> <!-- end preview tab -->
             </div> <!-- end tabular content -->
