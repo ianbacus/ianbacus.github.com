@@ -152,10 +152,38 @@
                     </select>
 				</div> <!-- end mode tab -->
 
-                <div id="preview" class="tab-pane fade active">
+                <div id="preview" class="tab-pane fade in active">
                     <div id="gridboxNavigator">
-                        <form action="/file-upload"  class="dropzone" id="import-dropzone"></form>
+                        <form action="/file-upload"  class="dropzone" id="import-dropzone">
+						
+						</form>
                         <!-- end preview tab <div id="GridboxArray" style="border: 1px solid black"></div> -->
+						
+						<form id="TabSettingsForm">
+							<h4>Tab settings:</h4>
+							<label for="frets">Frets:</label><br>
+							<input type="number" name="frets" id="frets" min="0" max="24" value="12" /> <br>
+							<label for="strings">Instrument tuning:</label><br>
+							<input type="text" name="strings" id="strings" value="e1,a1,d2,g2,b2,e3" /> <br>
+							<label for="transpose">Transposition:</label><br>
+							<input type="number" name="transpose" id="transpose" value="0" /> <br>
+							<label for="screenLength">Screen length:</label><br>
+							<input type="number" name="screenLength" id="screenLength" value="250" /> <br>
+							
+							<br><h4>Optimization costs:</h4>
+							<label for="neckCost">Fret position:</label><br>
+							<input type="number" name="neckCost" id="neckCost" min="0" max="10000" width="50" value="4500" /> <br>
+							<label for="spanCost">Fret span:</label><br>
+							<input type="number" name="spanCost" id="spanCost" min="0" max="10000" width="50" value="3000" /> <br>
+							<label for="diffCost">Fret difference:</label><br>
+							<input type="number" name="diffCost" id="diffCost" min="0" max="10000" width="50" value="6500" /> <br>
+							<label for="sustainCost">Note sustain:</label><br>
+							<input type="number" name="sustainCost" id="sustainCost" min="0" max="10000" width="50" value="1000" /> <br>
+							<label for="arpeggioCost">Arpeggiation:</label><br>
+							<input type="number" name="arpeggioCost" id="arpeggioCost" min="0" max="10000" width="50" value="1000" /> <br>
+							
+							<input type="submit" value="Generate Tab" />
+						</form>
 
                     </div>
                 </div> <!-- end preview tab -->
