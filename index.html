@@ -50,9 +50,10 @@
         <div class="col-sm-2">
             <!--- This column contains edit palletes-->
 			<ul class="nav nav-tabs">
-				<li id="ktab"><a data-toggle="tab" href="#keys">🔑</a></li>
+				<li id="ktab" ><a data-toggle="tab" href="#keys">🔑</a></li>
 				<li id="stab" ><a data-toggle="tab" href="#settings">✌</a></li>
-				<li id="ptab" class="active"><a data-toggle="tab" href="#preview">👁</a></li>
+				<li id="ptab" ><a data-toggle="tab" href="#preview">👁</a></li>
+				<li id="ttab" class="active"><a data-toggle="tab" href="#tabber">👁</a></li>
 			</ul>
 			<div class="tab-content">
 				<div id="keys" class="tab-pane fade">
@@ -152,7 +153,14 @@
                     </select>
 				</div> <!-- end mode tab -->
 
-                <div id="preview" class="tab-pane fade in active">
+                <div id="preview" class="tab-pane fade in">
+					<div id="gridboxNavigator">
+							<div id="GridboxArray" style="border: 1px solid black">
+							</div>
+					</div>
+				</div> <!-- end preview tab -->
+				
+                <div id="tabber" class="tab-pane fade in active">
                     <div id="gridboxNavigator">
                         <form action="/file-upload"  class="dropzone" id="import-dropzone">
 						

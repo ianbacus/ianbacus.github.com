@@ -12,7 +12,7 @@ ScoreView.console = new disabledConsole();
 ScoreModel.console = new disabledConsole();
 ScoreController.console = new disabledConsole();
 
-
+//TODO: build emscript with -s EXIT_RUNTIME=1
 // ScoreView.console = console;
 // ScoreModel.console = console;
 //ScoreController.console = console;
@@ -195,6 +195,41 @@ function GenerateTab(event)
 		var arpeggioCost = $('#arpeggioCost').val();// 1000;
 		var columnFormat = $('#screenLength').val();// 250;
 		var transpoe = $('#transpoe').val();// 250;
+		var instrumentStrings = $('#strings').val();// 250;
+		
+		var pitchLookupTable = {"c0":12,"d0":14,"e0":16,"f0":17,"g0":19,"a0":21,"b0":23};
+		var pitches = ['c','d','e','f','g','a','b'];
+		
+		for(var octaveOffset=1; octaveOffset<8; octaveOffset++)
+		{
+			var offset = octaveOffset*12;
+			
+			pitches.forEach(function(pitch)
+			{
+				var basePitchKey = pitch+'0';
+				var newPitchKey = pitch+octaveOffset;
+				var basePitch = pitchLookupTable[basePitchKey];
+				var newPitch = basePitch + offset;
+				
+				pitchLookupTable[newPitchKey] = newPitch;
+			}, octaveOffset);
+		}
+		
+		var tuningPitches = []
+		var tuningStrings = []
+		
+		var splitInstrumentStrings = instrumentStrings.split(',');
+		splitInstrumentStrings.forEach(function(stringName)
+		{
+			var stringNameTruncated = stringName[0];
+			var stringPitch = pitchLookupTable[stringName];
+			
+			tuningPitches.push(stringPitch);
+			tuningStrings.push(stringNameTruncated);
+			
+		},tuningPitches, tuningStrings);
+		
+		console.log(tuningPitches, tuningStrings)
 
 		var outString = TabberMethod(
 			ParseString,
