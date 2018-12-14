@@ -20,8 +20,9 @@ var activeNotesMappedToTheirStartTick = {};
 var TickToPitchMidiValueDictionary = {};
 var timeSignatureEvents = {}
 var MaximumNotesPerBeat = 8.0;
-var ParseString = ''
+var ParseString ='';
 var TabberMethod;
+
 
 function ProcessNote(pitchMidiValue, currentTimeTicks, isNoteOff, track)
 {
@@ -58,7 +59,6 @@ function ProcessNote(pitchMidiValue, currentTimeTicks, isNoteOff, track)
             console.log(pitchMidiValue, currentTimeTicks, isNoteOff)
             console.log(e, TickToPitchMidiValueDictionary, activeNotesMappedToTheirStartTick, tickValueOfActiveNote)
         }
-
     }
 
     //Note on events:
@@ -87,6 +87,12 @@ function ParseMidiFile(midiFileObject)
     var metaEvent = 255;
 
     var trackNumber = 0;
+
+    activeNotesMappedToTheirStartTick = {};
+    TickToPitchMidiValueDictionary = {};
+    timeSignatureEvents = {}
+    ParseString = '';
+
     tracks.forEach(function(trackObject)
     {
         var track = trackObject.event;
@@ -94,6 +100,7 @@ function ParseMidiFile(midiFileObject)
 
         var currentEventTickValue = 0
 
+        //console.log("Track",trackNumber)
         track.forEach(function(midiEvent)
         {
             var noteDelta = midiEvent.deltaTime;
@@ -109,16 +116,16 @@ function ParseMidiFile(midiFileObject)
             if((noteType == noteOnEvent) || (noteType == noteOffEvent))
             {
                 var pitch = midiEvent.data[0];
-                var noteOffVelocityZero = midiEvent.data[1] < 1.0;
+                var noteOffVelocityZero = midiEvent.data[1] < 0.65;
                 var isNoteOff = noteOffVelocityZero || (noteType == noteOffEvent);
 
                 ProcessNote(pitch, currentEventTickValue, isNoteOff, trackNumber)
             }
-			
+
 			else if(noteType = metaEvent)
 			{
 				var metaEventType = midiEvent.metaType;
-				
+
 				//Time signature
 				if(metaEventType == 0x58)
 				{
@@ -138,21 +145,32 @@ function ParseMidiFile(midiFileObject)
     }, trackNumber);
 
     ParseString = '';
+    var tickInstanceKeyList = [];
 
-    var lastTicks = 0;
-    Object.keys(TickToPitchMidiValueDictionary).forEach(function(currentTicks) {
+    Object.keys(TickToPitchMidiValueDictionary).forEach(function(currentTicks)
+    {
+        tickInstanceKeyList.push(parseInt(currentTicks));
+    });
+
+    var lastTick = tickInstanceKeyList[tickInstanceKeyList.length-1];
+    tickInstanceKeyList.push(lastTick+4);
+    for(var index = 0; index<tickInstanceKeyList.length-1; index++)
+    {
+        var currentTicks = tickInstanceKeyList[index];
+        var nextTicks = tickInstanceKeyList[index+1];
+        var delta = nextTicks - currentTicks;
+
         var pitchList = TickToPitchMidiValueDictionary[currentTicks];
-        var delta = undefined;
-		
-		Object.keys(timeSignatureEvents).forEach(function(timeSignatureTick) 
+
+		Object.keys(timeSignatureEvents).forEach(function(timeSignatureTick)
 		{
-			if((lastTicks <= timeSignatureTick) && (timeSignatureTick <= currentTicks))
+			if(timeSignatureTick == currentTicks)
 			{
 				var resString = 'SIGEVENT\r\n' + timeSignatureEvents[timeSignatureTick] + '\r\n';
 				ParseString += resString;
 			}
 		},currentTicks, ParseString);
-		
+
         pitchList.sort(function(a,b) { return a.Pitch - b.Pitch;});
         pitchList.forEach(function(pitchDuration)
         {
@@ -160,20 +178,13 @@ function ParseMidiFile(midiFileObject)
             var duration = pitchDuration.Duration;
             var track = pitchDuration.Track;
 
-            if(delta == undefined)
-            {
-                delta = currentTicks - lastTicks;
-                lastTicks = currentTicks;
-                var resString = pitch+ "," +delta+ "," +track+ "," +duration + "\r\n";
-            }
-            else
-            {
-                var resString = pitch+ "," +0+ "," +track+ "," +duration + "\r\n";
-            }
+            var resString = pitch+ "," +delta+ "," +track+ "," +duration + "\r\n";
+            delta = 0;
             ParseString += resString;
-        },ParseString, delta);
 
-    }, ParseString,lastTicks);
+        },delta);
+
+    }
 }
 
 function GenerateTab(event)
@@ -182,11 +193,9 @@ function GenerateTab(event)
     var tuningStrings = "BEADGBe";
     //var tuningPitches = [28, 33, 38, 43, 47, 52];
     //var tuningStrings = "eadgbe";
-	
-	//console.log(ParseString);
 
-	if(ParseString.length > 0)
-	{
+    if(ParseString.length > 0)
+    {
 		var frets = $('#frets').val();;
 		var neckCost = $('#neckCost').val();// 1500;
 		var spanCost = $('#spanCost').val();// 3000;
@@ -194,47 +203,63 @@ function GenerateTab(event)
 		var sustainCost = $('#sustainCost').val();// 1000;
 		var arpeggioCost = $('#arpeggioCost').val();// 1000;
 		var columnFormat = $('#screenLength').val();// 250;
-		var transpoe = $('#transpoe').val();// 250;
+		var transpose = $('#transpose').val();// 250;
 		var instrumentStrings = $('#strings').val();// 250;
-		
+
 		var pitchLookupTable = {"c0":12,"d0":14,"e0":16,"f0":17,"g0":19,"a0":21,"b0":23};
 		var pitches = ['c','d','e','f','g','a','b'];
-		
+
 		for(var octaveOffset=1; octaveOffset<8; octaveOffset++)
 		{
 			var offset = octaveOffset*12;
-			
+
 			pitches.forEach(function(pitch)
 			{
 				var basePitchKey = pitch+'0';
 				var newPitchKey = pitch+octaveOffset;
 				var basePitch = pitchLookupTable[basePitchKey];
 				var newPitch = basePitch + offset;
-				
+
 				pitchLookupTable[newPitchKey] = newPitch;
 			}, octaveOffset);
 		}
-		
+
 		var tuningPitches = []
-		var tuningStrings = []
-		
+		var tuningStrings = "";
+
 		var splitInstrumentStrings = instrumentStrings.split(',');
 		splitInstrumentStrings.forEach(function(stringName)
 		{
 			var stringNameTruncated = stringName[0];
 			var stringPitch = pitchLookupTable[stringName];
-			
-			tuningPitches.push(stringPitch);
-			tuningStrings.push(stringNameTruncated);
-			
-		},tuningPitches, tuningStrings);
-		
-		console.log(tuningPitches, tuningStrings)
 
-		var outString = TabberMethod(
+			tuningPitches.push(stringPitch);
+			tuningStrings += stringNameTruncated;
+
+		},tuningPitches, tuningStrings);
+
+        // var outStringPtr = TabberMethod(
+		// 	ParseString,
+		// 	tuningStrings,
+		// 	tuningPitches,
+        //     transpose,
+		// 	frets,
+		// 	neckCost,
+		// 	spanCost,
+		// 	diffCost,
+		// 	sustainCost,
+		// 	arpeggioCost,
+		// 	columnFormat);
+        //
+        // var outString = Pointer_stringify(outStringPtr);
+		// makeTextFile(outString);
+		// free(outStringPtr)
+
+        var outString = TabberMethod(
 			ParseString,
 			tuningStrings,
 			tuningPitches,
+            transpose,
 			frets,
 			neckCost,
 			spanCost,
@@ -243,17 +268,14 @@ function GenerateTab(event)
 			arpeggioCost,
 			columnFormat);
 
-		console.log(outString);
 		makeTextFile(outString);
-		
-		delete outString;
 	}
-	
+
 	else
 	{
 		alert("Please provide a midi file")
 	}
-	
+
 	return false;
 }
 
@@ -268,7 +290,6 @@ Dropzone.options.importDropzone = {
         reader.onload = (function(event)
         {
             var midiData = new Uint8Array(event.target.result);
-            console.log(midiData);
             var array = MidiParser.parse(midiData);
             ParseMidiFile(array);
         });
@@ -285,16 +306,12 @@ function makeTextFile(text)
 
     // If we are replacing a previously generated file we need to
     // manually revoke the object URL to avoid memory leaks.
-    if (textFile !== null) 
-	{
-        //window.URL.revokeObjectURL(textFile);
-		//console.log("Revoked URL object");
-    }
 
     textFile = window.URL.createObjectURL(data);
 	window.open(textFile);
 	window.URL.revokeObjectURL(textFile);
-
+    window.onbeforeunload = null;
+    
     // returns a URL you can use as a href
 };
 
@@ -314,7 +331,7 @@ $( function()
 		localStorage.setItem(viewLocalStorageString,ScoreView.Serialize());
 		localStorage.setItem(controllerLocalStorageString,ScoreController.Serialize());
 
-        return true;
+        return false;
     }
 
     ScoreModel.Initialize(deserializedModelData);
@@ -331,7 +348,7 @@ $( function()
     );
 
     ScoreController.Initialize(deserializedControllerData);
-	
+
 	TabberMethod = Module.cwrap('javascriptWrapperFunction', 'string',
         [
             'string',
@@ -344,10 +361,10 @@ $( function()
             'number',
             'number',
             'number',
+            'number',
     ]);
-	
+
 	$(document).on('submit', '#TabSettingsForm',
-	//$("#TabSettingsForm").submit(
 		function(event)
 		{
 			event.preventDefault();
