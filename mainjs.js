@@ -307,11 +307,10 @@ function makeTextFile(text)
     // If we are replacing a previously generated file we need to
     // manually revoke the object URL to avoid memory leaks.
 
+    window.URL.revokeObjectURL(textFile);
     textFile = window.URL.createObjectURL(data);
 	window.open(textFile);
-	window.URL.revokeObjectURL(textFile);
-    window.onbeforeunload = null;
-    
+
     // returns a URL you can use as a href
 };
 
