@@ -5,6 +5,7 @@ canvas {
 html,body {
     margin:0;
     padding:0;
+    opacity:50%;
 }
 
 .PlaybackLine
@@ -18,6 +19,7 @@ html,body {
 .keynote
 {
     left:0;
+    width:100%;
     border-bottom:'solid black 2px';
     position:'absolute';
 }
@@ -107,19 +109,6 @@ nav ul{overflow:hidden; overflow-y:scroll;}
     background: black;
     cursor: pointer;
 }
-
-.no-js #loader { display: none;  }
-.js #loader { display: block; position: absolute; left: 100px; top: 0; }
-.se-pre-con {
-	position: fixed;
-	left: 0px;
-	top: 0px;
-	width: 100%;
-	height: 100%;
-	z-index: 9999;
-	background: url(images/loader-64x/Preloader_2.gif) center no-repeat #fff;
-}
-
 
 /* FOR MOBILES */
 @media (max-width: 400px) {
@@ -346,6 +335,33 @@ code {
   background-color: #ECECEC;
   color: #333;
   padding: 1px; }
+
+
+  .loader {
+      position:fixed;
+      top:45%;
+      right:45%;
+      z-index: 100000;
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 2s linear infinite; /* Safari */
+    animation: spin 2s linear infinite;
+  }
+
+  /* Safari */
+  @-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
 
 #Loading {
   font-family: monospace;

@@ -157,6 +157,11 @@ class Controller
 		this.View.RenderKeys(modeBuffer);
     }
 
+    RefreshNotesAndKey()
+    {
+        this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
+        this.RefreshEditBoxNotes();
+    }
 
     RefreshGridPreview()
     {
@@ -957,9 +962,11 @@ class Controller
         if(c_this.Hovering)
         {
             c_this.Hovering = false;
-            c_this.console.log("Hover end. Resetting selected notes.");
-            c_this.HandleSelectionReset();
-            c_this.RefreshEditBoxNotes()
+            if(c_this.Model.SelectedNotes.length > 0)
+            {
+                c_this.HandleSelectionReset();
+                c_this.RefreshEditBoxNotes();
+            }
         }
     }
 

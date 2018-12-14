@@ -13,7 +13,7 @@ class View
         this.GridboxContainer = null;
         this.GridArray = null;
         this.console = null;
-        this.MaximumPitch = 12*7;
+        this.MaximumPitch = 12*8;
         this.selectP = { x: 0, y: 0};
 
 		//Restorable state information
@@ -70,12 +70,12 @@ class View
         this.TrackColors =
         [
             'black', //track 1
-            'white', //track 2
+            'darkgoldenrod', //track 2
             'purple', //track 3
             'red', //track 4
             'green', //track 5
             'deepPink', //track 6
-            'darkgoldenrod', //track 7
+            'white', //track 7
             'purple', //track 8
             'dimgray', //track 9
             'red', //track 10
@@ -99,13 +99,13 @@ class View
         this.GridArray = $("#GridboxArray");
         this.MainPlaybackLine =$("#MainPlaybackLine");
         this.RestartPlaybackLine =$("#RestartPlaybackLine");
-		
-		//Restore state 
+
+		//Restore state
 		if(initializationParameters != null)
 		{
 			this.PixelsPerTick = initializationParameters.PixelsPerTick;
-			this.GridboxContainer.scrollTop(initializationParameters.ScrollLeft); 
-			this.GridboxContainer.scrollLeft(initializationParameters.ScrollTop); 
+			this.GridboxContainer.scrollTop(initializationParameters.ScrollLeft);
+			this.GridboxContainer.scrollLeft(initializationParameters.ScrollTop);
 			console.log(initializationParameters)
 		}
 		else
@@ -147,16 +147,16 @@ class View
         //Call slider handler to initialize tempo text
         this.OnSliderChange();
     }
-	
+
 	Serialize()
 	{
-		var serializedData = 
+		var serializedData =
 		{
 			PixelsPerTick: this._PixelsPerTick,
 			ScrollLeft: this.GridboxContainer.scrollTop(),
 			ScrollTop: this.GridboxContainer.scrollLeft(),
 		};
-		
+
 		return JSON.stringify(serializedData);
 	}
 
@@ -201,25 +201,36 @@ class View
             'height':gridboxContainerHeight,
         })
 
+        this.GridWidthTicks = 512;
+
+    }
+
+    set GridWidthTicks(ticks)
+    {
+        var pixelsPerTick = this.PixelsPerTick;
+        var maximumPitchRange = this.MaximumPitch;
+        var mainGridHeight = pixelsPerTick*maximumPitchRange;
+
         this.Maingrid.css({
             'height':mainGridHeight,
-            'width':pixelsPerTick*240,
+            'width':pixelsPerTick*ticks,
         });
+
     }
 
     get PixelsPerTick()
     {
         return this._PixelsPerTick;
     }
-	
+
 	get MinimumPitch()
 	{
 		// var mainGridHeight = this.Maingrid.height();
 		// return mainGridHeight*pixelsPerTick;
-		
+
 		return 0;
 	}
-	
+
     OnRadioButton(event)
     {
         var eventData = v_this.GetFormData();

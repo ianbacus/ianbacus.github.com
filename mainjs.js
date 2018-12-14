@@ -22,6 +22,7 @@ var timeSignatureEvents = {}
 var MaximumNotesPerBeat = 8.0;
 var ParseString ='';
 var TabberMethod;
+var PitchLookupTable = {"c0":12,"d0":14,"e0":16,"f0":17,"g0":19,"a0":21,"b0":23};
 
 
 function ProcessNote(pitchMidiValue, currentTimeTicks, isNoteOff, track)
@@ -91,7 +92,6 @@ function ParseMidiFile(midiFileObject)
     activeNotesMappedToTheirStartTick = {};
     TickToPitchMidiValueDictionary = {};
     timeSignatureEvents = {}
-    ParseString = '';
 
     tracks.forEach(function(trackObject)
     {
@@ -143,7 +143,10 @@ function ParseMidiFile(midiFileObject)
         trackNumber++;
 
     }, trackNumber);
+}
 
+function ParsePitchDeltas()
+{
     ParseString = '';
     var tickInstanceKeyList = [];
 
@@ -183,8 +186,38 @@ function ParseMidiFile(midiFileObject)
             ParseString += resString;
 
         },delta);
-
     }
+}
+
+function ConvertPitchDeltasToScoreModel()
+{
+    var score = [];
+
+    Object.keys(TickToPitchMidiValueDictionary).forEach(function(currentTicks)
+    {
+        var pitchList = TickToPitchMidiValueDictionary[currentTicks];
+        pitchList.forEach(function(pitchDuration)
+        {
+            var startTimeTicks = parseInt(currentTicks);
+            var pitch = parseInt(pitchDuration.Pitch);
+            var duration = parseInt(pitchDuration.Duration);
+            var track = parseInt(pitchDuration.Track);
+
+            var note = new Note(
+                startTimeTicks,
+                pitch,
+                duration,
+                track,
+                false);
+
+            score.push(note);
+
+        }, currentTicks);
+    });
+
+    $(".loader").hide();
+
+    return score;
 }
 
 function GenerateTab(event)
@@ -193,6 +226,10 @@ function GenerateTab(event)
     var tuningStrings = "BEADGBe";
     //var tuningPitches = [28, 33, 38, 43, 47, 52];
     //var tuningStrings = "eadgbe";
+
+    ParsePitchDeltas();
+
+    var failure = undefined;
 
     if(ParseString.length > 0)
     {
@@ -206,55 +243,36 @@ function GenerateTab(event)
 		var transpose = $('#transpose').val();// 250;
 		var instrumentStrings = $('#strings').val();// 250;
 
-		var pitchLookupTable = {"c0":12,"d0":14,"e0":16,"f0":17,"g0":19,"a0":21,"b0":23};
-		var pitches = ['c','d','e','f','g','a','b'];
-
-		for(var octaveOffset=1; octaveOffset<8; octaveOffset++)
-		{
-			var offset = octaveOffset*12;
-
-			pitches.forEach(function(pitch)
-			{
-				var basePitchKey = pitch+'0';
-				var newPitchKey = pitch+octaveOffset;
-				var basePitch = pitchLookupTable[basePitchKey];
-				var newPitch = basePitch + offset;
-
-				pitchLookupTable[newPitchKey] = newPitch;
-			}, octaveOffset);
-		}
-
 		var tuningPitches = []
 		var tuningStrings = "";
 
 		var splitInstrumentStrings = instrumentStrings.split(',');
-		splitInstrumentStrings.forEach(function(stringName)
+		splitInstrumentStrings.some(function(stringName)
 		{
 			var stringNameTruncated = stringName[0];
-			var stringPitch = pitchLookupTable[stringName];
+			var stringPitch = PitchLookupTable[stringName];
+
+            if(stringPitch == undefined)
+            {
+                failure = "Invalid tuning string " + instrumentStrings;
+                console.log(failure,splitInstrumentStrings);
+                return;
+            }
 
 			tuningPitches.push(stringPitch);
 			tuningStrings += stringNameTruncated;
 
 		},tuningPitches, tuningStrings);
 
-        // var outStringPtr = TabberMethod(
-		// 	ParseString,
-		// 	tuningStrings,
-		// 	tuningPitches,
-        //     transpose,
-		// 	frets,
-		// 	neckCost,
-		// 	spanCost,
-		// 	diffCost,
-		// 	sustainCost,
-		// 	arpeggioCost,
-		// 	columnFormat);
-        //
-        // var outString = Pointer_stringify(outStringPtr);
-		// makeTextFile(outString);
-		// free(outStringPtr)
+    }
 
+    else
+    {
+        failure = "Please provide a midi file"
+    }
+
+    if(failure == undefined)
+    {
         var outString = TabberMethod(
 			ParseString,
 			tuningStrings,
@@ -268,13 +286,19 @@ function GenerateTab(event)
 			arpeggioCost,
 			columnFormat);
 
+        // var outStringPtr = TabberMethod(... var outString = Pointer_stringify(outStringPtr);
+		// makeTextFile(outString);
+		// free(outStringPtr)
+
 		makeTextFile(outString);
 	}
 
 	else
 	{
-		alert("Please provide a midi file")
+		alert(failure)
 	}
+
+    $(".loader").hide();
 
 	return false;
 }
@@ -296,6 +320,17 @@ Dropzone.options.importDropzone = {
 
         reader.readAsArrayBuffer(file);
 
+    },
+
+    init: function()
+    {
+        this.on("addedfile", function()
+        {
+            if (this.files[1]!=null)
+            {
+                this.removeFile(this.files[0]);
+            }
+        });
     }
 };
 
@@ -363,11 +398,58 @@ $( function()
             'number',
     ]);
 
-	$(document).on('submit', '#TabSettingsForm',
+    var pitches = ['c','d','e','f','g','a','b'];
+
+    for(var octaveOffset=1; octaveOffset<8; octaveOffset++)
+    {
+        var offset = octaveOffset*12;
+
+        pitches.forEach(function(pitch)
+        {
+            var basePitchKey = pitch+'0';
+            var newPitchKey = pitch+octaveOffset;
+            var basePitch = PitchLookupTable[basePitchKey];
+            var newPitch = basePitch + offset;
+
+            PitchLookupTable[newPitchKey] = newPitch;
+        }, octaveOffset);
+    }
+
+    $(".loader").hide();
+
+    //$(document).on('submit', '#TabSettingsForm',
+    $('#TabSettingsForm .midi-form-button').click(
 		function(event)
 		{
+            $(".loader").show();
 			event.preventDefault();
-			GenerateTab()
+            var buttonName = $(this).attr("name");
+            console.log(buttonName);
+
+            setTimeout(function()
+            {
+                //console.log(buttonName);
+                if(buttonName == "tab")
+                {
+                    GenerateTab();
+                }
+
+                else if(buttonName == "import")
+                {
+                    var score = ConvertPitchDeltasToScoreModel();
+                    if(score.length > 0)
+                    {
+                        var lastNote = score[score.length-1];
+                        var lastTick = lastNote.StartTimeTicks + lastNote.Duration;
+
+                        ScoreView.GridWidthTicks = lastTick;
+                        ScoreModel.Score = score;
+                        ScoreModel.MergeSort(ScoreModel.Score);
+
+                        ScoreController.RefreshNotesAndKey();
+                    }
+                }
+            }, 10, buttonName);
 			return false;
 		});
 

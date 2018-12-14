@@ -248,13 +248,13 @@ class Model
             fiddle: '_tone_1100_SBLive_sf2',
         };
         this.MaximumActivityStackLength = 100;
-		
-		//Session data 
+
+		//Session data
         this.SelectedNotes = [];
         this.ActivityStack = []
         this.ActivityIndex = 0;
-		
-		//Restorable data 
+
+		//Restorable data
         this.Score = [];
         this.GridPreviewList = [];
         this.GridImageList = [];
@@ -276,35 +276,35 @@ class Model
 			this.GridPreviewList = [[]];
 			this.GridImageList = [null];
 		}
-		else 
+		else
 		{
 			console.log(initializationParameters);
-			
+
 			var initialGridlist = initializationParameters.GridList;
-			
+
 			initialGridlist.forEach(function(noteArray)
 			{
 				var reconstructedNoteArray = [];
 				noteArray.forEach(function(noteToCopy)
 				{
 					var copiedNote = new Note(
-						noteToCopy.StartTimeTicks, 
-						noteToCopy.Pitch, 
-						noteToCopy.Duration, 
-						noteToCopy.CurrentTrack, 
+						noteToCopy.StartTimeTicks,
+						noteToCopy.Pitch,
+						noteToCopy.Duration,
+						noteToCopy.CurrentTrack,
 						false,
 						noteToCopy.GridIndex);
-					
+
 					reconstructedNoteArray.push(copiedNote);
 				});
-				
+
 				this.GridImageList.push(null);
 				this.GridPreviewList.push(reconstructedNoteArray);
 			},this);
-			
+
 			this.GridPreviewIndex = initializationParameters.GridPreviewIndex;
 		}
-		
+
         this.Score = this.GridPreviewList[this.GridPreviewIndex];
     }
 
@@ -328,10 +328,10 @@ class Model
         });
 
 		var gridStateData =  {GridPreviewIndex: this.GridPreviewIndex};
-        var serializedGridListArray = 
+        var serializedGridListArray =
 			'{"GridList" : ['+gridListArray.join(',')+'],'+
 			'"GridPreviewIndex" :'+this.GridPreviewIndex+'}'
-		
+
         return serializedGridListArray;
     }
 
