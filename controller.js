@@ -486,7 +486,6 @@ class Controller
 
         case 65: //"a key"
             //ctrl+a: select all
-            event.preventDefault();
             if(keyupThisPointer.EditorMode != editModeEnumeration.SELECT)
             {
                 keyupThisPointer.EditorMode = editModeEnumeration.SELECT;
@@ -1062,14 +1061,14 @@ class Controller
 				{
 					return false;
 				}
-				
+
 				mouseMoveThisPointer.ModifyNoteArray(selectedNotes, function(note)
 				{
 					//Tonal transpose?
-					
+
 					note.Move(x_offset, y_offset);
 					previousNote = note;
-					
+
 				});
 
 
