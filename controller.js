@@ -498,6 +498,7 @@ class Controller
             }
             if(event.ctrlKey)
             {
+                event.preventDefault();
                 keyupThisPointer.ModifyNoteArray(keyupThisPointer.Model.Score, function(note)
                 {
                     note.IsSelected = true;
