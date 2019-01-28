@@ -8,7 +8,8 @@ var sm = {
 var editModeEnumeration = {
 	EDIT: 0,
 	SELECT: 1,
-	DELETE: 2
+    MidiControllerMode: 2,
+	DELETE: 3,
 }
 
 var Modes =
@@ -69,6 +70,7 @@ class Controller
 		this.NoteColorationMode = false;
         this.EditorMode = editModeEnumeration.EDIT;
 
+
     }
 
     Initialize(initializationParameters)
@@ -85,13 +87,14 @@ class Controller
         //Instruments
         var instrumentOptions = [];
         var instrumentEnumeration = this.Model.InstrumentEnum;
-        this.CurrentInstrument = m_this.InstrumentEnum.piano;
+        this.CurrentInstrument = m_this.InstrumentEnum.flute;
         Object.keys(instrumentEnumeration).forEach(function(key) { instrumentOptions.push(key); });
         this.View.PopulateSelectMenu(instrumentOptions);
 
         //Analysis
-        var analysisOption = c_this.GetModeSettings().AnalysisMode;
-        c_this.IntervalTranslator = c_this.InvertibleCounterpointIntervals[analysisOption];
+        var analysisOption = this.GetModeSettings().AnalysisMode;
+        this.IntervalTranslator = this.InvertibleCounterpointIntervals[analysisOption];
+        this.InitializeMidiController()
 
         //Main windows
         this.RefreshGridPreview();
@@ -308,19 +311,278 @@ class Controller
         this.MainPlaybackStartTicks = ticks;
     }
 
-    OnKeyUp(event)
+    GetNextMidiPitch(midiLowest, midiKeyValues, index)
+    {
+        var keysLength = midiKeyValues.length
+        var octaveOffset = midiLowest + Math.floor(index/keysLength)*12
+        var offsetRemainder = midiKeyValues[index % keysLength]
+
+        return octaveOffset + offsetRemainder
+    }
+
+
+    ResetMidiController()
+    {
+        this.PressedKeys = []
+        this.MidiKeysDown = 0
+
+        this.MidiControllerTicks = 0;
+        this.MidiTimeoutTicksRemaining = 0;
+        this.MidiControllerPendingTimeout = null
+    }
+
+    InitializeMidiController()
+    {
+        this.ResetMidiController()
+
+        this.ChromaticKeyMap = {};
+        this.SampleResolutionTicks = 1
+
+        var capsCode = '\f'
+        var enterCode = '\r'
+        var tabCode = '\t'
+        var rShiftCode = '\v'
+
+        var midiLowest = 36 //c2
+
+        //Major scale
+        var whiteKeyMidiValues = [0,2,4,5,7,9,11]
+        var blackKeyMidiValues = [1,3,6,8,10]
+
+        var chromaticLayout = ["zxcvbnm,./" + "qwertyuiop[]" + "zxcvbnm,./" + "1234567890"]
+
+        var easyLayout =
+        [
+            //"zxcvbnm,./qwertyuiop[]",
+            //"asdfghjkl;'1234567890"
+            "sdghjl;1245689-=",
+            "zxcvbnm,./qwertyuiop[]",
+        ]
+        var jankLayout =
+        [
+            "zxnm," + capsCode + "afghj;'" + enterCode + "qweuio`145670-=",
+            "cvb./" + rShiftCode + "sdkl" + tabCode + "rtyP[]2389"
+        ]
+
+        var bkeys =  easyLayout[0]
+        var wkeys = easyLayout[1]
+
+        //LUT of keys to piano
+        var midiPitches = [
+            Array.from({length: bkeys.length}, (x,i) => this.GetNextMidiPitch(midiLowest,blackKeyMidiValues,i)),
+            Array.from({length: wkeys.length}, (x,i) => this.GetNextMidiPitch(midiLowest,whiteKeyMidiValues,i))
+        ]
+        //var chromaticMidiPitches = Array.from({length: ckeys.length}, (x,i) => midiLowest+i);
+
+        for(var listIndex = 0; listIndex < easyLayout.length; listIndex++)
+        {
+            var keyLayoutList = easyLayout[listIndex]
+            var midiPitchList = midiPitches[listIndex]
+
+            for(var keyIndex = 0; keyIndex < midiPitchList.length; keyIndex++)
+            {
+                var keyCharacter = keyLayoutList[keyIndex]
+                var midiNote = midiPitchList[keyIndex]
+
+                    switch(keyCharacter)
+                    {
+                        case  capsCode:
+                            keyCharacter = 'CapsLock';
+                            break;
+                        case enterCode:
+                            keyCharacter = 'Enter';
+                            break;
+                        case tabCode:
+                            keyCharacter = 'Tab';
+                            break;
+                        case rShiftCode:
+                            keyCharacter = 'Shift';
+                            break;
+                    }
+                this.ChromaticKeyMap[keyCharacter] = midiNote
+            }
+        }
+    }
+
+    CompareNoteWithPitch(pitch, note)
+    {
+        return pitch - note.Pitch;
+    }
+
+    MidiControllerKeyCallback(event)
+    {
+        var keyCharacter = event.key.toLowerCase();
+        var pitch = this.ChromaticKeyMap[keyCharacter];
+        var midiKeyPressed = pitch != undefined;
+
+        var keyAlreadyPressed = this.PressedKeys[keyCharacter] != undefined
+
+        //Create a note
+        if(midiKeyPressed)
+        {
+            event.preventDefault();
+            if((event.type == "keydown") && !keyAlreadyPressed)
+            {
+                if(this.MidiKeysDown == 0)
+                {
+                    this.KickstartMidiControllerTimeout()
+                }
+
+                var previewNote = this.CreateMidiControllerNote(pitch)
+
+                previewNote.PlayIndefinitely(this.MillisecondsPerTick, this.CurrentInstrument)
+
+                this.Model.AddNote(previewNote, 0, this.Model.Score, false);
+                this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
+                this.PressedKeys[keyCharacter] = previewNote
+                this.MidiKeysDown++
+            }
+
+            else if((event.type == "keyup") && keyAlreadyPressed)
+            {
+                var previewNote = this.PressedKeys[keyCharacter]
+                previewNote.ForceNoteOff()
+                this.View.ApplyNoteStyle(previewNote, this.NoteColorationMode);
+
+                this.PressedKeys[keyCharacter] = undefined
+                this.MidiKeysDown--
+            }
+        }
+
+        return midiKeyPressed;
+    }
+
+    KickstartMidiControllerTimeout()
+    {
+        this.MidiTimeoutTicksRemaining = 16/this.SampleResolutionTicks
+        var sampleTimeMilliseconds =  this.SampleResolutionTicks*this.MillisecondsPerTick
+
+        if(this.MidiControllerPendingTimeout == null)
+        {
+            this.HandleSelectionReset()
+            this.MidiControllerPendingTimeout =
+                setTimeout($.proxy(this.OnMidiControllerNoteTimeout, this),sampleTimeMilliseconds);
+        }
+    }
+
+    OnMidiControllerNoteTimeout(note)
+	{
+        var sampleResolutionTicks = this.SampleResolutionTicks
+        var sampleTimeMilliseconds = sampleResolutionTicks*this.MillisecondsPerTick
+
+        if(this.MidiKeysDown > 0)
+        {
+            for (let note of Object.values(this.PressedKeys))
+            {
+                if(note != undefined)
+                {
+                    note.Duration += sampleResolutionTicks
+                    this.View.ApplyNoteStyle(note, this.NoteColorationMode)
+                }
+            }
+        }
+
+        else if(this.MidiTimeoutTicksRemaining > 0)
+        {
+            this.MidiTimeoutTicksRemaining--;
+        }
+
+        else
+        {
+            this.MidiControllerTicks = 0;
+            this.MidiControllerPendingTimeout = null;
+            return;
+        }
+
+        this.MidiControllerTicks += sampleResolutionTicks
+        this.MidiControllerPendingTimeout =
+            setTimeout($.proxy(this.OnMidiControllerNoteTimeout, this), sampleTimeMilliseconds);
+
+	}
+
+    CreateMidiControllerNote(pitch)
+    {
+        //var selectCount = this.CountSelectedNotes();
+        //Create a new preview note if edit mode is active
+        //if((this.EditorMode == editModeEnumeration.MidiControllerMode) && (selectCount == 0) && (!this.Playing)){
+
+        var startTicks = this.MainPlaybackStartTicks + this.MidiControllerTicks
+        var noteIsSelected = true;
+        var noteLength = 0//this.SampleResolutionTicks
+
+        var previewNote = new Note(
+            startTicks,
+            pitch + this.TonicKey,
+            noteLength,
+            this.CurrentTrack,
+            true);
+
+        //}
+
+        return previewNote
+    }
+
+    OnKeyPress(event)
     {
         var keyupThisPointer = c_this;
+        var eventHandled = false;
+
         switch(event.keyCode)
         {
-        //Mode control: select, edit, delete
-        case 88: //"x" key": Select mode
-            if(keyupThisPointer.EditorMode != editModeEnumeration.SELECT)
+        case 20: //capslock
+
+            if(event.type == "keyup")
             {
-                keyupThisPointer.EditorMode = editModeEnumeration.SELECT;
+                if(keyupThisPointer.EditorMode != editModeEnumeration.MidiControllerMode)
+                {
+                    keyupThisPointer.EditorMode = editModeEnumeration.MidiControllerMode;
+                    keyupThisPointer.HandleSelectionReset();
+                }
+
+                else
+                {
+                    keyupThisPointer.EditorMode = editModeEnumeration.SELECT;
+                }
+
                 var editModeColor = keyupThisPointer.EditModeColors[keyupThisPointer.EditorMode];
-                keyupThisPointer.HandleSelectionReset();
                 keyupThisPointer.View.SetBorderColor(editModeColor);
+            }
+            break;
+
+        case 27: //escape
+            keyupThisPointer.ResetMidiController();
+            keyupThisPointer.HandleSelectionReset();
+            break;
+        }
+
+        if(keyupThisPointer.EditorMode == editModeEnumeration.MidiControllerMode)
+        {
+            eventHandled = keyupThisPointer.MidiControllerKeyCallback(event)
+        }
+
+        if(!eventHandled)
+        {
+            eventHandled = keyupThisPointer.HandleCompositionModeKeypress(event)
+        }
+    }
+
+    HandleCompositionModeKeypress(event)
+    {
+        //Mode control: select, edit, delete
+        if(event.type == "keyup")
+        {
+            return false;
+        }
+
+        switch(event.keyCode)
+        {
+        case 88: //"x" key": Select mode
+            if(this.EditorMode != editModeEnumeration.SELECT)
+            {
+                this.EditorMode = editModeEnumeration.SELECT;
+                var editModeColor = this.EditModeColors[this.EditorMode];
+                this.HandleSelectionReset();
+                this.View.SetBorderColor(editModeColor);
             }
 
             break;
@@ -330,103 +592,104 @@ class Controller
             if(event.ctrlKey)
             {
                 //If a group is being selected, unselect it
-                var selectCount = keyupThisPointer.CountSelectedNotes();
+                var selectCount = this.CountSelectedNotes();
                 if(selectCount > 1)
                 {
-                    keyupThisPointer.HandleSelectionReset()
+                    this.HandleSelectionReset()
                 }
                 else
                 {
-                    keyupThisPointer.Model.Undo();
-                    keyupThisPointer.StopPlayingNotes();
+                    this.Model.Undo();
+                    this.StopPlayingNotes();
                 }
             }
 
             //Redo
             else if(event.shiftKey)
             {
-                keyupThisPointer.Model.Redo();
-                keyupThisPointer.StopPlayingNotes();
+                this.Model.Redo();
+                this.StopPlayingNotes();
             }
 
             //Enter edit mode
-            else if(keyupThisPointer.EditorMode != editModeEnumeration.EDIT)
+            else if(this.EditorMode != editModeEnumeration.EDIT)
             {
-                keyupThisPointer.EditorMode = editModeEnumeration.EDIT;
-                var editModeColor = keyupThisPointer.EditModeColors[this.EditorMode];
-                keyupThisPointer.HandleSelectionReset();
-                keyupThisPointer.CreateUniqueEditNote();
-                keyupThisPointer.View.SetBorderColor(editModeColor);
+                this.EditorMode = editModeEnumeration.EDIT;
+                var editModeColor = this.EditModeColors[this.EditorMode];
+                this.HandleSelectionReset();
+                this.CreateUniqueEditNote();
+                this.View.SetBorderColor(editModeColor);
             }
             else {
                 renderGrid = false;
             }
             if(renderGrid)
             {
-                keyupThisPointer.RefreshEditBoxNotes();
+                this.RefreshEditBoxNotes();
             }
 
             break;
+        case 46: //"del" key
         case 68: //"d" key
-            //Delete any selected notes, and enter delete mode
-            keyupThisPointer.DeleteSelectedNotes(true);
-            keyupThisPointer.RefreshGridPreview()
+            //Delete any selected notes
+            this.DeleteSelectedNotes(true);
+            this.RefreshGridPreview()
             break;
         case 9: //tab key
             event.preventDefault();
             var keys = 12;
             if(event.shiftKey)
             {
-                keyupThisPointer.TonicKey = (keyupThisPointer.TonicKey+(keys-7))%keys;
+                this.TonicKey = (this.TonicKey+(keys-7))%keys;
             }
             else
             {
-                keyupThisPointer.TonicKey = (keyupThisPointer.TonicKey+7)%keys;
+                this.TonicKey = (this.TonicKey+7)%keys;
             }
-            keyupThisPointer.SetKeyReference(keyupThisPointer.TonicKey, keyupThisPointer.MusicalModeIndex);
+            this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
 
             break;
 
 		case 75: //"k" key : change coloration mode
-			keyupThisPointer.NoteColorationMode = !keyupThisPointer.NoteColorationMode;
-			keyupThisPointer.View.UpdateExistingNotes(keyupThisPointer.Model.Score, keyupThisPointer.NoteColorationMode);
+			this.NoteColorationMode = !this.NoteColorationMode;
+			this.View.UpdateExistingNotes(this.Model.Score, this.NoteColorationMode);
 			break;
 
         case 192: //` tilde key: change mode
-            keyupThisPointer.MusicalModeIndex = (keyupThisPointer.MusicalModeIndex+1) % Modes.length;
-            keyupThisPointer.SetKeyReference(keyupThisPointer.TonicKey, keyupThisPointer.MusicalModeIndex);
+            this.MusicalModeIndex = (this.MusicalModeIndex+1) % Modes.length;
+            this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
             break;
 
         case 32: //spacebar
             event.preventDefault();
 
-            if(!keyupThisPointer.Playing)
+            if(!this.Playing)
             {
                 var playbackBuffer = []
-				keyupThisPointer.HandleSelectionReset();
+				this.HandleSelectionReset();
 
                 //Find note closest to playback coordinate
                 //Shift space: reset the play index to the last captured point
                 if(event.shiftKey)
                 {
-                    keyupThisPointer.ResetPlaybackStartTicks(keyupThisPointer.CapturedPlaybackStartTicks);
+                    this.ResetPlaybackStartTicks(this.CapturedPlaybackStartTicks);
                 }
 
                 //Ctrl space: reset play index to beginning of grid
                 else if(event.ctrlKey)
                 {
-                    keyupThisPointer.ResetPlaybackStartTicks(0);
-                    keyupThisPointer.CapturedPlaybackStartTicks = keyupThisPointer.MainPlaybackStartTicks;
+                    this.ResetPlaybackStartTicks(0);
+                    this.CapturedPlaybackStartTicks = this.MainPlaybackStartTicks;
                 }
 
                 //Regular space: overwrite the last captured point and play from wherever the playback cursor is
                 else
                 {
-                    keyupThisPointer.CapturedPlaybackStartTicks = keyupThisPointer.MainPlaybackStartTicks;
+                    this.CapturedPlaybackStartTicks = this.MainPlaybackStartTicks;
                 }
 
-                var score = keyupThisPointer.Model.Score;
-                var playbackStartXCoordinate = keyupThisPointer.View.ConvertTicksToXIndex(keyupThisPointer.MainPlaybackStartTicks);
+                var score = this.Model.Score;
+                var playbackStartXCoordinate = this.View.ConvertTicksToXIndex(this.MainPlaybackStartTicks);
 
                 var selectionRectangle =
                 {
@@ -437,7 +700,7 @@ class Controller
                 };
 
                 //
-                var searchResult = keyupThisPointer.GetNoteIndexOfOverlappingNote(selectionRectangle);
+                var searchResult = this.GetNoteIndexOfOverlappingNote(selectionRectangle);
                 var [searchIndex, binarySearchResult] = [searchResult.ClickedNoteIndex, searchResult.BinarySearchIndex]
 
                 //Handle case where playback cursor is before any notes
@@ -448,7 +711,7 @@ class Controller
                 if(searchIndex >= 0)
                 {
                     //Add all unselected notes after the playback index to the playback buffer
-                    var [playbackBuffer,x] = keyupThisPointer.GetChordNotes(score, searchIndex, false);
+                    var [playbackBuffer,x] = this.GetChordNotes(score, searchIndex, false);
                     for(searchIndex; searchIndex<score.length;searchIndex++)
                     {
                         var note = score[searchIndex];
@@ -458,13 +721,13 @@ class Controller
                         }
                     }
 
-                    keyupThisPointer.PlayNotes(playbackBuffer, false);
+                    this.PlayNotes(playbackBuffer, false);
                 }
 
             }
             else
             {
-                keyupThisPointer.StopPlayingNotes();
+                this.StopPlayingNotes();
             }
             break;
 
@@ -472,34 +735,35 @@ class Controller
             var copyBuffer = [];
 
             //Copy all selected notes into a buffer
-            keyupThisPointer.ModifyNoteArray(keyupThisPointer.Model.SelectedNotes, function(noteToCopy)
+            this.ModifyNoteArray(this.Model.SelectedNotes, function(noteToCopy)
             {
                 copyBuffer.push(noteToCopy);
             });
 
-            keyupThisPointer.PasteBuffer = keyupThisPointer.PreparePasteBuffer(copyBuffer);
-            keyupThisPointer.InstantiatePasteBuffer(keyupThisPointer.PasteBuffer);
+            this.PasteBuffer = this.PreparePasteBuffer(copyBuffer);
+            this.InstantiatePasteBuffer(this.PasteBuffer);
 
-            keyupThisPointer.RefreshEditBoxNotes();
+            this.RefreshEditBoxNotes();
             break;
 
         case 86: //"v" key
 
-            keyupThisPointer.InstantiatePasteBuffer(keyupThisPointer.PasteBuffer);
-            keyupThisPointer.RefreshGridPreview();
+            this.InstantiatePasteBuffer(this.PasteBuffer);
+            this.RefreshGridPreview();
             break;
 
         case 65: //"a key"
             //ctrl+a: select all
-            if(keyupThisPointer.EditorMode != editModeEnumeration.SELECT)
+            if((this.EditorMode != editModeEnumeration.SELECT) &&
+             (this.EditorMode != editModeEnumeration.MidiControllerMode))
             {
-                keyupThisPointer.EditorMode = editModeEnumeration.SELECT;
-                keyupThisPointer.HandleSelectionReset();
+                this.EditorMode = editModeEnumeration.SELECT;
+                this.HandleSelectionReset();
             }
             if(event.ctrlKey)
             {
                 event.preventDefault();
-                keyupThisPointer.ModifyNoteArray(keyupThisPointer.Model.Score, function(note)
+                this.ModifyNoteArray(this.Model.Score, function(note)
                 {
                     note.IsSelected = true;
                     this.View.ApplyNoteStyle(note, this.NoteColorationMode);
@@ -520,11 +784,11 @@ class Controller
         case 56: //key 8
         case 57: //key 9
             var pressedKey = event.keyCode - 49;
-            keyupThisPointer.CurrentTrack = pressedKey;
+            this.CurrentTrack = pressedKey;
 
-            keyupThisPointer.ModifyNoteArray(keyupThisPointer.Model.SelectedNotes, function(note)
+            this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
             {
-                note.CurrentTrack = keyupThisPointer.CurrentTrack;
+                note.CurrentTrack = this.CurrentTrack;
                 this.View.ApplyNoteStyle(note, this.NoteColorationMode);
             });
             break;
@@ -532,7 +796,7 @@ class Controller
         case 69: //"e" key: invert bass down octave
         case 87: //"w" key: Invert bass up octave
 
-            var analysisMode = keyupThisPointer.GetModeSettings().AnalysisMode;
+            var analysisMode = this.GetModeSettings().AnalysisMode;
             const analysisOffsets = [
                 -12, //free: everything goes down an octave
                 12, //15th: a perfect octave
@@ -557,7 +821,7 @@ class Controller
                 upperVoiceOffset = 12;
 			}
 
-            keyupThisPointer.ModifyNoteArray(keyupThisPointer.Model.SelectedNotes, function(candidateNote)
+            this.ModifyNoteArray(this.Model.SelectedNotes, function(candidateNote)
             {
                 candidatePitch = candidateNote.Pitch;
                 if (candidatePitch < lowestPitch)
@@ -576,18 +840,18 @@ class Controller
 			var lowestNewPosition = (highestPitch - upperVoiceOffset);
 			var upperBoundCheck =
 				(0 < highestNewPosition) &&
-				(highestNewPosition <= keyupThisPointer.View.MaximumPitch);
+				(highestNewPosition <= this.View.MaximumPitch);
 
 			var lowerBoundCheck =
 				(0 < lowestNewPosition) &&
-				(lowestNewPosition <= keyupThisPointer.View.MaximumPitch);
+				(lowestNewPosition <= this.View.MaximumPitch);
 
 			if(lowerBoundCheck && upperBoundCheck)
 			{
 				const topTrack = noteWithHighestPitch.CurrentTrack;
 				const bassTrack = noteWithLowestPitch.CurrentTrack;
 
-				keyupThisPointer.ModifyNoteArray(keyupThisPointer.Model.SelectedNotes, function(note)
+				this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
 				{
 					if(note.CurrentTrack == bassTrack)
 					{
@@ -608,18 +872,18 @@ class Controller
             break;
 
         case 82: //"r" key:  Add new grid
-            keyupThisPointer.Model.CreateGridPreview();
-            keyupThisPointer.RefreshGridPreview();
+            this.Model.CreateGridPreview();
+            this.RefreshGridPreview();
             break;
         case 38: //up arrow: select grid
             event.preventDefault();
-            keyupThisPointer.HandleGridMove(true);
-            keyupThisPointer.RefreshGridPreview();
+            this.HandleGridMove(true);
+            this.RefreshGridPreview();
             break;
         case 40: //down arrow: select grid
             event.preventDefault();
-            keyupThisPointer.HandleGridMove(false);
-            keyupThisPointer.RefreshGridPreview();
+            this.HandleGridMove(false);
+            this.RefreshGridPreview();
             break;
         }
     }
@@ -801,6 +1065,7 @@ class Controller
 
 	OnStopNote(note)
 	{
+        note.IsHighlighted = false;
         this.View.ApplyNoteStyle(note, this.NoteColorationMode)
 	}
 
@@ -1142,7 +1407,8 @@ class Controller
         var clickdownThisPointer = c_this;
 
 		event.preventDefault();
-        if(clickdownThisPointer.EditorMode == editModeEnumeration.SELECT)
+        if((clickdownThisPointer.EditorMode == editModeEnumeration.SELECT) ||
+        (clickdownThisPointer.EditorMode == editModeEnumeration.MidiControllerMode))
         {
             var selectCount = clickdownThisPointer.CountSelectedNotes();
             var clickedNoteIndex = clickdownThisPointer.GetNoteIndexOfOverlappingNote().ClickedNoteIndex;

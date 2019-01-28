@@ -372,7 +372,7 @@ $( function()
     ScoreView.Initialize(
 		deserializedViewData,
         ScoreController,
-        ScoreController.OnKeyUp,
+        ScoreController.OnKeyPress,
         ScoreController.OnMouseScroll,
         ScoreController.OnMouseMove, ScoreController.OnMouseClickUp, ScoreController.OnMouseClickDown,
         ScoreController.OnHoverBegin, ScoreController.OnHoverEnd,

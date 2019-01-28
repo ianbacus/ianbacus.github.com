@@ -85,7 +85,7 @@ class View
     Initialize(
 		initializationParameters,
         controller,
-        onKeyUp,
+        onKeyPress,
         onMouseScroll,
         onMouseMove, onMouseClickUp, onMouseClickDown,
         onHoverBegin, onHoverEnd,
@@ -128,7 +128,8 @@ class View
         $('input[type=radio]').change(this.OnRadioButton);
         $('select').change(this.OnSelectChange);
 
-        $(document).keydown(onKeyUp);
+        $(document).keydown(onKeyPress);
+        $(document).keyup(onKeyPress);
         this.GridMouseHandler = onMouseMove;
         this.RadioButtonHandler = radioButtonHandler;
         this.SliderHandler = onSliderChange;
@@ -710,7 +711,7 @@ class View
     }
     SetBorderColor(color)
     {
-        var borderCssString = 'solid '+color+' 1px';
+        var borderCssString = 'solid '+color+' 3px';
         this.GridboxContainer.css('border',borderCssString);
     }
 

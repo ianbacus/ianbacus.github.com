@@ -90,6 +90,24 @@ class Note
         this.Pitch += y_offset;
     }
 
+    PlayIndefinitely(millisecondsPerTick, instrumentCode)
+    {
+        var milliseconds = millisecondsPerTick * this.Duration;
+        var playback = this.Playback;
+        playback.key = this.Pitch;
+
+		playback.envelope=player.queueWaveTable(
+            audioContext,   //audio context
+            audioContext.destination, //audio destination
+            instrumentCode, //instrument
+            0,  //start time
+            playback.key, //pitch
+            999,  //duration
+            true);
+
+        this.IsHighlighted = true;
+    }
+
     Play(millisecondsPerTick, caller, onStopCallback, instrumentCode)
     {
         var milliseconds = millisecondsPerTick * this.Duration;
@@ -111,8 +129,19 @@ class Note
             $.proxy(this.StopPlaying, this),milliseconds);
     }
 
+    ForceNoteOff()
+    {
+        if(this.Playback.envelope)
+        {
+            this.Playback.envelope.cancel();
+            this.Playback.envelope = null;
+        }
+        this.IsHighlighted = false;
+    }
+
     StopPlaying()
     {
+        this.Playback.envelope = null;
         this.IsHighlighted = false;
 		this.OnStopCallback.Callback.call(this.OnStopCallback.Caller,this);
     }
@@ -620,7 +649,7 @@ class Model
             var pivotNote = array[pivotIndex];
 
             //Compare note against middle element
-            var compareResult = this.CompareNotes(note, pivotNote);
+            var compareResult = compare_fn(note, pivotNote);
 
             //Note > pivot: change lower bound to middle+1 to search right half
             if (compareResult > 0)
