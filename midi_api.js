@@ -229,7 +229,7 @@ class MidiAbstractionLayer
                 score.push(note);
 
             }, currentTicks);
-        });
+        }, this);
 
         $(".loader").hide();
 
