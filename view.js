@@ -575,6 +575,7 @@ class View
 				"opacity":noteOpacity,
 				"height":v_this.PixelsPerTick,
                 "left":0,
+                "z-index":2,
                 "border-bottom":'solid black 2px',
                 "position":"absolute",
 				"width":mainGridWidth

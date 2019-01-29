@@ -5,8 +5,8 @@
 <title> Browser Composer </title>
 
 <link rel="stylesheet" href="css/bootstrap.min.css">
-<link rel="stylesheet" href="css/example.css">
 <link rel="stylesheet" href="css/dropzone.css">
+<link rel="stylesheet" href="css/example.css">
 
 <script src="jquery.min.js"></script>
 <script src="bootstrap.min.js"></script>
@@ -32,11 +32,12 @@
 <script src='https://surikov.github.io/webaudiofontdata/sound/1100_SBLive_sf2.js'></script>
 <script src='https://surikov.github.io/webaudiofontdata/sound/1230_Chaos_sf2_file.js'></script>
 
-<script src='https://gitcdn.link/repo/colxi/midi-parser-js/master/src/midi-parser.js'></script>
+<script src='midi-parser.js'></script>
 
 <script src="html2canvas.js"></script>
 
 <script src="js_tabber.js"></script>
+<script src="midi_api.js"></script>
 <script src="model.js"></script>
 <script src="view.js"></script>
 <script src="controller.js"></script>
@@ -163,9 +164,7 @@
 
                 <div id="tabber" class="tab-pane fade in active">
                     <div id="gridboxNavigator">
-                        <form action="/file-upload"  class="dropzone" id="import-dropzone">
 
-						</form>
                         <!-- end preview tab <div id="GridboxArray" style="border: 1px solid black"></div> -->
 
 						<form id="TabSettingsForm">
@@ -210,9 +209,12 @@
         <!--- This column contains the main editing box -->
         <div class="col-sm-10">
             <div id="gridboxContainer">
-                <div id="gridbox">
-                    <div id="RestartPlaybackLine" class="PlaybackLine"></div>
-                    <div id="MainPlaybackLine" class="PlaybackLine"></div>
+                    <!--- <form action="/file-upload"  class="dropzone" id="import-dropzone"></form> class="dropzone" -->
+                    <div id="gridbox" >
+                        <div id="testDZ">
+                        <div id="RestartPlaybackLine" class="PlaybackLine"></div>
+                        <div id="MainPlaybackLine" class="PlaybackLine"></div>
+                    </div>
                 </div>
             </div>
         </div>
