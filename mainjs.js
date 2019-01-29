@@ -55,12 +55,10 @@ Dropzone.options.importDropzone = {
 		});
 
         reader.readAsArrayBuffer(file);
-
     },
 
     init: function()
     {
-
         this.on("addedfile", function()
         {
             if (this.files[1]!=null)
@@ -188,7 +186,7 @@ $( function()
 
                 else if(buttonName == "import")
                 {
-                    var score = ConvertPitchDeltasToScoreModel();
+                    var score = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel();
                     if(score.length > 0)
                     {
                         var lastNote = score[score.length-1];

@@ -209,7 +209,7 @@ class MidiAbstractionLayer
     {
         var score = [];
 
-        Object.keys(TickToPitchMidiValueDictionary).forEach(function(currentTicks)
+        Object.keys(this.TickToPitchMidiValueDictionary).forEach(function(currentTicks)
         {
             var pitchList = this.TickToPitchMidiValueDictionary[currentTicks];
             pitchList.forEach(function(pitchDuration)
