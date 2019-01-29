@@ -167,7 +167,7 @@ class MidiAbstractionLayer
         this.TabberInputData = '';
         var tickInstanceKeyList = [];
 
-        Object.keys(TickToPitchMidiValueDictionary).forEach(function(currentTicks)
+        Object.keys(this.TickToPitchMidiValueDictionary).forEach(function(currentTicks)
         {
             tickInstanceKeyList.push(parseInt(currentTicks));
         });
@@ -182,7 +182,7 @@ class MidiAbstractionLayer
 
             var pitchList = this.TickToPitchMidiValueDictionary[currentTicks];
 
-    		Object.keys(timeSignatureEvents).forEach(function(timeSignatureTick)
+    		Object.keys(this.TimeSignatureEvents).forEach(function(timeSignatureTick)
     		{
     			if(timeSignatureTick == currentTicks)
     			{
@@ -202,7 +202,7 @@ class MidiAbstractionLayer
                 delta = 0;
                 this.TabberInputData += resString;
 
-            },delta);
+            },this, delta);
         }
     }
 
@@ -242,11 +242,11 @@ class MidiAbstractionLayer
         var tuningPitches = [23, 28, 33, 38, 43, 47,52];
         var tuningStrings = "BEADGBe";
 
-        ParsePitchDeltas();
+        this.ParsePitchDeltas();
 
         var failure = undefined;
 
-        if(ParseString.length > 0)
+        if(this.TabberInputData.length > 0)
         {
     		var frets = $('#frets').val();;
     		var neckCost = $('#neckCost').val();// 1500;
@@ -277,7 +277,7 @@ class MidiAbstractionLayer
     			tuningPitches.push(stringPitch);
     			tuningStrings += stringNameTruncated;
 
-    		},tuningPitches, tuningStrings);
+    		},this, tuningPitches, tuningStrings);
         }
 
         else

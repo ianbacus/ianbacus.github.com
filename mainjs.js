@@ -182,11 +182,11 @@ $( function()
                 //console.log(buttonName);
                 if(buttonName == "tab")
                 {
-                    var tabResultData = GenerateTab();
+                    var tabResultData = TheMidiAbstractionLayer.GenerateTab();
 
                     if(tabResultData.failureReason == undefined)
                     {
-                        makeTextFile(tabResultData);
+                        makeTextFile(tabResultData.tablatureString);
                     }
 
                     else
