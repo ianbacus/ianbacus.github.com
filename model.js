@@ -261,19 +261,18 @@ class Model
 		//Constants
         this.InstrumentEnum =
         {
-            piano : '_tone_0000_GeneralUserGS_sf2_file',
-            harpsichord : '_tone_0060_SBLive_sf2',
             flute : '_tone_0731_SoundBlasterOld_sf2',
             ocarina : '_tone_0790_SoundBlasterOld_sf2',
-            sitar : '_tone_1040_GeneralUserGS_sf2_file',
-            choir : '_tone_0540_JCLive_sf2_file',
-            choir2 : '_tone_0530_Soul_Ahhs_sf2_file',
+            choir : '_tone_0530_Soul_Ahhs_sf2_file',
+            choir2 : '_tone_0540_JCLive_sf2_file',
             horn : '_tone_0560_JCLive_sf2_file',
+            harpsichord : '_tone_0060_SBLive_sf2',
+            piano : '_tone_0000_GeneralUserGS_sf2_file',
+            sitar : '_tone_1040_GeneralUserGS_sf2_file',
             guitar : '_tone_0240_JCLive_sf2_file',
-
-            //rock: '_tone_0300_Chaos_sf2_file',
             harp: '_tone_0461_FluidR3_GM_sf2_file',
             synth: '_tone_0900_SBLive_sf2',
+            rock: '_tone_0300_Chaos_sf2_file',
             fiddle: '_tone_1100_SBLive_sf2',
         };
         this.MaximumActivityStackLength = 100;

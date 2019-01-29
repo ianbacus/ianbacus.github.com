@@ -66,16 +66,17 @@ class MidiAbstractionLayer
                 {
                     if(testPitchMidiValueEntry.Pitch == pitchMidiValue)
                     {
-                        var fixedDuration = Math.min(durationOfActiveNote,(MaximumNotesPerBeat*6));
+                        var fixedDuration = Math.min(durationOfActiveNote,(this.MaximumNotesPerBeat*6));
                         this.TickToPitchMidiValueDictionary[tickValueOfActiveNote][entryIndex].Duration =fixedDuration;
                     }
                     entryIndex++;
-                }, this.TickToPitchMidiValueDictionary);
+                }, this);
             }
             catch(e)
             {
-                console.log(pitchMidiValue, currentTimeTicks, isNoteOff)
-                console.log(e, this.TickToPitchMidiValueDictionary, this.ActiveNotesMappedToTheirStartTick, tickValueOfActiveNote)
+                onsole.log(e)
+                //console.log(pitchMidiValue, currentTimeTicks, isNoteOff)
+                //console.log(e, this.TickToPitchMidiValueDictionary, this.ActiveNotesMappedToTheirStartTick, tickValueOfActiveNote)
             }
         }
 
@@ -126,7 +127,7 @@ class MidiAbstractionLayer
                 trackAbsoluteTime += noteDelta;
                 var noteAbsoluteStartTime = trackAbsoluteTime;
 
-                var currentEventTickValue =  2*(noteAbsoluteStartTime*(MaximumNotesPerBeat/timeDivision))
+                var currentEventTickValue =  2*(noteAbsoluteStartTime*(this.MaximumNotesPerBeat/timeDivision))
                 currentEventTickValue = Math.round(currentEventTickValue)
 
                 if((noteType == noteOnEvent) || (noteType == noteOffEvent))
@@ -135,7 +136,7 @@ class MidiAbstractionLayer
                     var noteOffVelocityZero = midiEvent.data[1] < 0.65;
                     var isNoteOff = noteOffVelocityZero || (noteType == noteOffEvent);
 
-                    ProcessNote(pitch, currentEventTickValue, isNoteOff, trackNumber)
+                    this.ProcessNote(pitch, currentEventTickValue, isNoteOff, trackNumber)
                 }
 
     			else if(noteType = metaEvent)
@@ -154,11 +155,11 @@ class MidiAbstractionLayer
     					this.TimeSignatureEvents[currentEventTickValue] = timeSigString;
     				}
     			}
-            }, trackAbsoluteTime);
+            }, this, trackAbsoluteTime);
 
             trackNumber++;
 
-        }, trackNumber);
+        }, this, trackNumber);
     }
 
     ParsePitchDeltas()
@@ -188,7 +189,7 @@ class MidiAbstractionLayer
     				var resString = 'SIGEVENT\r\n' + this.TimeSignatureEvents[timeSignatureTick] + '\r\n';
     				this.TabberInputData += resString;
     			}
-    		},currentTicks, this.TabberInputData);
+    		}, this, currentTicks);
 
             pitchList.sort(function(a,b) { return a.Pitch - b.Pitch;});
             pitchList.forEach(function(pitchDuration)

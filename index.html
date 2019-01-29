@@ -32,7 +32,8 @@
 <script src='https://surikov.github.io/webaudiofontdata/sound/1100_SBLive_sf2.js'></script>
 <script src='https://surikov.github.io/webaudiofontdata/sound/1230_Chaos_sf2_file.js'></script>
 
-<script src='midi-parser.js'></script>
+<script src='https://gitcdn.link/cdn/colxi/midi-parser-js/339ae97d484fdca3814a55859e3ba4b849501c20/src/midi-parser.js'></script>
+
 
 <script src="html2canvas.js"></script>
 
@@ -53,9 +54,9 @@
             <!--- This column contains edit palletes-->
 			<ul class="nav nav-tabs">
 				<li id="ktab" ><a data-toggle="tab" href="#keys">🔑</a></li>
-				<li id="stab" ><a data-toggle="tab" href="#settings">✌</a></li>
+				<li id="stab" class="active"><a data-toggle="tab" href="#settings">✌</a></li>
 				<li id="ptab" ><a data-toggle="tab" href="#preview">👁</a></li>
-				<li id="ttab" class="active"><a data-toggle="tab" href="#tabber">👁</a></li>
+				<li id="ttab" ><a data-toggle="tab" href="#tabber">👁</a></li>
 			</ul>
 			<div class="tab-content">
 				<div id="keys" class="tab-pane fade">
@@ -91,21 +92,21 @@
 						<p>s-Z: Redo</p>
                     </div>
 				</div>  <!-- end help tab -->
-				<div id="settings" class="tab-pane fade in ">
+				<div id="settings" class="tab-pane fade in active">
                     <br>
-					Analysis
+					Invertible Counterpoint
 					<div class="form-group" id="Analysis">
                         <div class="radio">
-                            <label><input type="radio" name="optradio0" value=0 checked="checked">Free</label>
+                            <label><input type="radio" name="optradio0" value=0>None</label>
                         </div>
 						<div class="radio">
-						    <label><input type="radio" name="optradio0" value=1>Inv. 15</label>
+						    <label><input type="radio" name="optradio0" value=1 checked="checked">At the 15th</label>
 						</div>
 						<div class="radio">
-						    <label><input type="radio" name="optradio0" value=2>Inv. 12</label>
+						    <label><input type="radio" name="optradio0" value=2>At at 12th</label>
 						</div>
 						<div class="radio">
-						    <label><input type="radio" name="optradio0" value=3>Inv. 10</label>
+						    <label><input type="radio" name="optradio0" value=3>At at 10th</label>
 						</div>
 					</div>
                     Playback Options
@@ -120,7 +121,7 @@
 						    <label><input type="radio" name="optradio1" value=2>Suspensions</label>
 						</div>
 					</div>
-
+                    <!--
                     Play Duration
 					<div class="form-group" id="Playback">
 						<div class="radio">
@@ -130,6 +131,7 @@
 						    <label><input type="radio" name="optradio2" value=2>All</label>
 						</div>
 					</div>
+                    -->
 
 					Track
 					<div class="form-group"  id="Track">
@@ -140,10 +142,10 @@
 						<label><input type="checkbox" name="track2" value=2>2</label>
 						</div>
 						<div class="checkbox">
-						<label><input type="checkbox" name="track3" value=1>1</label>
+						<label><input type="checkbox" name="track3" value=3>3</label>
 						</div>
 						<div class="checkbox">
-						<label><input type="checkbox" name="track4" value=2>2</label>
+						<label><input type="checkbox" name="track4" value=4>4</label>
 						</div>
 
 					</div>
@@ -151,6 +153,7 @@
                         <p id="TempoPreview">Tempo:</p>
                         <input type="range" min="60" max="250" value="120" class="slider" id="TempoSlider">
                     </div>
+                    <br>
                     <select id="InstrumentSelection">
                     </select>
 				</div> <!-- end mode tab -->
@@ -162,8 +165,8 @@
 					</div>
 				</div> <!-- end preview tab -->
 
-                <div id="tabber" class="tab-pane fade in active">
-                    <div id="gridboxNavigator">
+                <div id="tabber" class="tab-pane fade in">
+                    <div id="tablatureSettings">
 
                         <!-- end preview tab <div id="GridboxArray" style="border: 1px solid black"></div> -->
 
@@ -198,7 +201,6 @@
 							<input type="number" name="arpeggioCost" id="arpeggioCost" min="0" max="10000" width="50" value="1000" /> <br>
 
 							<input class="midi-form-button" type="submit" name="tab" value="Generate Tab" />
-							<input class="midi-form-button" type="submit" name="import" value="Import Notes" />
 						</form>
 
                     </div>
@@ -209,12 +211,11 @@
         <!--- This column contains the main editing box -->
         <div class="col-sm-10">
             <div id="gridboxContainer">
-                    <!--- <form action="/file-upload"  class="dropzone" id="import-dropzone"></form> class="dropzone" -->
                     <div id="gridbox" >
-                        <div id="testDZ">
-                        <div id="RestartPlaybackLine" class="PlaybackLine"></div>
-                        <div id="MainPlaybackLine" class="PlaybackLine"></div>
-                    </div>
+                        <div id="testDZ" action="/file-upload">
+                            <div id="RestartPlaybackLine" class="PlaybackLine"></div>
+                            <div id="MainPlaybackLine" class="PlaybackLine"></div>
+                        </div>
                 </div>
             </div>
         </div>

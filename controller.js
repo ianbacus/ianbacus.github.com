@@ -87,7 +87,8 @@ class Controller
         //Instruments
         var instrumentOptions = [];
         var instrumentEnumeration = this.Model.InstrumentEnum;
-        this.CurrentInstrument = m_this.InstrumentEnum.flute;
+        this.CurrentInstrument = instrumentEnumeration.flute;//Object.keys(instrumentEnumeration)[0];
+
         Object.keys(instrumentEnumeration).forEach(function(key) { instrumentOptions.push(key); });
         this.View.PopulateSelectMenu(instrumentOptions);
 

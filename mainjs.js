@@ -18,7 +18,9 @@ ScoreController.console = new disabledConsole();
 // ScoreModel.console = console;
 //ScoreController.console = console;
 
-Dropzone.options.importDropzone = {
+Dropzone.autoDiscover = false;
+Dropzone.options.testDZ = {
+    url: "/file-upload",
     paramName: "file", // The name that will be used to transfer the file
     maxFilesize: 200, // MB
     maxFiles: 1,
@@ -50,7 +52,7 @@ Dropzone.options.importDropzone = {
 
                     ScoreController.RefreshNotesAndKey();
                 }
-            }, 20, buttonName);
+            }, 20);
 			return false;
 		});
 
@@ -59,12 +61,16 @@ Dropzone.options.importDropzone = {
 
     init: function()
     {
-        this.on("addedfile", function()
+        this.on("complete", function(file)
         {
-            if (this.files[1]!=null)
-            {
-                this.removeFile(this.files[0]);
-            }
+            console.log("success")
+          $(".dz-success-mark svg").css("background", "green");
+          $(".dz-error-mark").css("display", "none");
+      });
+
+        this.on("addedfile", function(file)
+        {
+            this.removeFile(file);
         });
 
     }
@@ -125,7 +131,7 @@ $( function()
     TheMidiAbstractionLayer.Initialize();
 
     //$("#gridbox").addEventListener("dragenter", function(e)
-    $(document).on('dragenter','#testDZ', function(e)
+    $(document).on('dragstart','#testDZ', function(e)
     {
         console.log("start")
         lastTarget = e.target; // cache the last target here
@@ -150,10 +156,17 @@ $( function()
 
     });
 
-    $("#testDZ").dropzone({
-      url: "/file-upload",
-      clickable: false
+    // $("#testDZ").dropzone({
+    //   url: "/file-upload",
+    //   clickable: false
+    // });
+    var TheDropzone = new Dropzone("#testDZ",
+    {
+          url: "/file-upload",
+          clickable: false
     });
+
+    $("#testDZ").addClass("dropzone");
 
     //$(document).on('submit', '#TabSettingsForm',
     $('#TabSettingsForm .midi-form-button').click(
@@ -183,23 +196,7 @@ $( function()
 
                     $(".loader").hide();
                 }
-
-                else if(buttonName == "import")
-                {
-                    var score = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel();
-                    if(score.length > 0)
-                    {
-                        var lastNote = score[score.length-1];
-                        var lastTick = lastNote.StartTimeTicks + lastNote.Duration;
-
-                        ScoreView.GridWidthTicks = lastTick;
-                        ScoreModel.Score = score;
-                        ScoreModel.MergeSort(ScoreModel.Score);
-
-                        ScoreController.RefreshNotesAndKey();
-                    }
-                }
-            }, 10, buttonName);
+            }, 10);
 			return false;
 		});
 
