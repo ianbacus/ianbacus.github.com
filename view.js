@@ -116,8 +116,8 @@ class View
 		//Bind handlers
     	this.Maingrid
             .mousemove(this.OnMouseMove)
-            .mousedown(onMouseClickDown)
-            .mouseup(onMouseClickUp)
+            //.mousedown(onMouseClickDown)
+            //.mouseup(onMouseClickUp)
             .mouseenter(onHoverBegin)
             .mouseleave(onHoverEnd)
             .on("contextmenu",function(){

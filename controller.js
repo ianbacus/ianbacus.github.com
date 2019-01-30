@@ -1405,9 +1405,10 @@ class Controller
 
     OnMouseClickDown(event)
     {
+		return;
         var clickdownThisPointer = c_this;
 
-		event.preventDefault();
+		//event.preventDefault();
         if((clickdownThisPointer.EditorMode == editModeEnumeration.SELECT) ||
         (clickdownThisPointer.EditorMode == editModeEnumeration.MidiControllerMode))
         {
@@ -1434,9 +1435,10 @@ class Controller
     ///Unselect all selected notes to anchor them and play them
     OnMouseClickUp(event)
     {
+		return;
         var clickUpThisPointer = c_this;
 
-        event.preventDefault();
+		//event.preventDefault();
         clickUpThisPointer.StopPlayingNotes();
 
 		var selectedNotes = clickUpThisPointer.Model.SelectedNotes;

@@ -41,6 +41,77 @@ class MidiAbstractionLayer
             }, this, octaveOffset);
         }
     }
+	
+	GenerateMidiFile(score)
+	{
+		var file = new Midi.File();
+		var track = file.addTrack();
+		var currentTime = 0;
+		var timeIndexedInformation = {};
+		
+		var activeNotes = {};
+		
+		score.forEach(function(note)
+		{
+			var startTimeTicks = note.startTimeTicks;
+			var duration = note.duration;
+			var endTimeTicks = startTimeTicks + duration;
+			
+			var pitch = note.pitch;
+			var currentTrack = note.currentTrack;
+			
+			var noteOnEvent = 
+			{
+				Note: pitch,
+				Type: "on"
+			}
+			
+			var noteOffEvent = 
+			{
+				Note: pitch,
+				Type: "off"
+			}
+			
+			if(timeIndexedInformation[startTimeTicks] == undefined)
+			{
+				timeIndexedInformation[startTimeTicks] = [noteOnEvent];
+			}
+			
+			else
+			{
+				timeIndexedInformation[startTimeTicks].push(noteOnEvent)
+			}
+			
+			if(timeIndexedInformation[endTimeTicks] == undefined)
+			{
+				timeIndexedInformation[endTimeTicks] = [noteOffEvent];
+			}
+			
+			else
+			{
+				timeIndexedInformation[endTimeTicks].push(noteOffEvent);
+			}
+		},timeIndexedInformation)
+		
+		
+		timeIndexedInformation.keys().forEach(function(timeInstant)
+		{
+			var noteEvents = timeIndexedInformation[timeInstant]
+			
+			noteEvents.forEach(function()
+			{
+				if(noteEvent.Type == "on")
+				{
+					track.noteOn(0, pitch);
+				}
+				
+				else
+				{
+					track.noteOff(0, pitch, delta);
+				}
+			}, track);
+	}, track, timeIndexedInformation)
+	
 
     ProcessNote(pitchMidiValue, currentTimeTicks, isNoteOff, track)
     {

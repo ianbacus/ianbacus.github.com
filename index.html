@@ -210,17 +210,33 @@
 
         <!--- This column contains the main editing box -->
         <div class="col-sm-10">
-            <div id="gridboxContainer">
+            <div id="gridboxContainer" class="context-menu-link">
+			
+
                     <div id="gridbox" >
                         <div id="testDZ" action="/file-upload">
                             <div id="RestartPlaybackLine" class="PlaybackLine"></div>
                             <div id="MainPlaybackLine" class="PlaybackLine"></div>
+							
                         </div>
                 </div>
             </div>
         </div>
     </div> <!-- end row -->
 </div>
+<nav id="context-menu" class="context-menu">
+	<ul class="context-menu__items">
+	  <li class="context-menu__item">
+		<a href="#" class="context-menu__link" data-action="View"><i class="fa fa-eye"></i> View Task</a>
+	  </li>
+	  <li class="context-menu__item">
+		<a href="#" class="context-menu__link" data-action="Edit"><i class="fa fa-edit"></i> Edit Task</a>
+	  </li>
+	  <li class="context-menu__item">
+		<a href="#" class="context-menu__link" data-action="Delete"><i class="fa fa-times"></i> Delete Task</a>
+	  </li>
+	</ul>
+</nav>
 </body>
 
 </html>
