@@ -41,77 +41,98 @@ class MidiAbstractionLayer
             }, this, octaveOffset);
         }
     }
-	
+
 	GenerateMidiFile(score)
 	{
 		var file = new Midi.File();
+		var track1 = file.addTrack();
 		var track = file.addTrack();
 		var currentTime = 0;
 		var timeIndexedInformation = {};
-		
+
 		var activeNotes = {};
-		
+
 		score.forEach(function(note)
 		{
-			var startTimeTicks = note.startTimeTicks;
-			var duration = note.duration;
+			var startTimeTicks = note.StartTimeTicks;
+			var duration = note.Duration;
 			var endTimeTicks = startTimeTicks + duration;
-			
-			var pitch = note.pitch;
-			var currentTrack = note.currentTrack;
-			
-			var noteOnEvent = 
+
+			var pitch = note.Pitch;
+			var currentTrack = note.CurrentTrack;
+
+            console.log(note)
+
+			var noteOnEvent =
 			{
-				Note: pitch,
+				Note: note,
 				Type: "on"
 			}
-			
-			var noteOffEvent = 
+
+			var noteOffEvent =
 			{
-				Note: pitch,
+				Note: note,
 				Type: "off"
 			}
-			
+
 			if(timeIndexedInformation[startTimeTicks] == undefined)
 			{
 				timeIndexedInformation[startTimeTicks] = [noteOnEvent];
 			}
-			
+
 			else
 			{
 				timeIndexedInformation[startTimeTicks].push(noteOnEvent)
 			}
-			
+
 			if(timeIndexedInformation[endTimeTicks] == undefined)
 			{
 				timeIndexedInformation[endTimeTicks] = [noteOffEvent];
 			}
-			
+
 			else
 			{
 				timeIndexedInformation[endTimeTicks].push(noteOffEvent);
 			}
 		},timeIndexedInformation)
-		
-		
-		timeIndexedInformation.keys().forEach(function(timeInstant)
+
+
+        var lastTimeInstant = 0;
+		Object.keys(timeIndexedInformation).forEach(function(timeInstant)
 		{
 			var noteEvents = timeIndexedInformation[timeInstant]
-			
-			noteEvents.forEach(function()
+            var timeInstantInteger = parseInt(timeInstant);
+
+			noteEvents.forEach(function(noteEvent)
 			{
+                var note = noteEvent.Note;
+
+                var duration = note.Duration;
+    			var pitch = note.Pitch;
+
+                var delta = (timeInstantInteger - lastTimeInstant)*16
+
 				if(noteEvent.Type == "on")
 				{
-					track.noteOn(0, pitch);
+					track.noteOn(0, pitch, delta);
 				}
-				
+
 				else
 				{
 					track.noteOff(0, pitch, delta);
 				}
-			}, track);
-	}, track, timeIndexedInformation)
-	
+
+                lastTimeInstant = timeInstantInteger;
+
+			}, track, timeInstantInteger, lastTimeInstant);
+
+
+	}, track, timeIndexedInformation, lastTimeInstant)
+
+    return file.toBytes();
+
+    }
+
 
     ProcessNote(pitchMidiValue, currentTimeTicks, isNoteOff, track)
     {

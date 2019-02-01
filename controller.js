@@ -1405,8 +1405,12 @@ class Controller
 
     OnMouseClickDown(event)
     {
-		return;
         var clickdownThisPointer = c_this;
+
+        if(event.which !== 1)
+        {
+            return;
+        }
 
 		//event.preventDefault();
         if((clickdownThisPointer.EditorMode == editModeEnumeration.SELECT) ||
@@ -1435,7 +1439,12 @@ class Controller
     ///Unselect all selected notes to anchor them and play them
     OnMouseClickUp(event)
     {
-		return;
+
+        if(event.which !== 1)
+        {
+            return;
+        }
+
         var clickUpThisPointer = c_this;
 
 		//event.preventDefault();

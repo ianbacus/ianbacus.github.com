@@ -13,13 +13,14 @@ ScoreView.console = new disabledConsole();
 ScoreModel.console = new disabledConsole();
 ScoreController.console = new disabledConsole();
 
+var lastTarget = 0
 
   /**
-   * Variables.
+   * Variables
    */
   var contextMenuClassName = "context-menu";
   var contextMenuItemClassName = "context-menu__item";
-  var contextMenuLinkClassName = "context-menu-link";
+  var contextMenuLinkClassName = "context-menu__link";
   var contextMenuActive = "context-menu--active";
 
   var taskItemClassName = "task";
@@ -29,7 +30,7 @@ ScoreController.console = new disabledConsole();
   var clickCoordsX;
   var clickCoordsY;
 
-  var menu; 
+  var menu;
   var menuItems;
   var menuState = 0;
   var menuWidth;
@@ -62,6 +63,7 @@ Dropzone.options.testDZ = {
         {
             var midiData = new Uint8Array(event.target.result);
             var array = MidiParser.parse(midiData);
+            console.log(array, midiData);
             TheMidiAbstractionLayer.ParseMidiFile(array);
 
             $(".loader").show();
@@ -138,24 +140,22 @@ $( function()
 
         return false;
     }
-	
-	
-	
+
 	/////////////////////////////////////////////////////////////////
-	
+
   var menu = document.querySelector("#context-menu");
   var menuItems = menu.querySelectorAll(".context-menu__item");
   /**
    * Function to check if we clicked inside an element with a particular class
    * name.
-   * 
+   *
    * @param {Object} e The event
    * @param {String} className The class name to check against
    * @return {Boolean}
    */
   function clickInsideElement( e, className ) {
     var el = e.srcElement || e.target;
-    
+
     if ( el.classList.contains(className) ) {
       return el;
     } else {
@@ -169,9 +169,25 @@ $( function()
     return false;
   }
 
+    /**
+     * Listens for contextmenu events.
+     */
+    function contextListener() {
+      document.addEventListener( "contextmenu", function(e)
+       {
+        taskItemInContext = clickInsideElement( e, contextMenuClassName );
+
+        if ( taskItemInContext ) {
+          e.preventDefault();
+          //taskItemInContext = null;
+          //toggleMenuOn();
+          //positionMenu(e);
+        }
+      });
+    }
   /**
    * Get's exact position of event.
-   * 
+   *
    * @param {Object} e The event passed in
    * @return {Object} Returns the x and y position
    */
@@ -180,7 +196,7 @@ $( function()
     var posy = 0;
 
     if (!e) var e = window.event;
-    
+
     if (e.pageX || e.pageY) {
       posx = e.pageX;
       posy = e.pageY;
@@ -205,14 +221,14 @@ $( function()
    /**
    * Function to check if we clicked inside an element with a particular class
    * name.
-   * 
+   *
    * @param {Object} e The event
    * @param {String} className The class name to check against
    * @return {Boolean}
    */
   function clickInsideElement( e, className ) {
     var el = e.srcElement || e.target;
-    
+
     if ( el.classList.contains(className) ) {
       return el;
     } else {
@@ -228,7 +244,7 @@ $( function()
 
   /**
    * Get's exact position of event.
-   * 
+   *
    * @param {Object} e The event passed in
    * @return {Object} Returns the x and y position
    */
@@ -237,7 +253,7 @@ $( function()
     var posy = 0;
 
     if (!e) var e = window.event;
-    
+
     if (e.pageX || e.pageY) {
       posx = e.pageX;
       posy = e.pageY;
@@ -257,60 +273,60 @@ $( function()
    * Initialise our application's code.
    */
   function init() {
-    contextListener();
+      contextListener();
     clickListener();
-    keyupListener();
     resizeListener();
-  }
-
-  /**
-   * Listens for contextmenu events.
-   */
-  function contextListener() {
-    document.addEventListener( "contextmenu", function(e) {
-      taskItemInContext = clickInsideElement( e, taskItemClassName );
-
-		console.log("contextmenu", taskItemInContext);
-      if ( taskItemInContext ) {
-        e.preventDefault();
-        toggleMenuOn();
-        positionMenu(e);
-      } else {
-        taskItemInContext = null;
-        toggleMenuOff();
-      }
-    });
   }
 
   /**
    * Listens for click events.
    */
   function clickListener() {
-    document.addEventListener( "click", function(e) {
-		console.log("click");
-      var clickeElIsLink = clickInsideElement( e, contextMenuLinkClassName );
-
-      if ( clickeElIsLink ) {
-        e.preventDefault();
-        menuItemListener( clickeElIsLink );
-      } else {
+    document.addEventListener( "click", function(e)
+    {
         var button = e.which || e.button;
-        if ( button === 1 ) {
-          toggleMenuOff();
-        }
-      }
-    });
-  }
+        console.log(e)
+        if(menuState == 0)
+        {
+            taskItemInContext = clickInsideElement( e, taskItemClassName );
+            if ( taskItemInContext && (button == 3))
+            {
+                e.preventDefault();
+                toggleMenuOn();
+                positionMenu(e);
+            }
 
-  /**
-   * Listens for keyup events.
-   */
-  function keyupListener() {
-    window.onkeyup = function(e) {
-      if ( e.keyCode === 27 ) {
-        toggleMenuOff();
-      }
-    }
+            else
+            {
+                taskItemInContext = null;
+                toggleMenuOff();
+            }
+        }
+
+        else
+        {
+            var clickeElIsLink = clickInsideElement( e, contextMenuLinkClassName );
+            console.log(clickeElIsLink)
+            if ( clickeElIsLink )
+            {
+                e.preventDefault();
+                menuItemListener( clickeElIsLink );
+            }
+
+            else
+            {
+                var tiic = clickInsideElement( e, taskItemClassName );
+                if ( button === 1 )
+                {
+                    toggleMenuOff();
+                }
+                else if(tiic && (button === 3))
+                {
+                    positionMenu(e);
+                }
+            }
+        }
+    });
   }
 
   /**
@@ -344,7 +360,7 @@ $( function()
 
   /**
    * Positions the menu properly.
-   * 
+   *
    * @param {Object} e The event
    */
   function positionMenu(e) {
@@ -373,11 +389,25 @@ $( function()
 
   /**
    * Dummy action function that logs an action when a menu item link is clicked
-   * 
+   *
    * @param {HTMLElement} link The link that was clicked
    */
   function menuItemListener( link ) {
-    //console.log( "Task ID - " + taskItemInContext.getAttribute("data-id") + ", Task action - " + link.getAttribute("data-action"));
+    console.log( "Task ID - " + taskItemInContext.getAttribute("data-id") + ", Task action - " + link.getAttribute("data-action"));
+
+    var score = ScoreModel.Score;
+    var fileData = TheMidiAbstractionLayer.GenerateMidiFile(score);
+
+    const bytes = new Uint8Array(fileData.length);
+    for (let i = 0; i < fileData.length; i++)
+    {
+        bytes[i] = fileData.charCodeAt(i);
+    }
+
+    var blob = new Blob([bytes], {type: "audio/midi; charset=binary"});
+    var fileName = "TESTME.mid";
+    saveAs(blob, fileName);
+
     toggleMenuOff();
   }
 
@@ -385,7 +415,7 @@ $( function()
    * Run the app.
    */
   init();
-	
+
 	/////////////////////////////////////////////////////////////////
 
     ScoreModel.Initialize(deserializedModelData);
