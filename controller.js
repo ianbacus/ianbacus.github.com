@@ -1240,7 +1240,7 @@ class Controller
     OnSliderChange(tempo)
     {
         //60,000ms = 1 minute
-        //1 Tempo = 1 beat / minute = (8 ticks)/60,000ms = K ticks/ms
+        //1 Tempo = 1 beat / minute = (8 ticks)/60,000ms = K ticks/ms for 32nd note resolution 
         //milliseconds per tick = K/Tempo
         c_this.MillisecondsPerTick = 7500/tempo;
 

@@ -64,9 +64,9 @@ Dropzone.options.testDZ = {
         this.on("complete", function(file)
         {
             console.log("success")
-          $(".dz-success-mark svg").css("background", "green");
-          $(".dz-error-mark").css("display", "none");
-      });
+            $(".dz-success-mark svg").css("background", "green");
+            $(".dz-error-mark").css("display", "none");
+        });
 
         this.on("addedfile", function(file)
         {
@@ -156,10 +156,6 @@ $( function()
 
     });
 
-    // $("#testDZ").dropzone({
-    //   url: "/file-upload",
-    //   clickable: false
-    // });
     var TheDropzone = new Dropzone("#testDZ",
     {
           url: "/file-upload",

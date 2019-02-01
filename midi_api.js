@@ -9,6 +9,8 @@ class MidiAbstractionLayer
         this.TickToPitchMidiValueDictionary = {};
         this.TimeSignatureEvents = {};
         this.TabberInputData = '';
+        this.Tempo = 120;
+
         this.TabberMethod = Module.cwrap('javascriptWrapperFunction', 'string',
             [
                 'string',
@@ -106,10 +108,13 @@ class MidiAbstractionLayer
 
         var trackNumber = 0;
 
+        console.log(timeDivision)
+
         this.ActiveNotesMappedToTheirStartTick = {};
         this.TickToPitchMidiValueDictionary = {};
         this.TimeSignatureEvents = {};
         this.TabberInputData = '';
+        this.Tempo = 120;
 
         tracks.forEach(function(trackObject)
         {
@@ -154,6 +159,12 @@ class MidiAbstractionLayer
     					}
     					this.TimeSignatureEvents[currentEventTickValue] = timeSigString;
     				}
+
+                    //Tempo
+                    else if(metaEventType == 0x51)
+                    {
+                        this.Tempo = (60000*1000) / (noteData);
+                    }
     			}
             }, this, trackAbsoluteTime);
 
@@ -236,6 +247,39 @@ class MidiAbstractionLayer
 
         return score;
     }
+
+    GenerateKeyboardTab(event)
+    {
+        Object.keys(TickToPitchMidiValueDictionary).forEach(function(currentTicks)
+        {
+            tickInstanceKeyList.push(parseInt(currentTicks));
+        });
+
+        var lastTick = tickInstanceKeyList[tickInstanceKeyList.length-1];
+        tickInstanceKeyList.push(lastTick+4);
+        for(var index = 0; index<tickInstanceKeyList.length-1; index++)
+        {
+            var currentTicks = tickInstanceKeyList[index];
+            var nextTicks = tickInstanceKeyList[index+1];
+            var delta = nextTicks - currentTicks;
+
+            var pitchList = this.TickToPitchMidiValueDictionary[currentTicks];
+
+            pitchList.sort(function(a,b) { return a.Pitch - b.Pitch;});
+            pitchList.forEach(function(pitchDuration)
+            {
+                var pitch = pitchDuration.Pitch;
+                var duration = pitchDuration.Duration;
+                var track = pitchDuration.Track;
+
+                var resString = pitch+ "," +delta+ "," +track+ "," +duration + "\r\n";
+                delta = 0;
+                this.TabberInputData += resString;
+
+            },delta);
+        }
+    }
+
 
     GenerateTab(event)
     {
