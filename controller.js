@@ -4,6 +4,11 @@ var sm = {
     DRAG: 3
 };
 
+var PlaybackEnumeration = {
+    RestartFromBeginning:0,
+    RestartFromLastStart:1,
+    Resume:2,
+}
 
 var editModeEnumeration = {
 	EDIT: 0,
@@ -75,6 +80,7 @@ class Controller
 
     Initialize(initializationParameters)
     {
+        //Load saved settings
 		if(initializationParameters != null)
 		{
 			this.TonicKey = initializationParameters.TonicKey;
@@ -107,6 +113,7 @@ class Controller
 
 	Serialize()
 	{
+        //Save the current settings into a JSON object to pass back to initialize later
 		var serializedData =
 		{
 			TonicKey: this.TonicKey,
@@ -193,6 +200,7 @@ class Controller
         }
         var index = score.length
 
+        //Delete in reverse order to prevent indexing issues after deletion
         while(index-- > 0)
         {
             var note = score[index]
@@ -233,7 +241,9 @@ class Controller
 
     GetNextSequenceNumber()
     {
-		var maximumSequenceNumber = 10000;//Number.MAX_SAFE_INTEGER-1;
+        //Get a sequence number for identifying undo/redo operations. The maximum number should be greater
+        //than the size of the undo/redo buffer.
+		var maximumSequenceNumber = this.Model.MaximumActivityStackLength + 1;//Number.MAX_SAFE_INTEGER-1;
         this.SequenceNumber = (this.SequenceNumber+1)%maximumSequenceNumber;
         return this.SequenceNumber;
     }
@@ -663,73 +673,24 @@ class Controller
 
         case 32: //spacebar
             event.preventDefault();
-
-            if(!this.Playing)
+            if(event.shiftKey)
             {
-                var playbackBuffer = []
-				this.HandleSelectionReset();
-
-                //Find note closest to playback coordinate
-                //Shift space: reset the play index to the last captured point
-                if(event.shiftKey)
-                {
-                    this.ResetPlaybackStartTicks(this.CapturedPlaybackStartTicks);
-                }
-
-                //Ctrl space: reset play index to beginning of grid
-                else if(event.ctrlKey)
-                {
-                    this.ResetPlaybackStartTicks(0);
-                    this.CapturedPlaybackStartTicks = this.MainPlaybackStartTicks;
-                }
-
-                //Regular space: overwrite the last captured point and play from wherever the playback cursor is
-                else
-                {
-                    this.CapturedPlaybackStartTicks = this.MainPlaybackStartTicks;
-                }
-
-                var score = this.Model.Score;
-                var playbackStartXCoordinate = this.View.ConvertTicksToXIndex(this.MainPlaybackStartTicks);
-
-                var selectionRectangle =
-                {
-                    x1: playbackStartXCoordinate,
-                    y1: 0,
-                    x2: playbackStartXCoordinate,
-                    y2: 'Infinity',
-                };
-
-                //
-                var searchResult = this.GetNoteIndexOfOverlappingNote(selectionRectangle);
-                var [searchIndex, binarySearchResult] = [searchResult.ClickedNoteIndex, searchResult.BinarySearchIndex]
-
-                //Handle case where playback cursor is before any notes
-                if((searchIndex < 0) && (binarySearchResult < score.length))
-                {
-                    searchIndex = binarySearchResult-1;
-                }
-                if(searchIndex >= 0)
-                {
-                    //Add all unselected notes after the playback index to the playback buffer
-                    var [playbackBuffer,x] = this.GetChordNotes(score, searchIndex, false);
-                    for(searchIndex; searchIndex<score.length;searchIndex++)
-                    {
-                        var note = score[searchIndex];
-                        if(!note.IsSelected)
-                        {
-                            playbackBuffer.push(note);
-                        }
-                    }
-
-                    this.PlayNotes(playbackBuffer, false);
-                }
-
+                this.HandlePlayback(PlaybackEnumeration.RestartFromLastStart)
             }
+
+            //Ctrl space:
+            else if(event.ctrlKey)
+            {
+                this.HandlePlayback(PlaybackEnumeration.RestartFromBeginning)
+            }
+
+            //Regular space:
             else
             {
-                this.StopPlayingNotes();
+                this.HandlePlayback(PlaybackEnumeration.Resume)
             }
+
+
             break;
 
         case 67: //"c" key"
@@ -748,27 +709,17 @@ class Controller
             break;
 
         case 86: //"v" key
-
             this.InstantiatePasteBuffer(this.PasteBuffer);
             this.RefreshGridPreview();
+
             break;
 
         case 65: //"a key"
             //ctrl+a: select all
-            if((this.EditorMode != editModeEnumeration.SELECT) &&
-             (this.EditorMode != editModeEnumeration.MidiControllerMode))
-            {
-                this.EditorMode = editModeEnumeration.SELECT;
-                this.HandleSelectionReset();
-            }
             if(event.ctrlKey)
             {
                 event.preventDefault();
-                this.ModifyNoteArray(this.Model.Score, function(note)
-                {
-                    note.IsSelected = true;
-                    this.View.ApplyNoteStyle(note, this.NoteColorationMode);
-                });
+                this.SelectAllNotes();
             }
 
         case 81: //"q" key
@@ -785,90 +736,16 @@ class Controller
         case 56: //key 8
         case 57: //key 9
             var pressedKey = event.keyCode - 49;
-            this.CurrentTrack = pressedKey;
+            this.SetCurrentTrack(pressedKey);
 
-            this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
-            {
-                note.CurrentTrack = this.CurrentTrack;
-                this.View.ApplyNoteStyle(note, this.NoteColorationMode);
-            });
             break;
 
         case 69: //"e" key: invert bass down octave
+            this.InvertVoices(true);
+            break;
+
         case 87: //"w" key: Invert bass up octave
-
-            var analysisMode = this.GetModeSettings().AnalysisMode;
-            const analysisOffsets = [
-                -12, //free: everything goes down an octave
-                12, //15th: a perfect octave
-                7,  //12th: a fifth
-                4, //10th: a 3rd (3 or 4?)
-            ];
-
-            const analysisOffset = analysisOffsets[analysisMode];
-
-            var lowestPitch = Number.POSITIVE_INFINITY;
-            var highestPitch = Number.NEGATIVE_INFINITY;
-            var candidatePitch;
-
-            var noteWithHighestPitch = undefined;
-            var noteWithLowestPitch = undefined;
-
-            var bassOffset = 12;
-            var upperVoiceOffset = analysisOffset;
-            if(event.keyCode == 69)
-            {
-                bassOffset = analysisOffset;
-                upperVoiceOffset = 12;
-			}
-
-            this.ModifyNoteArray(this.Model.SelectedNotes, function(candidateNote)
-            {
-                candidatePitch = candidateNote.Pitch;
-                if (candidatePitch < lowestPitch)
-                {
-                    lowestPitch = candidatePitch;
-                    noteWithLowestPitch = candidateNote;
-                }
-                if (candidatePitch > highestPitch)
-                {
-                    highestPitch = candidatePitch;
-                    noteWithHighestPitch = candidateNote;
-                }
-            });
-
-			var highestNewPosition = (lowestPitch + bassOffset);
-			var lowestNewPosition = (highestPitch - upperVoiceOffset);
-			var upperBoundCheck =
-				(0 < highestNewPosition) &&
-				(highestNewPosition <= this.View.MaximumPitch);
-
-			var lowerBoundCheck =
-				(0 < lowestNewPosition) &&
-				(lowestNewPosition <= this.View.MaximumPitch);
-
-			if(lowerBoundCheck && upperBoundCheck)
-			{
-				const topTrack = noteWithHighestPitch.CurrentTrack;
-				const bassTrack = noteWithLowestPitch.CurrentTrack;
-
-				this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
-				{
-					if(note.CurrentTrack == bassTrack)
-					{
-						note.Pitch += bassOffset;
-						note.CurrentTrack = topTrack;
-						this.View.ApplyNoteStyle(note, this.NoteColorationMode);
-					}
-
-					else if(note.CurrentTrack == topTrack)
-					{
-						note.Pitch -= upperVoiceOffset;
-						note.CurrentTrack = bassTrack;
-						this.View.ApplyNoteStyle(note, this.NoteColorationMode);
-					}
-				});
-			}
+            this.InvertVoices(false);
 
             break;
 
@@ -887,6 +764,98 @@ class Controller
             this.RefreshGridPreview();
             break;
         }
+    }
+
+    HandlePlayback(playbackMode)
+    {
+        if(!this.Playing)
+        {
+            var playbackBuffer = []
+            this.HandleSelectionReset();
+
+            //Find note closest to playback coordinate
+            //Shift space: reset the play index to the last captured point
+            PlaybackEnumeration
+
+            switch(playbackMode)
+            {
+                case PlaybackEnumeration.Resume:
+                    //overwrite the last captured point and play from wherever the playback cursor is
+                    this.CapturedPlaybackStartTicks = this.MainPlaybackStartTicks;
+                    break;
+
+                case PlaybackEnumeration.RestartFromBeginning:
+                    //reset play index to beginning of grid
+                    this.ResetPlaybackStartTicks(0);
+                    this.CapturedPlaybackStartTicks = this.MainPlaybackStartTicks;
+                    break;
+                case PlaybackEnumeration.RestartFromLastStart:
+                    //
+                    this.ResetPlaybackStartTicks(this.CapturedPlaybackStartTicks);
+                    break;
+            }
+
+            var score = this.Model.Score;
+            var playbackStartXCoordinate = this.View.ConvertTicksToXIndex(this.MainPlaybackStartTicks);
+
+            var selectionRectangle =
+            {
+                x1: playbackStartXCoordinate,
+                y1: 0,
+                x2: playbackStartXCoordinate,
+                y2: 'Infinity',
+            };
+
+            //
+            var searchResult = this.GetNoteIndexOfOverlappingNote(selectionRectangle);
+            var [searchIndex, binarySearchResult] = [searchResult.ClickedNoteIndex, searchResult.BinarySearchIndex]
+
+            //Handle case where playback cursor is before any notes
+            if((searchIndex < 0) && (binarySearchResult < score.length))
+            {
+                searchIndex = binarySearchResult-1;
+            }
+            if(searchIndex >= 0)
+            {
+                //Add all unselected notes after the playback index to the playback buffer
+                var [playbackBuffer,x] = this.GetChordNotes(score, searchIndex, false);
+                for(searchIndex; searchIndex<score.length;searchIndex++)
+                {
+                    var note = score[searchIndex];
+                    if(!note.IsSelected)
+                    {
+                        playbackBuffer.push(note);
+                    }
+                }
+
+                this.PlayNotes(playbackBuffer, false);
+            }
+
+        }
+        else
+        {
+            this.StopPlayingNotes();
+        }
+    }
+
+    SelectAllNotes()
+    {
+        this.ModifyNoteArray(this.Model.Score, function(note)
+        {
+            note.IsSelected = true;
+            this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+        });
+    }
+
+    SetCurrentTrack(trackNumber)
+    {
+        this.CurrentTrack = pressedKey;
+
+        this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
+        {
+            note.CurrentTrack = this.CurrentTrack;
+            this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+        });
     }
 
     HandleGridMove(upwardsDirection)
@@ -934,7 +903,83 @@ class Controller
         },this);
 
         this.console.log("Transport end");
+    }
 
+    InvertVoices(moveHighestVoiceByOctave)
+    {
+        var analysisMode = this.GetModeSettings().AnalysisMode;
+        const analysisOffsets = [
+            -12, //free: everything goes down an octave
+            12, //15th: a perfect octave
+            7,  //12th: a fifth
+            4, //10th: a 3rd (3 or 4?)
+        ];
+
+        const analysisOffset = analysisOffsets[analysisMode];
+
+        var lowestPitch = Number.POSITIVE_INFINITY;
+        var highestPitch = Number.NEGATIVE_INFINITY;
+        var candidatePitch;
+
+        var noteWithHighestPitch = undefined;
+        var noteWithLowestPitch = undefined;
+
+        var bassOffset = 12;
+        var upperVoiceOffset = analysisOffset;
+
+        if(moveHighestVoiceByOctave)
+        {
+            bassOffset = analysisOffset;
+            upperVoiceOffset = 12;
+        }
+
+        this.ModifyNoteArray(this.Model.SelectedNotes, function(candidateNote)
+        {
+            candidatePitch = candidateNote.Pitch;
+            if (candidatePitch < lowestPitch)
+            {
+                lowestPitch = candidatePitch;
+                noteWithLowestPitch = candidateNote;
+            }
+            if (candidatePitch > highestPitch)
+            {
+                highestPitch = candidatePitch;
+                noteWithHighestPitch = candidateNote;
+            }
+        });
+
+        var highestNewPosition = (lowestPitch + bassOffset);
+        var lowestNewPosition = (highestPitch - upperVoiceOffset);
+        var upperBoundCheck =
+            (0 < highestNewPosition) &&
+            (highestNewPosition <= this.View.MaximumPitch);
+
+        var lowerBoundCheck =
+            (0 < lowestNewPosition) &&
+            (lowestNewPosition <= this.View.MaximumPitch);
+
+        if(lowerBoundCheck && upperBoundCheck)
+        {
+            const topTrack = noteWithHighestPitch.CurrentTrack;
+            const bassTrack = noteWithLowestPitch.CurrentTrack;
+
+            this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
+            {
+                if(note.CurrentTrack == bassTrack)
+                {
+                    note.Pitch += bassOffset;
+                    note.CurrentTrack = topTrack;
+                    this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+                }
+
+                else if(note.CurrentTrack == topTrack)
+                {
+                    note.Pitch -= upperVoiceOffset;
+                    note.CurrentTrack = bassTrack;
+                    this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+                }
+            });
+        }
     }
 
     GetNextUnselectedNote()
@@ -1711,6 +1756,7 @@ class Controller
         var scrollUp = (event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0);
 
         event.preventDefault();
+
         //Change horizontal scale
         if(ctrl)
         {
@@ -1777,8 +1823,8 @@ class Controller
         var noteRectangle = {
             x1: x1Value,
             y1: y1Value,
-            x2: x1Value+note.Duration*gridSnap,
-            y2: y1Value+1*gridSnap
+            x2: x1Value + note.Duration*gridSnap,
+            y2: y1Value + 1*gridSnap
         };
 
         return noteRectangle;
