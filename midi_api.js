@@ -166,7 +166,7 @@ class MidiAbstractionLayer
             }
             catch(e)
             {
-                onsole.log(e)
+                console.log(e)
                 //console.log(pitchMidiValue, currentTimeTicks, isNoteOff)
                 //console.log(e, this.TickToPitchMidiValueDictionary, this.ActiveNotesMappedToTheirStartTick, tickValueOfActiveNote)
             }
