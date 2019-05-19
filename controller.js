@@ -1348,6 +1348,7 @@ class Controller
 				{
 					var noteRectangle = mouseMoveThisPointer.GetNoteRectangle(note);
 					var noteIsCaptured = mouseMoveThisPointer.DoesRectangle1CoverRectangle2(selectRectangle, noteRectangle);
+                    var noteSelectionInitialState = note.IsSelected;
 
 					if(noteIsCaptured)
 					{
@@ -1358,7 +1359,11 @@ class Controller
 					{
 						note.IsSelected = false;
 					}
-                    this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+
+                    if(noteSelectionInitialState != note.IsSelected)
+                    {
+                        this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+                    }
 				});
 			}
 
