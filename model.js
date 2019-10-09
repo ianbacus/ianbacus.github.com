@@ -4,6 +4,7 @@ var AudioContextFunc = window.AudioContext || window.webkitAudioContext;
 var audioContext = new AudioContextFunc();
 var player=new WebAudioFontPlayer();
 
+
 class Note
 {
     constructor(startTimeTicks, pitch, duration, currentTrack, selected,  currentGridIndex=m_this.GridPreviewIndex)
@@ -250,7 +251,37 @@ class Note
 		m_this.DeleteNote(this, 0, currentGridBuffer, false);
 		m_this.AddNote(this, 0, selectStartGridBuffer, false);
 	}
-};
+}; //end class Note 
+
+class NoteScore
+{
+	constructor()
+    {
+		this._NoteArray = []
+		this._GridWidth = 0
+	}
+	
+	get NoteArray()
+	{
+		return this._NoteArray;
+	}
+	
+	set NoteArray(noteArray)
+	{
+		this._NoteArray = noteArray;
+	}
+	
+	get GridWidth()
+	{
+		return this._GridWidth;
+	}
+	
+	set GridWidth(width)
+	{
+		this._GridWidth = width;
+	}
+	
+}; //end NoteScore
 
 class Model
 {
@@ -283,7 +314,7 @@ class Model
         this.ActivityIndex = 0;
 
 		//Restorable data
-        this.Score = [];
+        this.Score = new NoteScore(); //Score is an array of note objects
         this.GridPreviewList = [];
         this.GridImageList = [];
         this.GridPreviewIndex = 0;
@@ -301,7 +332,7 @@ class Model
 
 		if(initializationParameters == null)
 		{
-			this.GridPreviewList = [[]];
+			this.GridPreviewList = [new NoteScore()];
 			this.GridImageList = [null];
 		}
 		else
@@ -312,7 +343,7 @@ class Model
 
 			initialGridlist.forEach(function(noteArray)
 			{
-				var reconstructedNoteArray = [];
+				var reconstructedNoteArray = new NoteScore();
 				noteArray.forEach(function(noteToCopy)
 				{
 					var copiedNote = new Note(
@@ -323,7 +354,7 @@ class Model
 						false,
 						noteToCopy.GridIndex);
 
-					reconstructedNoteArray.push(copiedNote);
+					reconstructedNoteArray.NoteArray.push(copiedNote);
 				});
 
 				this.GridImageList.push(null);
@@ -365,9 +396,9 @@ class Model
 
 
 
-    SetCurrentGridPreview(noteArray)
+    SetCurrentGridPreview(scoreObject)
     {
-        this.GridPreviewList[this.GridPreviewIndex] = noteArray;
+        this.GridPreviewList[this.GridPreviewIndex] = scoreObject;
     }
 
     GotoPreviousGrid()
@@ -376,6 +407,7 @@ class Model
         {
             this.GridPreviewIndex--;
             this.Score = this.GridPreviewList[this.GridPreviewIndex];
+			
         }
     }
 
@@ -396,8 +428,8 @@ class Model
 
     SortScoreByTicks()
     {
-        //this.Score.sort(this.CompareNotes);
-        this.MergeSort(this.Score);
+        //this.Score.NoteArray.sort(this.CompareNotes);
+        this.MergeSort(this.Score.NoteArray);
     }
 
     HandleBatchInsertion(activityStack, action, targetString)
@@ -760,7 +792,7 @@ class Model
     }
 
     //Public
-    AddNote(note, sequenceNumber, array=this.Score, pushAction=true)
+    AddNote(note, sequenceNumber, array=this.Score.NoteArray, pushAction=true)
     {
         var gridIndex = this.GridPreviewIndex;
 
@@ -780,14 +812,14 @@ class Model
         this.InsertSorted(array, note);
     }
 
-    DeleteNoteWithIndex(deletionIndex, sequenceNumber, array=this.Score, pushAction=true)
+    DeleteNoteWithIndex(deletionIndex, sequenceNumber, array=this.Score.NoteArray, pushAction=true)
     {
         var numberOfDeletions = 1;
         var deletedNote = array[deletionIndex];
         var gridIndex = this.GridPreviewIndex;
 
         //If a note is deleted from the score, delete it from the select buffer
-        if((array===this.Score) && (deletedNote.IsSelected))
+        if((array===this.Score.NoteArray) && (deletedNote.IsSelected))
         {
             this.DeleteNote(deletedNote, 0, this.SelectedNotes, false);
         }
@@ -810,7 +842,7 @@ class Model
         array.splice(deletionIndex, numberOfDeletions)
     }
 
-    DeleteNote(note, sequenceNumber, array=this.Score, pushAction=true)
+    DeleteNote(note, sequenceNumber, array=this.Score.NoteArray, pushAction=true)
     {
 		//var deletionIndex = this.BinarySearch(array, note, this.CompareNotes, true);
 

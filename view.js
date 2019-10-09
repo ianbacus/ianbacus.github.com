@@ -18,6 +18,7 @@ class View
 
 		//Restorable state information
         this._PixelsPerTick = 20;
+		this._GridWidthTicks = 512;
 
         // this.IntervalColors =
         // [
@@ -81,7 +82,10 @@ class View
             'red', //track 10
         ];
     }
-
+	copyIfValid(x, defaultValue)
+	{
+		return isNaN(x) ? defaultValue : x;
+	}
     Initialize(
 		initializationParameters,
         controller,
@@ -103,7 +107,8 @@ class View
 		//Restore state
 		if(initializationParameters != null)
 		{
-			this.PixelsPerTick = initializationParameters.PixelsPerTick;
+			this.PixelsPerTick = this.copyIfValid(initializationParameters.PixelsPerTick, 20);
+			this.GridWidthTicks = this.copyIfValid(initializationParameters.GridWidthTicks, 512);
 			this.GridboxContainer.scrollTop(initializationParameters.ScrollLeft);
 			this.GridboxContainer.scrollLeft(initializationParameters.ScrollTop);
 			console.log(initializationParameters)
@@ -154,6 +159,7 @@ class View
 		var serializedData =
 		{
 			PixelsPerTick: this._PixelsPerTick,
+			GridWidthTicks: this._GridWidthTicks,
 			ScrollLeft: this.GridboxContainer.scrollTop(),
 			ScrollTop: this.GridboxContainer.scrollLeft(),
 		};
@@ -177,7 +183,7 @@ class View
 
     PopulateSelectMenu(selectEntryCodes)
     {
-        var $dropdown = $("#InstrumentSelection");
+        var $dropdown = $(".InstrumentSelector");
         selectEntryCodes.forEach(function(entry)
         {
             $dropdown.append($("<option />").val(entry).text(entry));
@@ -202,20 +208,8 @@ class View
             'height':gridboxContainerHeight,
         })
 
-        this.GridWidthTicks = 512;
-
-    }
-
-    set GridWidthTicks(ticks)
-    {
-        var pixelsPerTick = this.PixelsPerTick;
-        var maximumPitchRange = this.MaximumPitch;
-        var mainGridHeight = pixelsPerTick*maximumPitchRange;
-
-        this.Maingrid.css({
-            'height':mainGridHeight,
-            'width':pixelsPerTick*ticks,
-        });
+		//Re-assign to gridWidthTicks to call handler (TODO this is sloppy)
+        this.GridWidthTicks = this._GridWidthTicks;
 
     }
 
@@ -223,6 +217,25 @@ class View
     {
         return this._PixelsPerTick;
     }
+
+    set GridWidthTicks(ticks)
+    {
+        var pixelsPerTick = this.PixelsPerTick;
+        var maximumPitchRange = this.MaximumPitch;
+        var mainGridHeight = pixelsPerTick*maximumPitchRange;
+		this._GridWidthTicks = ticks
+
+        this.Maingrid.css({
+            'height':mainGridHeight,
+            'width':pixelsPerTick*ticks,
+        });
+
+    }
+	
+	get GridWidthTicks()
+	{
+		return this._GridWidthTicks
+	}
 
 	get MinimumPitch()
 	{

@@ -23,6 +23,7 @@ class ContextMenuHandler
         this.ContextMenuElement = document.querySelector("#context-menu");
         this.menuItems = this.ContextMenuElement.querySelectorAll(".context-menu__item");
 
+		//document.querySelector('#gridboxContainer')
         document.addEventListener( "contextmenu", function(e)
         {
             ctx_this.GridboxElement = ctx_this.GetClickedElementIfClassnameValid( e, this.ContextMenuClassName );
@@ -33,10 +34,15 @@ class ContextMenuHandler
             }
         });
 
+        //document.querySelector('#gridboxContainer').addEventListener( "contextmenu", function(e)
         document.addEventListener( "click", function(e)
-        {
+		{
             ctx_this.OnClick(e);
-
+        });
+		
+		$('#gridbox').contextmenu(function(e)
+		{
+            ctx_this.OnClick(e);
         });
 
         window.onresize = function(e)

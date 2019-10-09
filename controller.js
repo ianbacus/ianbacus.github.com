@@ -182,16 +182,16 @@ class Controller
 
     RefreshEditBoxNotes()
     {
-        this.AnalyzeIntervals(this.Model.Score);
+        this.AnalyzeIntervals(this.Model.Score.NoteArray);
         var editModeColor = this.EditModeColors[this.EditorMode];
-        this.View.RenderNotes(this.Model.Score, this.NoteColorationMode);
+        this.View.RenderNotes(this.Model.Score.NoteArray, this.NoteColorationMode);
         this.View.RenderPlaybackLine(this.MainPlaybackStartTicks,  this.CapturedPlaybackStartTicks);
     }
 
     DeleteSelectedNotes(pushAction)
     {
         var i = 0;
-        var score = this.Model.Score;
+        var score = this.Model.Score.NoteArray;
         var sequenceNumber = 0;
 
         if(pushAction)
@@ -313,7 +313,7 @@ class Controller
                 noteToPaste.CurrentTrack,
                 true);
 
-            this.Model.AddNote(instantiatedNote, 0, this.Model.Score, false);
+            this.Model.AddNote(instantiatedNote, 0, this.Model.Score.NoteArray, false);
         }, this);
     }
 
@@ -443,7 +443,7 @@ class Controller
 
                 previewNote.PlayIndefinitely(this.MillisecondsPerTick, this.CurrentInstrument)
 
-                this.Model.AddNote(previewNote, 0, this.Model.Score, false);
+                this.Model.AddNote(previewNote, 0, this.Model.Score.NoteArray, false);
                 this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
                 this.PressedKeys[keyCharacter] = previewNote
                 this.MidiKeysDown++
@@ -576,7 +576,14 @@ class Controller
             eventHandled = keyupThisPointer.HandleCompositionModeKeypress(event)
         }
     }
-
+	
+	SetGridWidth(gridWidth)
+	{
+		this.Model.Score.GridWidth = gridWidth;
+		this.View.GridWidthTicks = gridWidth;
+		this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
+	}
+	
     HandleCompositionModeKeypress(event)
     {
         //Mode control: select, edit, delete
@@ -640,6 +647,32 @@ class Controller
             }
 
             break;
+		
+		case 219: //"{" key 
+			var gridWidth = this.View.GridWidthTicks - 16;
+			var lastTick = 512;
+			var score = this.Model.Score.NoteArray;
+			var currentGridWidth = this.View.GridWidthTicks
+			if(score.length > 0)
+			{
+				var lastNote = score[score.length-1];
+				lastTick = lastNote.StartTimeTicks + lastNote.Duration;
+			}
+			
+			var shrinkingGrid = (gridWidth < currentGridWidth);
+			var gridBoundaryClippingLastNote = (gridWidth > lastTick);
+			
+			if((shrinkingGrid && gridBoundaryClippingLastNote) || (!shrinkingGrid))
+			{
+				this.SetGridWidth(gridWidth);
+			}
+			break;
+			
+		case 221: //"}" key 
+			var gridWidth = this.View.GridWidthTicks + 16;
+			this.SetGridWidth(gridWidth);
+			break;
+			
         case 46: //"del" key
         case 68: //"d" key
             //Delete any selected notes
@@ -663,7 +696,7 @@ class Controller
 
 		case 75: //"k" key : change coloration mode
 			this.NoteColorationMode = !this.NoteColorationMode;
-			this.View.UpdateExistingNotes(this.Model.Score, this.NoteColorationMode);
+			this.View.UpdateExistingNotes(this.Model.Score.NoteArray, this.NoteColorationMode);
 			break;
 
         case 192: //` tilde key: change mode
@@ -755,12 +788,14 @@ class Controller
             break;
         case 38: //up arrow: select grid
             event.preventDefault();
-            this.HandleGridMove(true);
+			var upwardDirection = true;
+            this.HandleGridMove(upwardDirection);
             this.RefreshGridPreview();
             break;
         case 40: //down arrow: select grid
             event.preventDefault();
-            this.HandleGridMove(false);
+			var upwardDirection = false;
+            this.HandleGridMove(upwardDirection);
             this.RefreshGridPreview();
             break;
         }
@@ -795,7 +830,7 @@ class Controller
                     break;
             }
 
-            var score = this.Model.Score;
+            var score = this.Model.Score.NoteArray;
             var playbackStartXCoordinate = this.View.ConvertTicksToXIndex(this.MainPlaybackStartTicks);
 
             var selectionRectangle =
@@ -840,7 +875,7 @@ class Controller
 
     SelectAllNotes()
     {
-        this.ModifyNoteArray(this.Model.Score, function(note)
+        this.ModifyNoteArray(this.Model.Score.NoteArray, function(note)
         {
             note.IsSelected = true;
             this.View.ApplyNoteStyle(note, this.NoteColorationMode);
@@ -849,7 +884,7 @@ class Controller
 
     SetCurrentTrack(trackNumber)
     {
-        this.CurrentTrack = pressedKey;
+        this.CurrentTrack = trackNumber;
 
         this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
         {
@@ -863,7 +898,10 @@ class Controller
         var moveFunction;
         var copyBuffer = [];
         var newGridIndex;
+		var newGridWidth = 0;
 
+		var originalGridWidth = this.View.GridWidthTicks;
+		
         if(upwardsDirection)
         {
             moveFunction = this.Model.GotoPreviousGrid;
@@ -898,11 +936,15 @@ class Controller
         {
             this.console.log("Transporting note: ", note, newGridIndex);
 			note.CurrentGridIndex = newGridIndex;
-            this.Model.AddNote(note, 0, this.Model.Score, false);
+            this.Model.AddNote(note, 0, this.Model.Score.NoteArray, false);
             this.Model.AddNote(note, 0, this.Model.SelectedNotes, false);
         },this);
-
-        this.console.log("Transport end");
+		
+		var currentGridWidth = this.View.GridWidthTicks;
+		var targetGridWidth = this.Model.Score.GridWidth;
+		
+		this.SetGridWidth(targetGridWidth);
+		console.log("Transport end:", originalGridWidth, currentGridWidth, targetGridWidth);
     }
 
     InvertVoices(moveHighestVoiceByOctave)
@@ -987,9 +1029,9 @@ class Controller
         var note = null;
 
         //Get the next note that isn't selected
-        while(this.NoteIndex < this.Model.Score.length)
+        while(this.NoteIndex < this.Model.Score.NoteArray.length)
         {
-            var note = this.Model.Score[this.NoteIndex ];
+            var note = this.Model.Score.NoteArray[this.NoteIndex ];
 
             this.NoteIndex++;
             if(!note.IsSelected)
@@ -1254,7 +1296,7 @@ class Controller
                 this.CurrentTrack,
                 true);
 
-            this.Model.AddNote(previewNote, 0, this.Model.Score, false);
+            this.Model.AddNote(previewNote, 0, this.Model.Score.NoteArray, false);
             c_this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
         }
     }
@@ -1308,13 +1350,13 @@ class Controller
 			else
 			{
                 this.console.log("Handling reset with deletion",note)
-				this.Model.DeleteNote(note, 0, this.Model.Score, false);
+				this.Model.DeleteNote(note, 0, this.Model.Score.NoteArray, false);
                 this.View.DeleteNotes([note]);
 			}
         }, false);
 
-        this.AnalyzeIntervals(this.Model.Score);
-        this.View.UpdateExistingNotes(this.Model.Score, this.NoteColorationMode);
+        this.AnalyzeIntervals(this.Model.Score.NoteArray);
+        this.View.UpdateExistingNotes(this.Model.Score.NoteArray, this.NoteColorationMode);
     }
 
     ///Update the cursor position, move all selected notes
@@ -1344,7 +1386,7 @@ class Controller
 					y2: Math.max(mouseMoveThisPointer.SelectorPosition.y, mouseMoveThisPointer.CursorPosition.y)
 				};
 
-				mouseMoveThisPointer.ModifyNoteArray(mouseMoveThisPointer.Model.Score, function(note)
+				mouseMoveThisPointer.ModifyNoteArray(mouseMoveThisPointer.Model.Score.NoteArray, function(note)
 				{
 					var noteRectangle = mouseMoveThisPointer.GetNoteRectangle(note);
 					var noteIsCaptured = mouseMoveThisPointer.DoesRectangle1CoverRectangle2(selectRectangle, noteRectangle);
@@ -1397,8 +1439,8 @@ class Controller
 
 
                 mouseMoveThisPointer.Model.MergeSort(selectedNotes);
-                mouseMoveThisPointer.Model.MergeSort(mouseMoveThisPointer.Model.Score);
-                mouseMoveThisPointer.AnalyzeIntervals(mouseMoveThisPointer.Model.Score);
+                mouseMoveThisPointer.Model.MergeSort(mouseMoveThisPointer.Model.Score.NoteArray);
+                mouseMoveThisPointer.AnalyzeIntervals(mouseMoveThisPointer.Model.Score.NoteArray);
 
 			}
 		}
@@ -1406,7 +1448,7 @@ class Controller
 
     HandleIndividualNotePlayback(noteIndex, playbackMode)
     {
-        var score = this.Model.Score;
+        var score = this.Model.Score.NoteArray;
         var note = score[noteIndex];
 
 		//Solo
@@ -1468,7 +1510,7 @@ class Controller
         {
             var selectCount = clickdownThisPointer.CountSelectedNotes();
             var clickedNoteIndex = clickdownThisPointer.GetNoteIndexOfOverlappingNote().ClickedNoteIndex;
-            var score = clickdownThisPointer.Model.Score;
+            var score = clickdownThisPointer.Model.Score.NoteArray;
 
             //If a note is clicked, select it
             if((0 <= clickedNoteIndex) && (clickedNoteIndex < score.length))
@@ -1501,11 +1543,11 @@ class Controller
         clickUpThisPointer.StopPlayingNotes();
 
 		var selectedNotes = clickUpThisPointer.Model.SelectedNotes;
-        var mainScore = clickUpThisPointer.Model.Score;
+        var mainScore = clickUpThisPointer.Model.Score.NoteArray;
         var selectCount = clickUpThisPointer.CountSelectedNotes();
         var wasSelectingGroup = clickUpThisPointer.SelectingGroup === true;
 
-        clickUpThisPointer.Model.MergeSort(clickUpThisPointer.Model.Score);
+        clickUpThisPointer.Model.MergeSort(clickUpThisPointer.Model.Score.NoteArray);
         clickUpThisPointer.Model.MergeSort(clickUpThisPointer.Model.SelectedNotes);
 
         if(wasSelectingGroup)
@@ -1538,7 +1580,7 @@ class Controller
                     selectedNotes[selectedBufferEndIndex].Duration;
 
                 //Find all notes in the score that intersect with the selected notes
-                clickUpThisPointer.ModifyNoteArray(clickUpThisPointer.Model.Score, function(note)
+                clickUpThisPointer.ModifyNoteArray(clickUpThisPointer.Model.Score.NoteArray, function(note)
                 {
                     if(!note.IsSelected)
                     {
@@ -1578,7 +1620,7 @@ class Controller
                 note.IsSelected = false;
                 note.OnMoveComplete(sequenceNumber);
                 this.View.ApplyNoteStyle(note, this.NoteColorationMode);
-				console.log("Clicked note: ", note)
+				this.console.log("Clicked note: ", note)
             }, false);
 
 
@@ -1611,7 +1653,7 @@ class Controller
     {
         var shouldScroll = true;
         var selectCount = this.CountSelectedNotes();
-        var noteArray = this.Model.Score;
+        var noteArray = this.Model.Score.NoteArray;
 
         if(selectCount != 0)
         {
@@ -1749,7 +1791,7 @@ class Controller
                     note.HorizontalModify(newPosition, newDuration, sequenceNumber);
                 }
             });
-            this.AnalyzeIntervals(this.Model.Score);
+            this.AnalyzeIntervals(this.Model.Score.NoteArray);
         }
     }
 
@@ -1766,7 +1808,7 @@ class Controller
         if(ctrl)
         {
             c_this.HandleControlScroll(scrollUp);
-            c_this.View.UpdateExistingNotes(c_this.Model.Score, c_this.NoteColorationMode);
+            c_this.View.UpdateExistingNotes(c_this.Model.Score.NoteArray, c_this.NoteColorationMode);
             c_this.View.RenderPlaybackLine(this.MainPlaybackStartTicks,  this.CapturedPlaybackStartTicks);
         }
         else if(shift)
@@ -1812,7 +1854,7 @@ class Controller
 
     OnRadioButtonPress(eventData)
     {
-        var score = c_this.Model.Score;
+        var score = c_this.Model.Score.NoteArray;
         var analysisOption = c_this.GetModeSettings(eventData).AnalysisMode;
         c_this.IntervalTranslator = c_this.InvertibleCounterpointIntervals[analysisOption];
 
@@ -1851,7 +1893,7 @@ class Controller
                 y2: cursorPosition.y,
             }
         }
-        var score = this.Model.Score;
+        var score = this.Model.Score.NoteArray;
 
         //Add one to the start ticks so that the left search is guaranteed include all notes whose durations cover the
         //clicked coordinate
