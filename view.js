@@ -82,10 +82,12 @@ class View
             'red', //track 10
         ];
     }
+	
 	copyIfValid(x, defaultValue)
 	{
 		return isNaN(x) ? defaultValue : x;
 	}
+	
     Initialize(
 		initializationParameters,
         controller,
@@ -93,11 +95,11 @@ class View
         onMouseScroll,
         onMouseMove, onMouseClickUp, onMouseClickDown,
         onHoverBegin, onHoverEnd,
-        onSliderChange, onSelectChange,
+        onSliderChange, 
+        onTrackSliderChange, onTrackSelectChange, onTrackButton,
         onPageUnload,
         radioButtonHandler)
     {
-
         this.Maingrid = $("#gridbox");
         this.GridboxContainer = $("#gridboxContainer");
         this.GridArray = $("#GridboxArray");
@@ -131,16 +133,17 @@ class View
             });
 
         $('input[type=radio]').change(this.OnRadioButton);
-        $('select').change(this.OnSelectChange);
 
         $(document).keydown(onKeyPress);
         $(document).keyup(onKeyPress);
         this.GridMouseHandler = onMouseMove;
         this.RadioButtonHandler = radioButtonHandler;
         this.SliderHandler = onSliderChange;
-        this.SelectHandler = onSelectChange;
+        this.SelectHandler = onTrackSelectChange;
 
         $(document).on('input change', '#TempoSlider',this.OnSliderChange);
+        $(document).on('input change', '.volumeSlider',this.OnSliderChange);
+        $('select').change(this.OnSelectChange);
 
         $(window).on('beforeunload', function ()
         {

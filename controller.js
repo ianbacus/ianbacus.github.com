@@ -125,7 +125,25 @@ class Controller
 
 		return JSON.stringify(serializedData);
 	}
-
+	
+	OnTrackSliderChange(eventData)
+	{
+		trackIndex = 0;
+		m_this.Track[trackIndex].Volume = eventData;
+	}
+	
+	OnTrackSelectChange(eventData)
+	{
+		trackIndex = 0;
+		m_this.Track[trackIndex].InstrumentEnum[instrumentCode];
+	}
+	
+	OnTrackButton(eventData)
+	{
+		trackIndex = 0;
+		buttonIndex = 0;
+	}
+	
     OnSelectChange(instrumentCode)
     {
         c_this.CurrentInstrument = m_this.InstrumentEnum[instrumentCode];

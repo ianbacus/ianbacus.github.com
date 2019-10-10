@@ -165,7 +165,8 @@ $( function()
         ScoreController.OnMouseScroll,
         ScoreController.OnMouseMove, ScoreController.OnMouseClickUp, ScoreController.OnMouseClickDown,
         ScoreController.OnHoverBegin, ScoreController.OnHoverEnd,
-        ScoreController.OnSliderChange, ScoreController.OnSelectChange,
+        ScoreController.OnSliderChange, 
+        ScoreController.OnTrackSliderChange, ScoreController.OnTrackSelectChange, ScoreController.OnTrackButton,		
         OnPageUnload,
         ScoreController.OnRadioButtonPress,
     );
@@ -174,6 +175,12 @@ $( function()
 
     $(".loader").hide();
 
+	$("#trackbox :input").onchange(function(e)
+	{
+		OnTrackInputChange(e);
+		
+	});
+	
     $(document).on('dragstart','#testDZ', function(e)
     {
         console.log("start")
