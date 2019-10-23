@@ -8,6 +8,37 @@ html,body {
     opacity:50%;
 }
 
+.keynote2
+{
+    -webkit-animation: fadein .5s; /* Safari, Chrome and Opera > 12.1 */
+       -moz-animation: fadein .5s; /* Firefox < 16 */
+        -ms-animation: fadein .5s; /* Internet Explorer */
+         -o-animation: fadein .5s; /* Opera < 12.1 */
+            animation: fadein .5s;
+}
+
+@keyframes fadein {
+    from { alpha: 0; }
+    to   { alpha: 1; }
+}
+
+/* Firefox < 16 */
+@-moz-keyframes fadein {
+    from { alpha: 0; }
+    to   { alpha: 1; }
+}
+
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes fadein {
+    from { alpha: 0; }
+    to   { alpha: 1; }
+}
+
+/* Internet Explorer */
+@-ms-keyframes fadein {
+    from { alpha: 0; }
+    to   { alpha: 1; }
+}
 *,
 *::before,
 *::after {
@@ -22,6 +53,27 @@ html,body {
   background-color: #fff;
   border: solid 1px #dfdfdf;
   box-shadow: 1px 1px 2px #cfcfcf;
+}
+
+.trackrow
+{
+    padding-left:50px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+      width:50%;border-radius: 25px;
+}
+.trackrow .volumeSlider{
+    width:100%;
+}
+.trackrow:nth-child(2n)
+{
+    background-color: #975b20;
+
+}
+.trackrow:nth-child(2n+1)
+{
+    background-color:  #d68a3f;
 }
 
 .context-menu--active {
@@ -97,7 +149,7 @@ html,body {
 	overflow-x:scroll;
     overflow-y:scroll;
 	width:100%;
-	height:890px;
+	height:590px;
     cursor:crosshair;
 }
 
@@ -136,7 +188,7 @@ div#testDZ
 }
 #gridbox {
 	width:650%;
-	height:1200px;
+	height:1000px;
 	position:relative;
 	/*background:#2F4F4F url('https://s3.amazonaws.com/com.appgrinders.test/images/grid_20.png') repeat;*/
 	background:whitesmoke url('grid_horizontal.png') repeat;
@@ -196,7 +248,9 @@ div#testDZ
 html, body {
   padding: 0px;
   margin: 0px;
-  height: calc(100% - 4px); }
+  height: calc(100% - 4px);
+background:#f5ead8
+}
 
 /**
  *
@@ -419,8 +473,8 @@ code {
     border-top: 16px solid #3498db;
     width: 120px;
     height: 120px;
-    -webkit-animation: spin 2s linear infinite; /* Safari */
-    animation: spin 2s linear infinite;
+    -webkit-animation: spin 1s linear infinite; /* Safari */
+    animation: spin 1s linear infinite;
   }
 
   /* Safari */

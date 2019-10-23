@@ -41,9 +41,10 @@ Dropzone.options.testDZ = {
         reader.onload = (function(event)
         {
             var midiData = new Uint8Array(event.target.result);
-            var array = MidiParser.parse(midiData);
-            console.log(array, midiData);
-            TheMidiAbstractionLayer.ParseMidiFile(array);
+
+            //console.log(array, midiData);
+            //TheMidiAbstractionLayer.ParseMidiFile(array);
+            TheMidiAbstractionLayer.ParseMidiFile(midiData);
 
             $(".loader").show();
 
@@ -56,8 +57,8 @@ Dropzone.options.testDZ = {
                     var lastTick = lastNote.StartTimeTicks + lastNote.Duration;
 
                     ScoreView.GridWidthTicks = lastTick;
-                    ScoreModel.Score = score;
-                    ScoreModel.MergeSort(ScoreModel.Score);
+                    ScoreModel.Score.NoteArray = score;
+                    ScoreModel.MergeSort(ScoreModel.Score.NoteArray);
 
                     ScoreController.RefreshNotesAndKey();
                 }
@@ -99,20 +100,10 @@ function OpenTextFileInNewTab(text)
 function ExportScoreToMidiFile()
 {
     //Generate midi data from score
-    var score = ScoreModel.Score;
-    var fileData = TheMidiAbstractionLayer.GenerateMidiFile(score);
+    var score = ScoreModel.Score.NoteArray;
+    var fileName = "browser_composition.mid";
+    TheMidiAbstractionLayer.ExportMidiNotes(score,fileName);
 
-    //Translate midi data to byte array
-    const bytes = new Uint8Array(fileData.length);
-    for (let i = 0; i < fileData.length; i++)
-    {
-        bytes[i] = fileData.charCodeAt(i);
-    }
-
-    //Save midi file
-    var blob = new Blob([bytes], {type: "audio/midi; charset=binary"});
-    var fileName = "browserComposerOutput.mid";
-    saveAs(blob, fileName);
 }
 
 function OnContextMenuSelection(selection)
@@ -165,22 +156,15 @@ $( function()
         ScoreController.OnMouseScroll,
         ScoreController.OnMouseMove, ScoreController.OnMouseClickUp, ScoreController.OnMouseClickDown,
         ScoreController.OnHoverBegin, ScoreController.OnHoverEnd,
-        ScoreController.OnSliderChange, 
-        ScoreController.OnTrackSliderChange, ScoreController.OnTrackSelectChange, ScoreController.OnTrackButton,		
-        OnPageUnload,
-        ScoreController.OnRadioButtonPress,
+        ScoreController.OnSliderChange,
+        ScoreController.OnTrackSliderChange, ScoreController.OnTrackSelectChange, ScoreController.OnTrackButton,
+        OnPageUnload, ScoreController.OnRadioButtonPress,
     );
 
     ScoreController.Initialize(deserializedControllerData);
 
     $(".loader").hide();
 
-	$("#trackbox :input").onchange(function(e)
-	{
-		OnTrackInputChange(e);
-		
-	});
-	
     $(document).on('dragstart','#testDZ', function(e)
     {
         console.log("start")
@@ -196,7 +180,6 @@ $( function()
         {
             document.querySelector("#testDZ").style.visibility = "hidden";
             document.querySelector("#testDZ").style.opacity = 0;
-            console.log("c")
         }
     });
 
@@ -220,8 +203,10 @@ $( function()
             //Set a timeout so the loader has time to appear after clicking the button
             setTimeout(function()
             {
-                var tabResultData = TheMidiAbstractionLayer.GenerateTab();
+                var score = ScoreModel.Score.NoteArray;
+                var tabResultData = TheMidiAbstractionLayer.GenerateTabFromCanvas(score);
 
+                console.log(tabResultData.tablatureString)
                 if(tabResultData.failureReason == undefined)
                 {
                     OpenTextFileInNewTab(tabResultData.tablatureString);

@@ -25,6 +25,21 @@ var Modes =
 
 let c_this = undefined;
 
+class Track
+{
+    constructor()
+    {
+        //this.Instrument = m_this.InstrumentEnum[m_this.InstrumentEnum.flute];
+        this.Instrument = m_this.InstrumentEnum["guitar"];
+        //this.Instrument = m_this.InstrumentEnum.flute;
+        this.Volume = 0;
+        this.Index = 0;
+        this.Muted = false;
+        this.Selectable = true;
+    }
+
+};
+
 class Controller
 {
     constructor(view, model)
@@ -67,6 +82,8 @@ class Controller
         this.MillisecondsPerTick = 100;
         this.IntervalTranslator = this.InvertibleCounterpointIntervals[0];
 		this.CurrentInstrument = null;
+        this.Tracks = [new Track(), new Track(),new Track(), new Track(),new Track(), new Track()];
+        //this.Tracks.fill(new Track(),0,9);
 
 		//Recoverable state data
         this.TonicKey = 0;
@@ -81,6 +98,7 @@ class Controller
     Initialize(initializationParameters)
     {
         //Load saved settings
+        console.log("init controller",initializationParameters)
 		if(initializationParameters != null)
 		{
 			this.TonicKey = initializationParameters.TonicKey;
@@ -88,12 +106,14 @@ class Controller
 			this.CurrentTrack = initializationParameters.CurrentTrack;
 			this.NoteColorationMode = initializationParameters.NoteColorationMode;
 			this.EditorMode = initializationParameters.EditorMode;
+            //this.Tracks = initializationParameters.Tracks;
 		}
 
         //Instruments
         var instrumentOptions = [];
         var instrumentEnumeration = this.Model.InstrumentEnum;
         this.CurrentInstrument = instrumentEnumeration.flute;//Object.keys(instrumentEnumeration)[0];
+        this.TrackInstruments = [instrumentEnumeration.flute,instrumentEnumeration.flute];
 
         Object.keys(instrumentEnumeration).forEach(function(key) { instrumentOptions.push(key); });
         this.View.PopulateSelectMenu(instrumentOptions);
@@ -121,30 +141,73 @@ class Controller
 			CurrentTrack: this.CurrentTrack,
 			NoteColorationMode: this.NoteColorationMode,
 			EditorMode: this.EditorMode,
+            Tracks: this.Tracks,
 		}
 
 		return JSON.stringify(serializedData);
 	}
-	
+
+    SetTrackVolume(trackNumber, volume)
+    {
+        this.Tracks[trackNumber].Volume = volume
+    }
+    GetTrackVolume(trackNumber, volume)
+    {
+    }
+
+    SetTrackAttribute(trackNumber, attribute, value)
+    {
+        if(attribute == "Mute")
+        {
+            this.Tracks[trackNumber].Muted = value;
+        }
+        else if(attribute == "Lock")
+        {
+            this.Tracks[trackNumber].Locked = value;
+        }
+
+    }
+
+    SetTrackInstrument(trackNumber,instrumentCode)
+    {
+        if(instrumentCode == "")
+        {
+            instrumentCode = 'guitar';
+        }
+        this.Tracks[trackNumber].Instrument = m_this.InstrumentEnum[instrumentCode];
+    }
+    GetTrackInstrument(trackNumber)
+    {
+        var instrument = this.Tracks[trackNumber].Instrument;
+        //console.log(instrument, this.Tracks);
+        return instrument
+    }
+
 	OnTrackSliderChange(eventData)
 	{
 		trackIndex = 0;
 		m_this.Track[trackIndex].Volume = eventData;
 	}
-	
-	OnTrackSelectChange(eventData)
+
+	OnTrackSelectChange(instrumentCode, eventData)
 	{
-		trackIndex = 0;
-		m_this.Track[trackIndex].InstrumentEnum[instrumentCode];
+        console.log(eventData.target);
+        var trackIndex = parseInt(eventData.target.parentElement.attributes["value"].value);
+        c_this.SetTrackInstrument(trackIndex, instrumentCode);
+		//m_this.Track[trackIndex].InstrumentEnum[instrumentCode];
+        //console.log("Track " + trackIndex + " instrument change", instrumentCode, eventData);
 	}
-	
+
 	OnTrackButton(eventData)
 	{
-		trackIndex = 0;
-		buttonIndex = 0;
+		var trackIndex = parseInt(eventData.currentTarget.attributes["value"].value);
+        var buttonIndex = eventData.target.attributes["value"].value;
+        var buttonStatus = eventData.target.checked
+
+        c_this.SetTrackAttribute(trackIndex,buttonIndex,buttonStatus);
 	}
-	
-    OnSelectChange(instrumentCode)
+
+    OnSelectChange(instrumentCode,eventData)
     {
         c_this.CurrentInstrument = m_this.InstrumentEnum[instrumentCode];
     }
@@ -183,7 +246,7 @@ class Controller
             modeBuffer.push(modeSlot);
 		});
 
-		this.View.RenderKeys(modeBuffer);
+		this.View.RenderKeys(modeBuffer, this.CursorPosition.x, this.CursorPosition.y);
     }
 
     RefreshNotesAndKey()
@@ -459,7 +522,8 @@ class Controller
 
                 var previewNote = this.CreateMidiControllerNote(pitch)
 
-                previewNote.PlayIndefinitely(this.MillisecondsPerTick, this.CurrentInstrument)
+                var instrumentCode = this.TrackInstruments[previewNote.CurrentTrack];
+                previewNote.PlayIndefinitely(this.MillisecondsPerTick, instrumentCode)
 
                 this.Model.AddNote(previewNote, 0, this.Model.Score.NoteArray, false);
                 this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
@@ -594,14 +658,14 @@ class Controller
             eventHandled = keyupThisPointer.HandleCompositionModeKeypress(event)
         }
     }
-	
+
 	SetGridWidth(gridWidth)
 	{
 		this.Model.Score.GridWidth = gridWidth;
 		this.View.GridWidthTicks = gridWidth;
 		this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
 	}
-	
+
     HandleCompositionModeKeypress(event)
     {
         //Mode control: select, edit, delete
@@ -665,8 +729,8 @@ class Controller
             }
 
             break;
-		
-		case 219: //"{" key 
+
+		case 219: //"{" key
 			var gridWidth = this.View.GridWidthTicks - 16;
 			var lastTick = 512;
 			var score = this.Model.Score.NoteArray;
@@ -676,21 +740,21 @@ class Controller
 				var lastNote = score[score.length-1];
 				lastTick = lastNote.StartTimeTicks + lastNote.Duration;
 			}
-			
+
 			var shrinkingGrid = (gridWidth < currentGridWidth);
 			var gridBoundaryClippingLastNote = (gridWidth > lastTick);
-			
+
 			if((shrinkingGrid && gridBoundaryClippingLastNote) || (!shrinkingGrid))
 			{
 				this.SetGridWidth(gridWidth);
 			}
 			break;
-			
-		case 221: //"}" key 
+
+		case 221: //"}" key
 			var gridWidth = this.View.GridWidthTicks + 16;
 			this.SetGridWidth(gridWidth);
 			break;
-			
+
         case 46: //"del" key
         case 68: //"d" key
             //Delete any selected notes
@@ -919,7 +983,7 @@ class Controller
 		var newGridWidth = 0;
 
 		var originalGridWidth = this.View.GridWidthTicks;
-		
+
         if(upwardsDirection)
         {
             moveFunction = this.Model.GotoPreviousGrid;
@@ -957,10 +1021,10 @@ class Controller
             this.Model.AddNote(note, 0, this.Model.Score.NoteArray, false);
             this.Model.AddNote(note, 0, this.Model.SelectedNotes, false);
         },this);
-		
+
 		var currentGridWidth = this.View.GridWidthTicks;
 		var targetGridWidth = this.Model.Score.GridWidth;
-		
+
 		this.SetGridWidth(targetGridWidth);
 		console.log("Transport end:", originalGridWidth, currentGridWidth, targetGridWidth);
     }
@@ -1182,7 +1246,8 @@ class Controller
 
         this.ModifyNoteArray(chordNotes, function(note)
         {
-            note.Play(this.MillisecondsPerTick, this, this.OnStopNote, this.CurrentInstrument);
+            var instrumentCode = this.GetTrackInstrument(note.CurrentTrack);
+            note.Play(this.MillisecondsPerTick, this, this.OnStopNote, instrumentCode);
             this.View.ApplyNoteStyle(note, this.NoteColorationMode);
         });
 
@@ -1461,6 +1526,8 @@ class Controller
                 mouseMoveThisPointer.AnalyzeIntervals(mouseMoveThisPointer.Model.Score.NoteArray);
 
 			}
+            //mouseMoveThisPointer.SetKeyReference(mouseMoveThisPointer.TonicKey, mouseMoveThisPointer.MusicalModeIndex);
+            //TODO: draw a circle around cursor showing note colors
 		}
     } //end OnMouseMove
 

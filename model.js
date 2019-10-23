@@ -14,7 +14,6 @@ class Note
         this.StartTimeTicks = startTimeTicks;
         this.Duration = duration;
         this.CurrentGridIndex = currentGridIndex;
-        this.CurrentTrack = currentTrack;
         this.Playback = {}
 
         //State meta-data
@@ -31,6 +30,10 @@ class Note
         //Display and analysis information
         this.IsHighlighted = false;
         this.BassInterval = undefined;
+
+        //Track control information
+        this.CurrentTrack = currentTrack;
+
     }
 
     Serialize()
@@ -91,8 +94,26 @@ class Note
         this.Pitch += y_offset;
     }
 
+
+    get Muted()
+    {
+        //console.log(this.CurrentTrack, c_this.Tracks);
+        return c_this.Tracks[this.CurrentTrack].Muted;
+    }
+
+    get Selectable()
+    {
+        //console.log(this.CurrentTrack, c_this.Tracks);
+        return !c_this.Tracks[this.CurrentTrack].Locked;
+    }
+
     PlayIndefinitely(millisecondsPerTick, instrumentCode)
     {
+        if(this.Muted == true)
+        {
+            return;
+        }
+
         var milliseconds = millisecondsPerTick * this.Duration;
         var playback = this.Playback;
         playback.key = this.Pitch;
@@ -111,6 +132,11 @@ class Note
 
     Play(millisecondsPerTick, caller, onStopCallback, instrumentCode)
     {
+        if(this.Muted == true)
+        {
+            return;
+        }
+
         var milliseconds = millisecondsPerTick * this.Duration;
         var playback = this.Playback;
         playback.key = this.Pitch;
@@ -220,20 +246,26 @@ class Note
         //When selecting an unselected note, capture its state
         if(this._IsSelected != selected)
         {
-            if(selected)
+            //Becoming selected while unselectable: don't update
+            var abortSelect = selected && this.Selectable == false;
+            if(!abortSelect)
             {
-                this.StateWhenSelected = this.CaptureState();
-                m_this.AddNote(this, 0, m_this.SelectedNotes, false);
-                m_this.console.log("Added SELECT note, captured state ", this, m_this.SelectedNotes.length)
-            }
+                if(selected)
+                {
+                    this.StateWhenSelected = this.CaptureState();
+                    m_this.AddNote(this, 0, m_this.SelectedNotes, false);
+                    m_this.console.log("Added SELECT note, captured state ", this, m_this.SelectedNotes.length)
+                }
 
-            else
-            {
-                m_this.DeleteNote(this, 0, m_this.SelectedNotes, false);
-                m_this.console.log("Deleted SELECT note ",m_this.SelectedNotes.length)
-            }
+                //Becoming unselected
+                else
+                {
+                    m_this.DeleteNote(this, 0, m_this.SelectedNotes, false);
+                    m_this.console.log("Deleted SELECT note ",m_this.SelectedNotes.length)
+                }
 
-            this._IsSelected = selected;
+                this._IsSelected = selected;
+            }
         }
 
     }
@@ -251,7 +283,8 @@ class Note
 		m_this.DeleteNote(this, 0, currentGridBuffer, false);
 		m_this.AddNote(this, 0, selectStartGridBuffer, false);
 	}
-}; //end class Note 
+}; //end class Note
+
 
 class NoteScore
 {
@@ -260,27 +293,27 @@ class NoteScore
 		this._NoteArray = []
 		this._GridWidth = 0
 	}
-	
+
 	get NoteArray()
 	{
 		return this._NoteArray;
 	}
-	
+
 	set NoteArray(noteArray)
 	{
 		this._NoteArray = noteArray;
 	}
-	
+
 	get GridWidth()
 	{
 		return this._GridWidth;
 	}
-	
+
 	set GridWidth(width)
 	{
 		this._GridWidth = width;
 	}
-	
+
 }; //end NoteScore
 
 class Model
@@ -292,19 +325,19 @@ class Model
 		//Constants
         this.InstrumentEnum =
         {
+            guitar : '_tone_0240_JCLive_sf2_file',
+            harp: '_tone_0461_FluidR3_GM_sf2_file',
+            sitar : '_tone_1040_GeneralUserGS_sf2_file',
+            synth: '_tone_0900_SBLive_sf2',
+            rock: '_tone_0300_Chaos_sf2_file',
+            fiddle: '_tone_1100_SBLive_sf2',
+            harpsichord : '_tone_0060_SBLive_sf2',
+            piano : '_tone_0000_GeneralUserGS_sf2_file',
             flute : '_tone_0731_SoundBlasterOld_sf2',
             ocarina : '_tone_0790_SoundBlasterOld_sf2',
             choir : '_tone_0530_Soul_Ahhs_sf2_file',
             choir2 : '_tone_0540_JCLive_sf2_file',
             horn : '_tone_0560_JCLive_sf2_file',
-            harpsichord : '_tone_0060_SBLive_sf2',
-            piano : '_tone_0000_GeneralUserGS_sf2_file',
-            sitar : '_tone_1040_GeneralUserGS_sf2_file',
-            guitar : '_tone_0240_JCLive_sf2_file',
-            harp: '_tone_0461_FluidR3_GM_sf2_file',
-            synth: '_tone_0900_SBLive_sf2',
-            rock: '_tone_0300_Chaos_sf2_file',
-            fiddle: '_tone_1100_SBLive_sf2',
         };
         this.MaximumActivityStackLength = 100;
 
@@ -373,7 +406,7 @@ class Model
         this.GridPreviewList.forEach(function(noteArray)
         {
             var unserializedArray = [];
-            noteArray.forEach(function(note)
+            noteArray.NoteArray.forEach(function(note)
             {
                 if(!note.IsSelected)
                 {
@@ -407,7 +440,7 @@ class Model
         {
             this.GridPreviewIndex--;
             this.Score = this.GridPreviewList[this.GridPreviewIndex];
-			
+
         }
     }
 

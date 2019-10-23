@@ -82,23 +82,23 @@ class View
             'red', //track 10
         ];
     }
-	
+
 	copyIfValid(x, defaultValue)
 	{
 		return isNaN(x) ? defaultValue : x;
 	}
-	
+
     Initialize(
-		initializationParameters,
-        controller,
+        //control
+		initializationParameters,controller,
+        //kb
         onKeyPress,
-        onMouseScroll,
-        onMouseMove, onMouseClickUp, onMouseClickDown,
-        onHoverBegin, onHoverEnd,
-        onSliderChange, 
-        onTrackSliderChange, onTrackSelectChange, onTrackButton,
-        onPageUnload,
-        radioButtonHandler)
+        //mouse
+        onMouseScroll, onMouseMove, onMouseClickUp, onMouseClickDown,onHoverBegin, onHoverEnd,
+        //page UI
+        onSliderChange,
+        onTrackSliderChange,onTrackSelectChange,onTrackButton,
+        onPageUnload,radioButtonHandler)
     {
         this.Maingrid = $("#gridbox");
         this.GridboxContainer = $("#gridboxContainer");
@@ -140,21 +140,23 @@ class View
         this.RadioButtonHandler = radioButtonHandler;
         this.SliderHandler = onSliderChange;
         this.SelectHandler = onTrackSelectChange;
+        this.OnTrackButton = onTrackButton;
 
         $(document).on('input change', '#TempoSlider',this.OnSliderChange);
         $(document).on('input change', '.volumeSlider',this.OnSliderChange);
         $('select').change(this.OnSelectChange);
 
+        $(document).on('input[type=checkbox] change', '.trackrow',this.OnTrackButton);
         $(window).on('beforeunload', function ()
         {
-            onPageUnload();
+            return onPageUnload();
             return true;
         });
 
         this.Maingrid.bind('mousewheel DOMMouseScroll', onMouseScroll);
 
-        //Call slider handler to initialize tempo text
-        this.OnSliderChange();
+        $("#trackbox select").change();
+        $("#trackbox input").change();
     }
 
 	Serialize()
@@ -172,7 +174,7 @@ class View
 
     OnSelectChange(event)
     {
-        v_this.SelectHandler(this.value);
+        v_this.SelectHandler(this.value,event);
         $('select').blur();
         //v_this.Maingrid.focus();
     }
@@ -198,7 +200,7 @@ class View
         this._PixelsPerTick = pixelsPerTick;
         var maximumPitchRange = this.MaximumPitch;
         var mainGridHeight = pixelsPerTick*maximumPitchRange;
-        var gridboxContainerHeight = 800;
+        var gridboxContainerHeight = 600;
 
         //Gridbox container should be smaller than gridbox
         //Gridbox container should be
@@ -234,7 +236,7 @@ class View
         });
 
     }
-	
+
 	get GridWidthTicks()
 	{
 		return this._GridWidthTicks
@@ -572,19 +574,28 @@ class View
         this.Maingrid.append(node);
     }
 
-	RenderKeys(modeArray)
+	RenderKeys(modeArray, cursorX, cursorY)
 	{
         var keyNoteClass = "keynote";
 		var mainGridWidth = this.Maingrid.width();
 		var mainGridHeight = this.Maingrid.height();
         var maximumPitch = this.MaximumPitch;
         $(".keynote").remove();
+        $(".keynote2").remove();
 
-        function functionRenderKeyRow(offsetY, colorIndex, noteOpacity)
+        function functionRenderKeyRow(offsetY, colorIndex, noteOpacity,cursorX, cursorY)
         {
             var node = document.createElement('div');
 
-            $(node).addClass(keyNoteClass);
+            // if(Math.abs(cursorY - offsetY) > v_this.PixelsPerTick*3)
+            // {
+            //     $(node).addClass("keynote");
+            // }
+            // else {
+            //     $(node).addClass("keynote2");
+            // }
+            colorIndex = 'white';
+            $(node).addClass("keynote");
             $(node).css({
 				'background':colorIndex,
 				'top':offsetY,
@@ -595,6 +606,7 @@ class View
                 "border-bottom":'solid black 2px',
                 "position":"absolute",
 				"width":mainGridWidth
+
             });
 
             v_this.Maingrid.append(node);
@@ -610,18 +622,20 @@ class View
 			const noteOpacity = modeSlot.Opacity;
             const keyOffsetY = this.ConvertPitchToYIndex(pitch);
 
-            var lowerOffset = keyOffsetY-incrementOffset;
-            var upperOffset = keyOffsetY+incrementOffset;
+            var lowerOffset = keyOffsetY - incrementOffset;
+            var upperOffset = keyOffsetY + incrementOffset;
 
-            functionRenderKeyRow(keyOffsetY, colorIndex, noteOpacity);
+
+
+            functionRenderKeyRow(keyOffsetY, colorIndex, noteOpacity,cursorX, cursorY);
             while(lowerOffset >= 0)
             {
-                functionRenderKeyRow(lowerOffset, colorIndex, noteOpacity);
+                functionRenderKeyRow(lowerOffset, colorIndex, noteOpacity,cursorX, cursorY);
                 lowerOffset -= incrementOffset;
             }
             while (upperOffset < mainGridHeight)
             {
-                functionRenderKeyRow(upperOffset, colorIndex, noteOpacity);
+                functionRenderKeyRow(upperOffset, colorIndex, noteOpacity,cursorX, cursorY);
                 upperOffset += incrementOffset;
             }
 

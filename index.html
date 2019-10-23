@@ -50,7 +50,7 @@
 </head>
 
 <body>
-    <div class="loader"></div>
+
 <div class="container">
 	<div class="row">
         <div class="col-sm-2">
@@ -59,7 +59,7 @@
 				<li id="ktab" ><a data-toggle="tab" href="#keys">🔑</a></li>
 				<li id="stab" class="active"><a data-toggle="tab" href="#settings">✌</a></li>
 				<li id="ptab" ><a data-toggle="tab" href="#preview">👁</a></li>
-				<li id="ttab" ><a data-toggle="tab" href="#tabber">👁</a></li>
+				<li id="ttab" ><a data-toggle="tab" href="#tabber">🎸</a></li>
 			</ul>
 			<div class="tab-content">
 				<div id="keys" class="tab-pane fade">
@@ -135,14 +135,12 @@
 						</div>
 					</div>
                     -->
-					
+
                     <div class="slidecontainer">
                         <p id="TempoPreview">Tempo:</p>
                         <input type="range" min="60" max="250" value="120" class="slider" id="TempoSlider">
                     </div>
                     <br>
-                    <select class="InstrumentSelector">
-                    </select>
 				</div> <!-- end mode tab -->
 
                 <div id="preview" class="tab-pane fade in">
@@ -202,48 +200,79 @@
                         <div id="testDZ" action="/file-upload">
                             <div id="RestartPlaybackLine" class="PlaybackLine"></div>
                             <div id="MainPlaybackLine" class="PlaybackLine"></div>
-
+                                <div class="loader"></div>
                         </div>
                 </div>
             </div>
         </div>
     </div> <!-- end row -->
-	
-			
+
+
 	<div class="row">
 		<div class="container" id="trackbox">
-			<div class="trackrow" id="trackrow1">
-				<select class="InstrumentSelector">
+            <div class="trackrow" value="0">
+				<select class="InstrumentSelector" value="Guitar">
 				</select>
 				<label class="checkbox-inline">
-					<input type="checkbox" checked data-toggle="toggle"> Mute
+					<input type="checkbox" value="Mute" data-toggle="toggle"> Mute
 				</label>
 				<label class="checkbox-inline">
-					<input type="checkbox" data-toggle="toggle"> Pick Color
+					<input type="checkbox" value="Color" data-toggle="toggle"> Pick Color
 				</label>
 				<label class="checkbox-inline">
-					<input type="checkbox" data-toggle="toggle"> Lock
+					<input type="checkbox" value="Lock" data-toggle="toggle"> Lock
 				</label>
 				<label class="checkbox-inline">
 					<input type="range" min="60" max="250" value="120" class="volumeSlider"> Volume
 				</label>
 			</div>
-			<div class="trackrow" id="trackrow2">
-				<select class="InstrumentSelector">
+			<div class="trackrow" value="1">
+				<select class="InstrumentSelector" value="Guitar">
 				</select>
 				<label class="checkbox-inline">
-					<input type="checkbox" checked data-toggle="toggle"> Mute
+					<input type="checkbox" value="Mute" data-toggle="toggle"> Mute
 				</label>
 				<label class="checkbox-inline">
-					<input type="checkbox" data-toggle="toggle"> Pick Color
+					<input type="checkbox" value="Color" data-toggle="toggle"> Pick Color
 				</label>
 				<label class="checkbox-inline">
-					<input type="checkbox" data-toggle="toggle"> Lock
+					<input type="checkbox" value="Lock" data-toggle="toggle"> Lock
 				</label>
 				<label class="checkbox-inline">
 					<input type="range" min="60" max="250" value="120" class="volumeSlider"> Volume
 				</label>
-				
+			</div>
+            <div class="trackrow" value="2">
+				<select class="InstrumentSelector" value="Guitar">
+				</select>
+				<label class="checkbox-inline">
+					<input type="checkbox" value="Mute" data-toggle="toggle"> Mute
+				</label>
+				<label class="checkbox-inline">
+					<input type="checkbox" value="Color" data-toggle="toggle"> Pick Color
+				</label>
+				<label class="checkbox-inline">
+					<input type="checkbox" value="Lock" data-toggle="toggle"> Lock
+				</label>
+				<label class="checkbox-inline">
+					<input type="range" min="60" max="250" value="120" class="volumeSlider"> Volume
+				</label>
+			</div>
+			<div class="trackrow" value="3">
+				<select class="InstrumentSelector" value="Guitar">
+				</select>
+				<label class="checkbox-inline">
+					<input type="checkbox" value="Mute" data-toggle="toggle"> Mute
+				</label>
+				<label class="checkbox-inline">
+					<input type="checkbox" value="Color" data-toggle="toggle"> Pick Color
+				</label>
+				<label class="checkbox-inline">
+					<input type="checkbox" value="Lock" data-toggle="toggle"> Lock
+				</label>
+				<label class="checkbox-inline">
+					<input type="range" min="60" max="250" value="120" class="volumeSlider"> Volume
+				</label>
 			</div>
 		</div>
 	</div><!-- end row -->

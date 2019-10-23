@@ -188,8 +188,10 @@ class MidiAbstractionLayer
         }
     }
 
-    ParseMidiFile(midiFileObject)
+    ParseMidiFile(midiData)
     {
+        var midiFileObject = MidiParser.parse(midiData);
+
         var timeDivision = midiFileObject.timeDivision;
         var tracks = midiFileObject.track;
         var noteOnEvent = 9;
@@ -198,6 +200,10 @@ class MidiAbstractionLayer
 
         var trackNumber = 0;
 
+        var ActiveNotesMappedToTheirStartTick = {};
+        var TickToPitchMidiValueDictionary = {};
+        var TimeSignatureEvents = {};
+        var TabberInputData = '';
         this.ActiveNotesMappedToTheirStartTick = {};
         this.TickToPitchMidiValueDictionary = {};
         this.TimeSignatureEvents = {};
@@ -209,6 +215,8 @@ class MidiAbstractionLayer
             var trackAbsoluteTime = 0;
 
             var currentEventTickValue = 0
+            var TimeSignatureEvents = {}
+            var TickToPitchMidiValueDictionary = {}
 
             track.forEach(function(midiEvent)
             {
@@ -254,7 +262,7 @@ class MidiAbstractionLayer
         }, this, trackNumber);
     }
 
-    ParsePitchDeltas()
+    ParseImportedMidiPitchDeltas()
     {
         this.TabberInputData = '';
         var tickInstanceKeyList = [];
@@ -328,13 +336,56 @@ class MidiAbstractionLayer
 
         return score;
     }
+    //Import options:
+    //midi file
+    //"from canvas"
 
-    GenerateTab(event)
+    //Export options:
+    //midi file
+    //tablature
+    ExportMidiNotes(score,filename)
+    {
+        var fileData = this.GenerateMidiFile(score)
+
+        //Translate midi data to byte array
+        const bytes = new Uint8Array(fileData.length);
+        for (let i = 0; i < fileData.length; i++)
+        {
+            bytes[i] = fileData.charCodeAt(i);
+        }
+
+        //Save midi file
+        var blob = new Blob([bytes], {type: "audio/midi; charset=binary"});
+        saveAs(blob, filename);
+    }
+
+    GenerateTabFromCanvas(score)
+    {
+        var fileData = this.GenerateMidiFile(score);
+        //Translate midi data to byte array
+        const bytes = new Uint8Array(fileData.length);
+        for (let i = 0; i < fileData.length; i++)
+        {
+            bytes[i] = fileData.charCodeAt(i);
+        }
+
+        //Save midi file
+        var blob = new Blob([bytes], {type: "audio/midi; charset=binary"});
+
+        this.ParseMidiFile(bytes);
+        return this.GenerateTabFromImportedMidi();
+    }
+
+    GenerateTabFromImportedMidi()
+    {
+        this.ParseImportedMidiPitchDeltas();
+        return this.GenerateTab();
+    }
+
+    GenerateTab()
     {
         var tuningPitches = [23, 28, 33, 38, 43, 47,52];
         var tuningStrings = "BEADGBe";
-
-        this.ParsePitchDeltas();
 
         var failure = undefined;
 
