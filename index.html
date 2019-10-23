@@ -52,7 +52,7 @@
 <body>
 
 <div class="container">
-	<div class="row">
+	<h2>Browser Composer</h2>
         <div class="col-sm-2">
             <!--- This column contains edit palletes-->
 			<ul class="nav nav-tabs">
@@ -61,140 +61,145 @@
 				<li id="ptab" ><a data-toggle="tab" href="#preview">👁</a></li>
 				<li id="ttab" ><a data-toggle="tab" href="#tabber">🎸</a></li>
 			</ul>
-			<div class="tab-content">
-				<div id="keys" class="tab-pane fade">
-                    <div id="helpMenu">
-                        <br>
-                        Explore
-                        <br>
-                        <br>
-                        <p>↑↓: Navigate</p>
-                        <p>Tab: Tonality </p>
-                        <p> ~ : Mode </p>
-                        <p>[ ]: Play </p>
-                        <p>s-[ ]: Replay </p>
-                        <p>c-[ ]: Replay all </p>
+			<div class="row">
+				<div class="tab-content">
+					<div id="keys" class="tab-pane fade">
+						<div id="helpMenu">
+							<br>
+							Explore
+							<br>
+							<br>
+							<p>↑↓: Navigate</p>
+							<p>Tab: Tonality </p>
+							<p> ~ : Mode </p>
+							<p>[ ]: Play </p>
+							<p>s-[ ]: Replay </p>
+							<p>c-[ ]: Replay all </p>
 
-                        <br>
-                        Modes
-                        <br>
-                        <br>
-						<p>Z: Create</p>
-						<p>X: Select</p>
-                        <br>
-                        Commands
-                        <br>
-                        <br>
-                        <p>W: Invertible Swap</p>
-						<p>C: Copy</p>
-                        <p>V: Paste</p>
-                        <p>D: Delete</p>
-                        <p>R: Append</p>
-                        <p>c-A: Select all</p>
-						<p>c-Z: Undo</p>
-						<p>s-Z: Redo</p>
-                    </div>
-				</div>  <!-- end help tab -->
-				<div id="settings" class="tab-pane fade in active">
-                    <br>
-					Invertible Counterpoint
-					<div class="form-group" id="Analysis">
-                        <div class="radio">
-                            <label><input type="radio" name="optradio0" value=0>None</label>
-                        </div>
-						<div class="radio">
-						    <label><input type="radio" name="optradio0" value=1 checked="checked">At the 15th</label>
+							<br>
+							Modes
+							<br>
+							<br>
+							<p>Z: Create</p>
+							<p>X: Select</p>
+							<br>
+							Commands
+							<br>
+							<br>
+							<p>W: Invertible Swap</p>
+							<p>C: Copy</p>
+							<p>V: Paste</p>
+							<p>D: Delete</p>
+							<p>R: Append</p>
+							<p>c-A: Select all</p>
+							<p>c-Z: Undo</p>
+							<p>s-Z: Redo</p>
 						</div>
-						<div class="radio">
-						    <label><input type="radio" name="optradio0" value=2>At at 12th</label>
-						</div>
-						<div class="radio">
-						    <label><input type="radio" name="optradio0" value=3>At at 10th</label>
-						</div>
-					</div>
-                    Playback Options
-					<div class="form-group" id="PlayPreview">
-						<div class="radio">
-    						<label><input type="radio" name="optradio1" value=0 checked="checked">Solo</label>
-						</div>
-						<div class="radio">
-						    <label><input type="radio" name="optradio1" value=1>Chords</label>
-						</div>
-						<div class="radio">
-						    <label><input type="radio" name="optradio1" value=2>Suspensions</label>
-						</div>
-					</div>
-                    <!--
-                    Play Duration
-					<div class="form-group" id="Playback">
-						<div class="radio">
-						    <label><input type="radio" name="optradio2" value=1 checked="checked">Current grid</label>
-						</div>
-						<div class="radio">
-						    <label><input type="radio" name="optradio2" value=2>All</label>
-						</div>
-					</div>
-                    -->
-
-                    <div class="slidecontainer">
-                        <p id="TempoPreview">Tempo:</p>
-                        <input type="range" min="60" max="250" value="120" class="slider" id="TempoSlider">
-                    </div>
-                    <br>
-				</div> <!-- end mode tab -->
-
-                <div id="preview" class="tab-pane fade in">
-					<div id="gridboxNavigator">
-							<div id="GridboxArray" style="border: 1px solid black">
+					</div>  <!-- end help tab -->
+					<div id="settings" class="tab-pane fade in active">
+						<br>
+						Invertible Counterpoint
+						<div class="form-group" id="Analysis">
+							<div class="radio">
+								<label><input type="radio" name="optradio0" value=0>None</label>
 							</div>
-					</div>
-				</div> <!-- end preview tab -->
+							<div class="radio">
+								<label><input type="radio" name="optradio0" value=1 checked="checked">At the 15th</label>
+							</div>
+							<div class="radio">
+								<label><input type="radio" name="optradio0" value=2>At at 12th</label>
+							</div>
+							<div class="radio">
+								<label><input type="radio" name="optradio0" value=3>At at 10th</label>
+							</div>
+						</div>
+						Playback Options
+						<div class="form-group" id="PlayPreview">
+							<div class="radio">
+								<label><input type="radio" name="optradio1" value=0 checked="checked">Solo</label>
+							</div>
+							<div class="radio">
+								<label><input type="radio" name="optradio1" value=1>Chords</label>
+							</div>
+							<div class="radio">
+								<label><input type="radio" name="optradio1" value=2>Suspensions</label>
+							</div>
+						</div>
+						<!--
+						Play Duration
+						<div class="form-group" id="Playback">
+							<div class="radio">
+								<label><input type="radio" name="optradio2" value=1 checked="checked">Current grid</label>
+							</div>
+							<div class="radio">
+								<label><input type="radio" name="optradio2" value=2>All</label>
+							</div>
+						</div>
+						-->
 
-                <div id="tabber" class="tab-pane fade in">
-                    <div id="tablatureSettings">
+						<div class="slidecontainer">
+							<p id="TempoPreview">Tempo:</p>
+							<input type="range" min="60" max="250" value="120" class="slider" id="TempoSlider">
+						</div>
+						<br>
+					</div> <!-- end mode tab -->
 
-                        <!-- end preview tab <div id="GridboxArray" style="border: 1px solid black"></div> -->
+					<div id="preview" class="tab-pane fade in">
+						<div id="gridboxNavigator">
+								<div id="GridboxArray" style="border: 1px solid black">
+								</div>
+						</div>
+					</div> <!-- end preview tab -->
 
-						<form id="TabSettingsForm">
-							<h4>Tab settings:</h4>
-							<label for="frets">Frets:</label><br>
-							<input type="number" name="frets" id="frets" min="0" max="24" value="12" /> <br>
-							<label for="strings">Instrument tuning:</label><br>
-							<input list="stringsList" id="strings" name="strings"value="e1,a1,d2,g2,b2,e3">
-                            <datalist id="stringsList">
-                                <option value="e1,a1,d2,g2,b2,e3"> Std. 6</option>
-                                <option value="d1,a1,d2,g2,b2,e3"> Drop-D 6</option>
-                                <option value="b0,e1,a1,d2,g2,b2,e3"> Std. 7</option>
-                                <option value="d3,g2,b2,e3">Ukulele</option>
-                            </datalist><br>
+					<div id="tabber" class="tab-pane fade in">
+						<div id="tablatureSettings">
 
-							<label for="transpose">Transposition:</label><br>
-							<input type="number" name="transpose" id="transpose" value="0" /> <br>
-							<label for="screenLength">Screen length:</label><br>
-							<input type="number" name="screenLength" id="screenLength" value="250" /> <br>
+							<!-- end preview tab <div id="GridboxArray" style="border: 1px solid black"></div> -->
 
-							<br><h4>Optimization costs:</h4>
-							<label for="neckCost">Fret position:</label><br>
-							<input type="number" name="neckCost" id="neckCost" min="0" max="10000" width="50" value="4500" /> <br>
-							<label for="spanCost">Fret span:</label><br>
-							<input type="number" name="spanCost" id="spanCost" min="0" max="10000" width="50" value="3000" /> <br>
-							<label for="diffCost">Fret difference:</label><br>
-							<input type="number" name="diffCost" id="diffCost" min="0" max="10000" width="50" value="6500" /> <br>
-							<label for="sustainCost">Note sustain:</label><br>
-							<input type="number" name="sustainCost" id="sustainCost" min="0" max="10000" width="50" value="1000" /> <br>
-							<label for="arpeggioCost">Arpeggiation:</label><br>
-							<input type="number" name="arpeggioCost" id="arpeggioCost" min="0" max="10000" width="50" value="1000" /> <br>
+							<form id="TabSettingsForm">
+								<h4>Tab settings:</h4>
+								<label for="frets">Frets:</label><br>
+								<input type="number" name="frets" id="frets" min="0" max="24" value="12" /> <br>
+								<label for="strings">Instrument tuning:</label><br>
+								<input list="stringsList" id="strings" name="strings"value="e1,a1,d2,g2,b2,e3">
+								<datalist id="stringsList">
+									<option value="e1,a1,d2,g2,b2,e3"> Std. 6</option>
+									<option value="d1,a1,d2,g2,b2,e3"> Drop-D 6</option>
+									<option value="b0,e1,a1,d2,g2,b2,e3"> Std. 7</option>
+									<option value="d3,g2,b2,e3">Ukulele</option>
+								</datalist><br>
 
-							<input class="midi-form-button" type="submit" name="tab" value="Generate Tab" />
-						</form>
+								<label for="transpose">Transposition:</label><br>
+								<input type="number" name="transpose" id="transpose" value="0" /> <br>
+								<label for="screenLength">Screen length:</label><br>
+								<input type="number" name="screenLength" id="screenLength" value="250" /> <br>
 
-                    </div>
-                </div> <!-- end preview tab -->
-            </div> <!-- end tabular content -->
+								<br><h4>Optimization costs:</h4>
+								<label for="neckCost">Fret position:</label><br>
+								<input type="number" name="neckCost" id="neckCost" min="0" max="10000" width="50" value="4500" /> <br>
+								<label for="spanCost">Fret span:</label><br>
+								<input type="number" name="spanCost" id="spanCost" min="0" max="10000" width="50" value="3000" /> <br>
+								<label for="diffCost">Fret difference:</label><br>
+								<input type="number" name="diffCost" id="diffCost" min="0" max="10000" width="50" value="6500" /> <br>
+								<label for="sustainCost">Note sustain:</label><br>
+								<input type="number" name="sustainCost" id="sustainCost" min="0" max="10000" width="50" value="1000" /> <br>
+								<label for="arpeggioCost">Arpeggiation:</label><br>
+								<input type="number" name="arpeggioCost" id="arpeggioCost" min="0" max="10000" width="50" value="1000" /> <br>
+
+								<input class="midi-form-button" type="submit" name="tab" value="Generate Tab" />
+							</form>
+
+						</div>
+					</div> <!-- end preview tab -->
+				</div> <!-- end tabular content -->
+				
+			</div> <!-- end row -->
 		</div> <!-- end column -->
 
         <!--- This column contains the main editing box -->
         <div class="col-sm-10">
+	<div class="row">
+    </div> <!-- end row -->
             <div id="gridboxContainer" class="context-menu-target">
                     <div id="gridbox" >
                         <div id="testDZ" action="/file-upload">
@@ -204,12 +209,10 @@
                         </div>
                 </div>
             </div>
-        </div>
-    </div> <!-- end row -->
 
 
 	<div class="row">
-		<div class="container" id="trackbox">
+			<div id="trackbox">
             <div class="trackrow" value="0">
 				<select class="InstrumentSelector" value="Guitar">
 				</select>
@@ -222,9 +225,10 @@
 				<label class="checkbox-inline">
 					<input type="checkbox" value="Lock" data-toggle="toggle"> Lock
 				</label>
+				<!-- end row 
 				<label class="checkbox-inline">
 					<input type="range" min="60" max="250" value="120" class="volumeSlider"> Volume
-				</label>
+				</label>-->
 			</div>
 			<div class="trackrow" value="1">
 				<select class="InstrumentSelector" value="Guitar">
@@ -238,9 +242,10 @@
 				<label class="checkbox-inline">
 					<input type="checkbox" value="Lock" data-toggle="toggle"> Lock
 				</label>
+				<!-- end row 
 				<label class="checkbox-inline">
 					<input type="range" min="60" max="250" value="120" class="volumeSlider"> Volume
-				</label>
+				</label>-->
 			</div>
             <div class="trackrow" value="2">
 				<select class="InstrumentSelector" value="Guitar">
@@ -254,9 +259,10 @@
 				<label class="checkbox-inline">
 					<input type="checkbox" value="Lock" data-toggle="toggle"> Lock
 				</label>
+				<!-- end row 
 				<label class="checkbox-inline">
 					<input type="range" min="60" max="250" value="120" class="volumeSlider"> Volume
-				</label>
+				</label>-->
 			</div>
 			<div class="trackrow" value="3">
 				<select class="InstrumentSelector" value="Guitar">
@@ -270,13 +276,15 @@
 				<label class="checkbox-inline">
 					<input type="checkbox" value="Lock" data-toggle="toggle"> Lock
 				</label>
+				<!-- end row 
 				<label class="checkbox-inline">
 					<input type="range" min="60" max="250" value="120" class="volumeSlider"> Volume
-				</label>
+				</label>-->
 			</div>
-		</div>
+		</div> <!-- end trackbox -->
 	</div><!-- end row -->
 </div>
+        </div>
 <nav id="context-menu" class="context-menu">
 	<ul class="context-menu__items">
 	  <li class="context-menu__item">

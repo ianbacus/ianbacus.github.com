@@ -8,7 +8,14 @@ html,body {
     opacity:50%;
 }
 
-.keynote2
+.tab-content
+{
+    overflow-y:scroll;
+	width:100%;
+	height:500px;
+}
+
+.keynote
 {
     -webkit-animation: fadein .5s; /* Safari, Chrome and Opera > 12.1 */
        -moz-animation: fadein .5s; /* Firefox < 16 */
@@ -44,6 +51,11 @@ html,body {
 *::after {
   box-sizing: border-box;
 }
+
+#trackbox
+{
+	padding-top:50px;
+}
 .context-menu {
   display: none;
   position: absolute;
@@ -57,23 +69,38 @@ html,body {
 
 .trackrow
 {
-    padding-left:50px;
+	padding-bottom:10px;
+	padding-top:10px;
+	padding-left:50px;
+	width:40%;
+	border-radius: 25px;
+  
   display: block;
   margin-left: auto;
   margin-right: auto;
-      width:50%;border-radius: 25px;
+	opacity:.8;
 }
+
+
 .trackrow .volumeSlider{
-    width:100%;
+    width:50%;
 }
-.trackrow:nth-child(2n)
+.trackrow:nth-child(1)
 {
-    background-color: #975b20;
+    background-color: black;
 
 }
-.trackrow:nth-child(2n+1)
+.trackrow:nth-child(2)
 {
-    background-color:  #d68a3f;
+    background-color:  darkgoldenrod;
+}
+.trackrow:nth-child(3)
+{
+    background-color:  purple;
+}
+.trackrow:nth-child(4)
+{
+    background-color:  red;
 }
 
 .context-menu--active {
