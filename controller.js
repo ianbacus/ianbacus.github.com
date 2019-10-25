@@ -507,7 +507,7 @@ class Controller
         var pitch = this.ChromaticKeyMap[keyCharacter];
         var midiKeyPressed = pitch != undefined;
 
-        var keyAlreadyPressed = this.PressedKeys[keyCharacter] != undefined
+        var keyAlreadyPressed = this.PressedKeys[keyCharacter] != undefined;
 
         //Create a note
         if(midiKeyPressed)
@@ -517,28 +517,28 @@ class Controller
             {
                 if(this.MidiKeysDown == 0)
                 {
-                    this.KickstartMidiControllerTimeout()
+                    this.KickstartMidiControllerTimeout();
                 }
 
-                var previewNote = this.CreateMidiControllerNote(pitch)
+                var previewNote = this.CreateMidiControllerNote(pitch);
 
                 var instrumentCode = this.TrackInstruments[previewNote.CurrentTrack];
-                previewNote.PlayIndefinitely(this.MillisecondsPerTick, instrumentCode)
+                previewNote.PlayIndefinitely(this.MillisecondsPerTick, instrumentCode);
 
                 this.Model.AddNote(previewNote, 0, this.Model.Score.NoteArray, false);
                 this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
-                this.PressedKeys[keyCharacter] = previewNote
-                this.MidiKeysDown++
+                this.PressedKeys[keyCharacter] = previewNote;
+                this.MidiKeysDown++;
             }
 
             else if((event.type == "keyup") && keyAlreadyPressed)
             {
-                var previewNote = this.PressedKeys[keyCharacter]
-                previewNote.ForceNoteOff()
+                var previewNote = this.PressedKeys[keyCharacter];
+                previewNote.ForceNoteOff();
                 this.View.ApplyNoteStyle(previewNote, this.NoteColorationMode);
 
-                this.PressedKeys[keyCharacter] = undefined
-                this.MidiKeysDown--
+                this.PressedKeys[keyCharacter] = undefined;
+                this.MidiKeysDown--;
             }
         }
 
