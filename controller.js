@@ -205,6 +205,13 @@ class Controller
 		//m_this.Track[trackIndex].InstrumentEnum[instrumentCode];
         //console.log("Track " + trackIndex + " instrument change", instrumentCode, eventData);
 	}
+    UpdateTracks(trackList)
+    {
+        trackList.forEach(function(e)
+        {
+
+        });
+    }
 
 	OnTrackButton(eventData)
 	{
