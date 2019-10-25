@@ -432,13 +432,21 @@ class Model
         this.GridPreviewList[this.GridPreviewIndex] = scoreObject;
     }
 
+	GotoGridView(index)
+	{
+		if((index <= this.GridPreviewList.length-1) && (index >= 0))
+		{
+			this.GridPreviewIndex = index;
+			this.Score = this.GridPreviewList[this.GridPreviewIndex];
+		}
+	}
+	
     GotoPreviousGrid()
     {
         if(this.GridPreviewIndex > 0)
         {
             this.GridPreviewIndex--;
             this.Score = this.GridPreviewList[this.GridPreviewIndex];
-
         }
     }
 

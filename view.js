@@ -98,7 +98,8 @@ class View
         //page UI
         onSliderChange,
         onTrackSliderChange,onTrackSelectChange,onTrackButton,
-        onPageUnload,radioButtonHandler)
+        onPageUnload,radioButtonHandler,
+		onGridClick)
     {
         this.Maingrid = $("#gridbox");
         this.GridboxContainer = $("#gridboxContainer");
@@ -141,11 +142,17 @@ class View
         this.SliderHandler = onSliderChange;
         this.SelectHandler = onTrackSelectChange;
         this.OnTrackButton = onTrackButton;
+		this.OnGridClick = onGridClick
 
         $(document).on('input change', '#TempoSlider',this.OnSliderChange);
         $(document).on('input change', '.volumeSlider',this.OnSliderChange);
-        //$('select').on('change', '.InstrumentSelector', this.OnSelectChange);
         $(document).on('select change', '.InstrumentSelector', this.OnSelectChange);
+		
+		$(document).on("click", ".gridCanvas", function(e)
+		{
+			v_this.OnGridClick(parseInt(this.attributes.gridindex.value));
+		});
+		
         //$('select').on('change', function() {alert( this.value );});
 
         //$(document).on('select change', this.OnSelectChange);
@@ -503,6 +510,7 @@ class View
 
     RenderGridArray(gridImages, selectedIndex)
     {
+		//TODO: make this more efficient, do not re-render everything
         var numberOfEntries = gridImages.length;
         var domGridArray = this.GridArray;
         domGridArray.empty();
@@ -512,21 +520,21 @@ class View
         {
             var image = gridImages[nodeIndex];
             var canvasNode = $('<canvas/>');
-            canvasNode.addClass("gridCanvas")
+            canvasNode.addClass("gridCanvas").attr("gridIndex", nodeIndex);
             domGridArray.append(canvasNode);
 
             if(nodeIndex == selectedIndex)
             {
                 canvasNode.css({'border':'solid purple 3px'});
             }
-            else {
+            else 
+			{
                 canvasNode.css({'border':'solid black 1px'});
             }
 
             try {
                 if(image != null)
                 {
-                    console.log(image)
                     //var dataurl = image.toDataURL()
                     var context = canvasNode[0].getContext("2d");
                     var cWidth = canvasNode.width()*2;

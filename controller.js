@@ -559,13 +559,33 @@ class Controller
             }
         }
     }
-
+	
     CompareNoteWithPitch(pitch, note)
     {
         return pitch - note.Pitch;
     }
 
-    MidiControllerKeyCallback(event)
+	MidiControllerInstantKeyCallback(event)
+	{
+        var keyCharacter = event.key.toLowerCase();
+        var pitch = this.ChromaticKeyMap[keyCharacter];
+        var midiKeyPressed = pitch != undefined;
+
+        var keyAlreadyPressed = this.PressedKeys[keyCharacter] != undefined;
+
+        //Create a note
+        if(midiKeyPressed)
+        {
+            //Instantiate a note. Check if any ticks have elapsed since the last note placed.
+			//Determine how many ticks should pass after a note is pressed before it is no longer 
+			//considered simultaneous. maybe add visual feedback for that. 
+			//just keep adding notes to the buffer with the same length as the last note.
+			//add a "current note length" picker 
+			
+		} //todo refactor midi controller
+	}
+	
+    MidiControllerQuantizedKeyCallback(event)
     {
         var keyCharacter = event.key.toLowerCase();
         var pitch = this.ChromaticKeyMap[keyCharacter];
@@ -714,7 +734,8 @@ class Controller
 
         if(keyupThisPointer.EditorMode == editModeEnumeration.MidiControllerMode)
         {
-            eventHandled = keyupThisPointer.MidiControllerKeyCallback(event)
+            eventHandled = keyupThisPointer.MidiControllerQuantizedKeyCallback(event)
+            //eventHandled = keyupThisPointer.MidiControllerInstantKeyCallback(event)
         }
 
         if(!eventHandled)
@@ -726,7 +747,12 @@ class Controller
 	SetGridWidth(gridWidth)
 	{
 		this.Model.Score.GridWidth = gridWidth;
-		this.View.GridWidthTicks = gridWidth;
+		this.RefreshGridboxBackground()
+	}
+	
+	RefreshGridboxBackground()
+	{
+		this.View.GridWidthTicks = this.Model.Score.GridWidth;
 		this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
 	}
 
@@ -794,7 +820,8 @@ class Controller
 
             break;
 
-		case 219: //"{" key
+		case 219: //"[" key
+			//Make sure not to underflow past note ticks
 			var gridWidth = this.View.GridWidthTicks - 16;
 			var lastTick = 512;
 			var score = this.Model.Score.NoteArray;
@@ -814,7 +841,7 @@ class Controller
 			}
 			break;
 
-		case 221: //"}" key
+		case 221: //"]" key
 			var gridWidth = this.View.GridWidthTicks + 16;
 			this.SetGridWidth(gridWidth);
 			break;
@@ -933,16 +960,15 @@ class Controller
             this.Model.CreateGridPreview();
             this.RefreshGridPreview();
             break;
-        case 38: //up arrow: select grid
+        case 38: //up arrow: go to previous grid
+			//TODO: if notes are selected move them up and down and side to side 
             event.preventDefault();
-			var upwardDirection = true;
-            this.HandleGridMove(upwardDirection);
+            this.HandleGridMove(this.Model.GridPreviewIndex-1);
             this.RefreshGridPreview();
             break;
-        case 40: //down arrow: select grid
+        case 40: //down arrow: go to next grid 
             event.preventDefault();
-			var upwardDirection = false;
-            this.HandleGridMove(upwardDirection);
+            this.HandleGridMove(this.Model.GridPreviewIndex+1);
             this.RefreshGridPreview();
             break;
         }
@@ -1040,29 +1066,17 @@ class Controller
         });
     }
 
-    HandleGridMove(upwardsDirection)
+    HandleGridMove(gridIndex)
     {
         var moveFunction;
         var copyBuffer = [];
+		var oldGridIndex = this.Model.GridPreviewIndex
         var newGridIndex;
 		var newGridWidth = 0;
 
 		var originalGridWidth = this.View.GridWidthTicks;
 
-        if(upwardsDirection)
-        {
-            moveFunction = this.Model.GotoPreviousGrid;
-            newGridIndex = Math.max(this.Model.GridPreviewIndex-1, 0);
-        }
-
-        else
-        {
-            moveFunction = this.Model.GotoNextGrid;
-            newGridIndex = Math.min(this.Model.GridPreviewIndex+1, this.Model.GridPreviewList.length-1);
-        }
-
         this.Model.SetCurrentGridPreview(this.Model.Score);
-
         this.console.log("Transport begin");
 
         //Capture any selected notes and delete them before changing grids
@@ -1076,12 +1090,14 @@ class Controller
         this.DeleteSelectedNotes(false, 0);
 
         //Change to the next grid
-        moveFunction.call(this.Model);
-
+        //moveFunction.call(this.Model);
+		this.Model.GotoGridView(gridIndex);
+		newGridIndex = this.Model.GridPreviewIndex;
+		
         //Instantiate the copied notes in the next buffer
         copyBuffer.forEach(function(note)
         {
-            this.console.log("Transporting note: ", note, newGridIndex);
+            console.log("Transporting note: ", note, oldGridIndex, newGridIndex);
 			note.CurrentGridIndex = newGridIndex;
             this.Model.AddNote(note, 0, this.Model.Score.NoteArray, false);
             this.Model.AddNote(note, 0, this.Model.SelectedNotes, false);
@@ -2011,7 +2027,13 @@ class Controller
 
         c_this.AnalyzeIntervals(score);
     }
-
+	OnGridClick(gridIndex)
+	{
+		console.log(gridIndex)
+		c_this.HandleGridMove(gridIndex);
+		c_this.RefreshGridPreview();
+		c_this.RefreshGridboxBackground();
+	}
     GetNoteRectangle(note)
     {
         var x1Value = this.View.ConvertTicksToXIndex(note.StartTimeTicks);

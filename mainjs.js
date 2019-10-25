@@ -62,8 +62,13 @@ Dropzone.options.testDZ = {
 
             setTimeout(function()
             {
-                var {score, trackList} = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel();
-                if(score.length > 0)
+                //var {score, trackList} = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel();
+                var scoreModel = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel();
+                
+				score = scoreModel.noteBuffer;
+				trackList = scoreModel.tracks;
+				console.log(score)
+				if(score.length > 0)
                 {
                     var lastNote = score[score.length-1];
                     var lastTick = lastNote.StartTimeTicks + lastNote.Duration;
@@ -172,6 +177,7 @@ $( function()
         ScoreController.OnSliderChange,
         ScoreController.OnTrackSliderChange, ScoreController.OnTrackSelectChange, ScoreController.OnTrackButton,
         OnPageUnload, ScoreController.OnRadioButtonPress,
+		ScoreController.OnGridClick
     );
 
     ScoreController.Initialize(deserializedControllerData);
@@ -184,7 +190,8 @@ $( function()
         // .mouseenter(onHoverBegin)
         // .mouseleave(onHoverEnd)
     $(".trackrow").mouseenter(function(e){console.log("track: hello")}).mouseleave(function(e){console.log("track: goodbye")});
-    $(".gridCanvas").mouseenter(function(){console.log("controller: go to grid view");});
+	
+	
     //$("#GridboxArray").mousedown(function(){console.log("controller: go to grid view");});
 
     $(document).on('dragstart','#testDZ', function(e)
