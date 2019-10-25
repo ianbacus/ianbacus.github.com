@@ -165,6 +165,15 @@ $( function()
 
     $(".loader").hide();
 
+        // .mousemove(this.OnMouseMove)
+        // .mousedown(onMouseClickDown)
+        // .mouseup(onMouseClickUp)
+        // .mouseenter(onHoverBegin)
+        // .mouseleave(onHoverEnd)
+    $(".trackrow").mouseenter(function(e){console.log("track: hello")}).mouseleave(function(e){console.log("track: goodbye")});
+    $(".gridCanvas").mouseenter(function(){console.log("controller: go to grid view");});
+    //$("#GridboxArray").mousedown(function(){console.log("controller: go to grid view");});
+
     $(document).on('dragstart','#testDZ', function(e)
     {
         console.log("start")
