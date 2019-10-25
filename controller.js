@@ -284,7 +284,7 @@ class Controller
         if(trackNumber < v_this.TrackColors.length)
         {
             var track = $('<div>', { class: "trackrow", value:trackNumber, "background-color": v_this.TrackColors[trackNumber], border:'black'});
-            var instrumentSelector = $('<select>', { class:"InstrumentSelector", value:"Guitar", text: "📯"});
+            var instrumentSelector = $('<select>', { class:"InstrumentSelector", val:"Guitar", text: "📯"});
             //var toggleMute = $('<input>', { text: "⛤"});
             //var toggleLock = $('<input>', { typetext: "⛶"});
             var toggleMute = '<label class="checkbox-inline"> <input type="checkbox" value="Mute" data-toggle="toggle"> ⛤ </label>'

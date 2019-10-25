@@ -144,7 +144,10 @@ class View
 
         $(document).on('input change', '#TempoSlider',this.OnSliderChange);
         $(document).on('input change', '.volumeSlider',this.OnSliderChange);
-        $('select').on('change', this.OnSelectChange);
+        //$('select').on('change', '.InstrumentSelector', this.OnSelectChange);
+        $(document).on('select change', '.InstrumentSelector', this.OnSelectChange);
+        //$('select').on('change', function() {alert( this.value );});
+
         //$(document).on('select change', this.OnSelectChange);
 
         $(document).on('input[type=checkbox] change', '.trackrow',this.OnTrackButton);
