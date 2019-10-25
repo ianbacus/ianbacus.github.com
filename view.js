@@ -144,7 +144,11 @@ class View
 
         $(document).on('input change', '#TempoSlider',this.OnSliderChange);
         $(document).on('input change', '.volumeSlider',this.OnSliderChange);
-        $('select').change(this.OnSelectChange);
+        //$('select').on('change', '.InstrumentSelector', this.OnSelectChange);
+        $(document).on('select change', '.InstrumentSelector', this.OnSelectChange);
+        //$('select').on('change', function() {alert( this.value );});
+
+        //$(document).on('select change', this.OnSelectChange);
 
         $(document).on('input[type=checkbox] change', '.trackrow',this.OnTrackButton);
         $(window).on('beforeunload', function ()
@@ -155,8 +159,8 @@ class View
 
         this.Maingrid.bind('mousewheel DOMMouseScroll', onMouseScroll);
 
-        $("#trackbox select").change();
-        $("#trackbox input").change();
+        //$("#trackbox select").change();
+        //$("#trackbox input").change();
     }
 
 	Serialize()
@@ -174,6 +178,7 @@ class View
 
     OnSelectChange(event)
     {
+        console.log(this,event)
         v_this.SelectHandler(this.value,event);
         $('select').blur();
         //v_this.Maingrid.focus();
@@ -507,6 +512,7 @@ class View
         {
             var image = gridImages[nodeIndex];
             var canvasNode = $('<canvas/>');
+            canvasNode.addClass("gridCanvas")
             domGridArray.append(canvasNode);
 
             if(nodeIndex == selectedIndex)
@@ -520,7 +526,8 @@ class View
             try {
                 if(image != null)
                 {
-                    var dataurl = image.toDataURL()
+                    console.log(image)
+                    //var dataurl = image.toDataURL()
                     var context = canvasNode[0].getContext("2d");
                     var cWidth = canvasNode.width()*2;
                     var cHeight = canvasNode.height()*2;
@@ -581,7 +588,6 @@ class View
 		var mainGridHeight = this.Maingrid.height();
         var maximumPitch = this.MaximumPitch;
         $(".keynote").remove();
-        $(".keynote2").remove();
 
         function functionRenderKeyRow(offsetY, colorIndex, noteOpacity,cursorX, cursorY)
         {

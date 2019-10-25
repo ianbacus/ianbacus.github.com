@@ -26,6 +26,18 @@ var lastTarget = 0
 // ScoreModel.console = console;
 //ScoreController.console = console;
 
+///Directory
+/*
+controller
+    UI: Grid, note manipulation, selection rectangles, form handlers, track mode control, harmony analysis
+
+mainJS: dropzone, subscriptions, initialization
+midiApi: midi export and import, tab generation
+view: highlighting, coloring, rendering notes, playback animation, menu population
+model: Notes, Scores, sorting, undo/redo,
+Harmony analysis
+*/
+
 Dropzone.autoDiscover = false;
 Dropzone.options.testDZ = {
     url: "/file-upload",
@@ -50,7 +62,7 @@ Dropzone.options.testDZ = {
 
             setTimeout(function()
             {
-                var score = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel();
+                var {score, trackList} = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel();
                 if(score.length > 0)
                 {
                     var lastNote = score[score.length-1];
@@ -61,6 +73,7 @@ Dropzone.options.testDZ = {
                     ScoreModel.MergeSort(ScoreModel.Score.NoteArray);
 
                     ScoreController.RefreshNotesAndKey();
+                    ScoreController.UpdateTracks(trackList);
                 }
             }, 20);
 			return false;
@@ -164,6 +177,15 @@ $( function()
     ScoreController.Initialize(deserializedControllerData);
 
     $(".loader").hide();
+
+        // .mousemove(this.OnMouseMove)
+        // .mousedown(onMouseClickDown)
+        // .mouseup(onMouseClickUp)
+        // .mouseenter(onHoverBegin)
+        // .mouseleave(onHoverEnd)
+    $(".trackrow").mouseenter(function(e){console.log("track: hello")}).mouseleave(function(e){console.log("track: goodbye")});
+    $(".gridCanvas").mouseenter(function(){console.log("controller: go to grid view");});
+    //$("#GridboxArray").mousedown(function(){console.log("controller: go to grid view");});
 
     $(document).on('dragstart','#testDZ', function(e)
     {

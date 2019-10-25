@@ -309,6 +309,7 @@ class MidiAbstractionLayer
     ConvertPitchDeltasToScoreModel()
     {
         var score = [];
+        var trackList = [];
 
         Object.keys(this.TickToPitchMidiValueDictionary).forEach(function(currentTicks)
         {
@@ -319,6 +320,11 @@ class MidiAbstractionLayer
                 var pitch = parseInt(pitchDuration.Pitch);
                 var duration = parseInt(pitchDuration.Duration);
                 var track = parseInt(pitchDuration.Track);
+
+                if(!trackList.includes(track))
+                {
+                    trackList.push(track);
+                }
 
                 var note = new Note(
                     startTimeTicks,
@@ -334,7 +340,11 @@ class MidiAbstractionLayer
 
         $(".loader").hide();
 
-        return score;
+        return {
+            noteBuffer: score,
+            tracks: trackList
+        };
+
     }
     //Import options:
     //midi file

@@ -277,8 +277,8 @@ class Note
 
 	HandleGridMoveReset(currentGridIndex,selectedGridIndex)
 	{
-		var selectStartGridBuffer = m_this.GridPreviewList[selectedGridIndex];
-		var currentGridBuffer = m_this.GridPreviewList[currentGridIndex];
+		var selectStartGridBuffer = m_this.GridPreviewList[selectedGridIndex].NoteArray;
+		var currentGridBuffer = m_this.GridPreviewList[currentGridIndex].NoteArray;
 
 		m_this.DeleteNote(this, 0, currentGridBuffer, false);
 		m_this.AddNote(this, 0, selectStartGridBuffer, false);
@@ -427,8 +427,6 @@ class Model
         return serializedGridListArray;
     }
 
-
-
     SetCurrentGridPreview(scoreObject)
     {
         this.GridPreviewList[this.GridPreviewIndex] = scoreObject;
@@ -455,8 +453,8 @@ class Model
 
     CreateGridPreview()
     {
-        this.GridPreviewList.push([]);
-        this.GridImageList.push([]);
+        this.GridPreviewList.push(new NoteScore());
+        this.GridImageList.push(null);
     }
 
     SortScoreByTicks()
@@ -552,7 +550,7 @@ class Model
         {
             var mostRecentAction = this.ActivityStack[this.ActivityIndex];
             var moveBuffer = mostRecentAction.MoveBuffer;
-            var gridBuffer = this.GridPreviewList[mostRecentAction.GridIndex];
+            var gridBuffer = this.GridPreviewList[mostRecentAction.GridIndex].NoteArray;
 
             this.console.log(
 				"Undoing " + mostRecentAction.Action +
@@ -610,7 +608,7 @@ class Model
             this.ActivityIndex++;
             var mostRecentAction = this.ActivityStack[this.ActivityIndex]
             var moveBuffer = mostRecentAction.MoveBuffer;
-            var gridBuffer = this.GridPreviewList[mostRecentAction.GridIndex];
+            var gridBuffer = this.GridPreviewList[mostRecentAction.GridIndex].NoteArray;
 
             this.console.log(
 				"Redoing " + mostRecentAction.Action +

@@ -82,7 +82,7 @@ class Controller
         this.MillisecondsPerTick = 100;
         this.IntervalTranslator = this.InvertibleCounterpointIntervals[0];
 		this.CurrentInstrument = null;
-        this.Tracks = [new Track(), new Track(),new Track(), new Track(),new Track(), new Track()];
+        this.Tracks = [];
         //this.Tracks.fill(new Track(),0,9);
 
 		//Recoverable state data
@@ -95,6 +95,16 @@ class Controller
 
     }
 
+    InitializeInstrumentSelectors()
+    {
+        var instrumentOptions = [];
+        var instrumentEnumeration = this.Model.InstrumentEnum;
+        this.CurrentInstrument = instrumentEnumeration.flute;//Object.keys(instrumentEnumeration)[0];
+        this.TrackInstruments = [instrumentEnumeration.flute,instrumentEnumeration.flute];
+
+        Object.keys(instrumentEnumeration).forEach(function(key) { instrumentOptions.push(key); });
+        this.View.PopulateSelectMenu(instrumentOptions);
+    }
     Initialize(initializationParameters)
     {
         //Load saved settings
@@ -110,13 +120,7 @@ class Controller
 		}
 
         //Instruments
-        var instrumentOptions = [];
-        var instrumentEnumeration = this.Model.InstrumentEnum;
-        this.CurrentInstrument = instrumentEnumeration.flute;//Object.keys(instrumentEnumeration)[0];
-        this.TrackInstruments = [instrumentEnumeration.flute,instrumentEnumeration.flute];
-
-        Object.keys(instrumentEnumeration).forEach(function(key) { instrumentOptions.push(key); });
-        this.View.PopulateSelectMenu(instrumentOptions);
+        this.InitializeInstrumentSelectors()
 
         //Analysis
         var analysisOption = this.GetModeSettings().AnalysisMode;
@@ -129,6 +133,10 @@ class Controller
 
         var editModeColor = this.EditModeColors[this.EditorMode];
         this.View.SetBorderColor(editModeColor);
+
+        for(var i = 0; i<10; i++)
+            this.AddTrack(i);
+
     }
 
 	Serialize()
@@ -191,12 +199,19 @@ class Controller
 
 	OnTrackSelectChange(instrumentCode, eventData)
 	{
-        console.log(eventData.target);
         var trackIndex = parseInt(eventData.target.parentElement.attributes["value"].value);
+            console.log(eventData.target, trackIndex, instrumentCode);
         c_this.SetTrackInstrument(trackIndex, instrumentCode);
 		//m_this.Track[trackIndex].InstrumentEnum[instrumentCode];
         //console.log("Track " + trackIndex + " instrument change", instrumentCode, eventData);
 	}
+    UpdateTracks(trackList)
+    {
+        trackList.forEach(function(e)
+        {
+
+        });
+    }
 
 	OnTrackButton(eventData)
 	{
@@ -246,6 +261,7 @@ class Controller
             modeBuffer.push(modeSlot);
 		});
 
+        console.log("Render keys in set key reference");
 		this.View.RenderKeys(modeBuffer, this.CursorPosition.x, this.CursorPosition.y);
     }
 
@@ -253,6 +269,54 @@ class Controller
     {
         this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
         this.RefreshEditBoxNotes();
+    }
+
+    AddTrack(trackNumber)
+    {
+        ///Create a new track modifier and unlock edits on that track.
+        ///TODO: call this when music is imported
+        // div class="trackrow" value="0">
+            // <select class="InstrumentSelector" value="Guitar">
+            // </select>
+            // <label class="checkbox-inline">
+            //     <input type="checkbox" value="Mute" data-toggle="toggle"> Mute
+            // </label>
+            // <label class="checkbox-inline">
+            //     <input type="checkbox" value="Color" data-toggle="toggle"> Pick Color
+            // </label>
+            // <label class="checkbox-inline">
+            //     <input type="checkbox" value="Lock" data-toggle="toggle"> Lock
+            // </label>
+
+        if(trackNumber < v_this.TrackColors.length)
+        {
+            var track = $('<div>', { class: "trackrow", value:trackNumber, "background-color": v_this.TrackColors[trackNumber], border:'black'});
+            var instrumentSelector = $('<select>', { class:"InstrumentSelector", val:"Guitar", text: "📯"});
+            //var toggleMute = $('<input>', { text: "⛤"});
+            //var toggleLock = $('<input>', { typetext: "⛶"});
+            var toggleMute = '<label class="checkbox-inline"> <input type="checkbox" value="Mute" data-toggle="toggle"> ⛤ </label>'
+            var toggleLock = '<label class="checkbox-inline"> <input type="checkbox" value="Lock" data-toggle="toggle"> ⛶ </label>'
+
+            var pickColor = $('<div>', { text: "֎"}); //click and hold should pull open a color wheel and change all the track colors so they are different
+            var toggleButton = '<select data-role="slider"><option value="off">Off</option><option value="on">On</option></select>'
+
+            track.append(instrumentSelector);
+            track.append(toggleMute);
+            track.append(toggleLock);
+            track.append(pickColor);
+            track.css('background-color', v_this.TrackColors[trackNumber]);
+
+            $("#trackbox").append(track);
+            this.Tracks.push(new Track())
+            this.SetTrackInstrument(trackNumber, "");
+            this.InitializeInstrumentSelectors();
+        }
+    }
+
+    DeleteTrack(tracknumber)
+    {
+        //TODO
+        alert("todo");
     }
 
     RefreshGridPreview()
@@ -772,6 +836,7 @@ class Controller
             {
                 this.TonicKey = (this.TonicKey+7)%keys;
             }
+            console.log("xx");
             this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
 
             break;
@@ -1875,7 +1940,8 @@ class Controller
 
                     note.HorizontalModify(newPosition, newDuration, sequenceNumber);
                 }
-            });
+            }); //end modify
+
             this.AnalyzeIntervals(this.Model.Score.NoteArray);
         }
     }
