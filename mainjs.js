@@ -37,7 +37,8 @@ view: highlighting, coloring, rendering notes, playback animation, menu populati
 model: Notes, Scores, sorting, undo/redo,
 Harmony analysis
 */
-
+var dropzoneChordMap = {};
+var dropzoneMetaEventMap = {};
 Dropzone.autoDiscover = false;
 Dropzone.options.testDZ = {
     url: "/file-upload",
@@ -56,15 +57,17 @@ Dropzone.options.testDZ = {
 
             //console.log(array, midiData);
             //TheMidiAbstractionLayer.ParseMidiFile(array);
-            TheMidiAbstractionLayer.ParseMidiFile(midiData);
+            dropzoneChordMap = {}
+            dropzoneMetaEventMap = {}
+            TheMidiAbstractionLayer.ParseMidiFileToChordMap(midiData, dropzoneChordMap, dropzoneMetaEventMap);
 
             $(".loader").show();
 
             setTimeout(function()
             {
                 //var {score, trackList} = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel();
-                var scoreModel = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel();
-                
+                var scoreModel = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel(dropzoneChordMap);
+
 				score = scoreModel.noteBuffer;
 				trackList = scoreModel.tracks;
 				console.log(score)
@@ -190,8 +193,8 @@ $( function()
         // .mouseenter(onHoverBegin)
         // .mouseleave(onHoverEnd)
     $(".trackrow").mouseenter(function(e){console.log("track: hello")}).mouseleave(function(e){console.log("track: goodbye")});
-	
-	
+
+
     //$("#GridboxArray").mousedown(function(){console.log("controller: go to grid view");});
 
     $(document).on('dragstart','#testDZ', function(e)
