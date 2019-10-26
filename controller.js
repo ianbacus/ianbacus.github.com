@@ -30,12 +30,22 @@ class Track
     constructor()
     {
         //this.Instrument = m_this.InstrumentEnum[m_this.InstrumentEnum.flute];
-        this.Instrument = m_this.InstrumentEnum["guitar"];
+        this._Instrument = "guitar";
         //this.Instrument = m_this.InstrumentEnum.flute;
         this.Volume = 0;
         this.Index = 0;
         this.Muted = false;
         this.Selectable = true;
+    }
+
+    get Instrument()
+    {
+        return this._Instrument
+    }
+
+    set Instrument(instrument)
+    {
+        this._Instrument = instrument;
     }
 
 };
@@ -100,11 +110,11 @@ class Controller
         var instrumentOptions = [];
         var instrumentEnumeration = this.Model.InstrumentEnum;
         this.CurrentInstrument = instrumentEnumeration.flute;//Object.keys(instrumentEnumeration)[0];
-        this.TrackInstruments = [instrumentEnumeration.flute,instrumentEnumeration.flute];
 
         Object.keys(instrumentEnumeration).forEach(function(key) { instrumentOptions.push(key); });
         this.View.PopulateSelectMenu(instrumentOptions);
     }
+
     Initialize(initializationParameters)
     {
         //Load saved settings
@@ -116,7 +126,7 @@ class Controller
 			this.CurrentTrack = initializationParameters.CurrentTrack;
 			this.NoteColorationMode = initializationParameters.NoteColorationMode;
 			this.EditorMode = initializationParameters.EditorMode;
-            //this.Tracks = initializationParameters.Tracks;
+            this.Tracks = initializationParameters.Tracks;
 		}
 
         //Instruments
@@ -135,8 +145,11 @@ class Controller
         this.View.SetBorderColor(editModeColor);
 
         for(var i = 0; i<10; i++)
-            this.AddTrack(i);
+        {
+               this.AddTrack(i);
+        }
 
+        this.InitializeInstrumentSelectors();
     }
 
 	Serialize()
@@ -182,11 +195,12 @@ class Controller
         {
             instrumentCode = 'guitar';
         }
-        this.Tracks[trackNumber].Instrument = m_this.InstrumentEnum[instrumentCode];
+        this.Tracks[trackNumber].Instrument = instrumentCode;// m_this.InstrumentEnum[instrumentCode];
     }
     GetTrackInstrument(trackNumber)
     {
-        var instrument = this.Tracks[trackNumber].Instrument;
+        var instrumentCode = this.Tracks[trackNumber].Instrument;
+        var instrument = m_this.InstrumentEnum[instrumentCode];
         //console.log(instrument, this.Tracks);
         return instrument
     }
@@ -275,19 +289,6 @@ class Controller
     {
         ///Create a new track modifier and unlock edits on that track.
         ///TODO: call this when music is imported
-        // div class="trackrow" value="0">
-            // <select class="InstrumentSelector" value="Guitar">
-            // </select>
-            // <label class="checkbox-inline">
-            //     <input type="checkbox" value="Mute" data-toggle="toggle"> Mute
-            // </label>
-            // <label class="checkbox-inline">
-            //     <input type="checkbox" value="Color" data-toggle="toggle"> Pick Color
-            // </label>
-            // <label class="checkbox-inline">
-            //     <input type="checkbox" value="Lock" data-toggle="toggle"> Lock
-            // </label>
-
         if(trackNumber < v_this.TrackColors.length)
         {
             var track = $('<div>', { class: "trackrow", value:trackNumber, "background-color": v_this.TrackColors[trackNumber], border:'black'});
@@ -309,7 +310,6 @@ class Controller
             $("#trackbox").append(track);
             this.Tracks.push(new Track())
             this.SetTrackInstrument(trackNumber, "");
-            this.InitializeInstrumentSelectors();
         }
     }
 
@@ -559,7 +559,7 @@ class Controller
             }
         }
     }
-	
+
     CompareNoteWithPitch(pitch, note)
     {
         return pitch - note.Pitch;
@@ -577,14 +577,14 @@ class Controller
         if(midiKeyPressed)
         {
             //Instantiate a note. Check if any ticks have elapsed since the last note placed.
-			//Determine how many ticks should pass after a note is pressed before it is no longer 
-			//considered simultaneous. maybe add visual feedback for that. 
+			//Determine how many ticks should pass after a note is pressed before it is no longer
+			//considered simultaneous. maybe add visual feedback for that.
 			//just keep adding notes to the buffer with the same length as the last note.
-			//add a "current note length" picker 
-			
+			//add a "current note length" picker
+
 		} //todo refactor midi controller
 	}
-	
+
     MidiControllerQuantizedKeyCallback(event)
     {
         var keyCharacter = event.key.toLowerCase();
@@ -606,7 +606,7 @@ class Controller
 
                 var previewNote = this.CreateMidiControllerNote(pitch);
 
-                var instrumentCode = this.TrackInstruments[previewNote.CurrentTrack];
+                var instrumentCode = GetTrackInstrument(previewNote.CurrentTrack);// this.CurrentInstrument;//TrackInstruments[previewNote.CurrentTrack];
                 previewNote.PlayIndefinitely(this.MillisecondsPerTick, instrumentCode);
 
                 this.Model.AddNote(previewNote, 0, this.Model.Score.NoteArray, false);
@@ -749,7 +749,7 @@ class Controller
 		this.Model.Score.GridWidth = gridWidth;
 		this.RefreshGridboxBackground()
 	}
-	
+
 	RefreshGridboxBackground()
 	{
 		this.View.GridWidthTicks = this.Model.Score.GridWidth;
@@ -961,12 +961,12 @@ class Controller
             this.RefreshGridPreview();
             break;
         case 38: //up arrow: go to previous grid
-			//TODO: if notes are selected move them up and down and side to side 
+			//TODO: if notes are selected move them up and down and side to side
             event.preventDefault();
             this.HandleGridMove(this.Model.GridPreviewIndex-1);
             this.RefreshGridPreview();
             break;
-        case 40: //down arrow: go to next grid 
+        case 40: //down arrow: go to next grid
             event.preventDefault();
             this.HandleGridMove(this.Model.GridPreviewIndex+1);
             this.RefreshGridPreview();
@@ -1093,7 +1093,7 @@ class Controller
         //moveFunction.call(this.Model);
 		this.Model.GotoGridView(gridIndex);
 		newGridIndex = this.Model.GridPreviewIndex;
-		
+
         //Instantiate the copied notes in the next buffer
         copyBuffer.forEach(function(note)
         {

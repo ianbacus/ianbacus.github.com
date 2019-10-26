@@ -65,7 +65,7 @@
 				<li id="ttab" ><a data-toggle="tab" href="#tabber">🎸</a></li>
 			</ul>
 			<div class="row">
-				<div class="tab-content">
+				<div id="sidebar" class="tab-content">
 					<div id="keys" class="tab-pane fade">
 						<div id="helpMenu">
 							<br>
@@ -201,25 +201,32 @@
 
         <!--- This column contains the main editing box -->
         <div class="col-sm-10">
-	<div class="row">
-    </div> <!-- end row -->
-            <div id="gridboxContainer" class="context-menu-target">
+			<!--- This column contains edit palletes-->
+			<ul class="nav nav-tabs">
+				<li id="prtab" class="active" ><a data-toggle="tab" href="#gridboxContainer">🎵</a></li>
+				<li id="gttab" ><a data-toggle="tab" href="#guitartabs">𝄜</a></li>
+			</ul>
+			<div class="tab-content">
+				<div id="gridboxContainer" class="tab-pane fade in active context-menu-target">
                     <div id="gridbox" >
                         <div id="testDZ" action="/file-upload">
                             <div id="RestartPlaybackLine" class="PlaybackLine"></div>
                             <div id="MainPlaybackLine" class="PlaybackLine"></div>
                                 <div class="loader"></div>
                         </div>
-                </div>
-            </div>
-
-
-	<div class="row">
-		<div id="trackbox">
-		</div>
-	</div><!-- end row -->
+                	</div>
+				</div>
+				<div id="guitartabs" class="tab-pane fade in">
+	            	<div id="tabberContainer" contenteditable="true" class="context-menu-target">
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div id="trackbox">
+				</div>
+			</div><!-- end row -->
+	</div>
 </div>
-        </div>
 <nav id="context-menu" class="context-menu">
 	<ul class="context-menu__items">
 	  <li class="context-menu__item">

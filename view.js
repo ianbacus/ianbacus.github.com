@@ -147,12 +147,12 @@ class View
         $(document).on('input change', '#TempoSlider',this.OnSliderChange);
         $(document).on('input change', '.volumeSlider',this.OnSliderChange);
         $(document).on('select change', '.InstrumentSelector', this.OnSelectChange);
-		
+
 		$(document).on("click", ".gridCanvas", function(e)
 		{
 			v_this.OnGridClick(parseInt(this.attributes.gridindex.value));
 		});
-		
+
         //$('select').on('change', function() {alert( this.value );});
 
         //$(document).on('select change', this.OnSelectChange);
@@ -200,7 +200,8 @@ class View
 
     PopulateSelectMenu(selectEntryCodes)
     {
-        var $dropdown = $(".InstrumentSelector");
+        var $dropdown = $(".InstrumentSelector");var last;
+        while (last = $dropdown.lastChild) $dropdown.removeChild(last);
         selectEntryCodes.forEach(function(entry)
         {
             $dropdown.append($("<option />").val(entry).text(entry));
@@ -513,25 +514,11 @@ class View
 		//TODO: make this more efficient, do not re-render everything
         var numberOfEntries = gridImages.length;
         var domGridArray = this.GridArray;
-        domGridArray.empty();
+        //domGridArray.empty();
         var nodeIndex = 0;
 
-        while(nodeIndex < numberOfEntries)
+        function drawGridImage(canvasNode, image)
         {
-            var image = gridImages[nodeIndex];
-            var canvasNode = $('<canvas/>');
-            canvasNode.addClass("gridCanvas").attr("gridIndex", nodeIndex);
-            domGridArray.append(canvasNode);
-
-            if(nodeIndex == selectedIndex)
-            {
-                canvasNode.css({'border':'solid purple 3px'});
-            }
-            else 
-			{
-                canvasNode.css({'border':'solid black 1px'});
-            }
-
             try {
                 if(image != null)
                 {
@@ -543,10 +530,44 @@ class View
                 }
             } catch (e) {
                 console.log(e);
-            } finally {
-
-                nodeIndex++;
             }
+        }
+
+        function renderGridBordersAndHighlightIndex(canvasNode, nodeIndex)
+        {
+            if(nodeIndex == selectedIndex)
+            {
+                canvasNode.css({'border':'solid purple 3px'});
+            }
+            else
+			{
+                canvasNode.css({'border':'solid black 1px'});
+            }
+        }
+
+
+        //Grid images: 1 per grid canvas. Go through grid canvases on the page in order, create new ones if required.
+        $(".gridCanvas").each(function(index, gridCanvas)
+        {
+            var image = gridImages[nodeIndex];
+            var gridCanvas = $(this)
+            drawGridImage(gridCanvas, image);
+            renderGridBordersAndHighlightIndex(gridCanvas,nodeIndex);
+
+            nodeIndex++;
+        }, nodeIndex);
+
+        while(nodeIndex < numberOfEntries)
+        {
+            var image = gridImages[nodeIndex];
+            var canvasNode = $('<canvas/>');
+            canvasNode.addClass("gridCanvas").attr("gridIndex", nodeIndex);
+            domGridArray.append(canvasNode);
+
+            drawGridImage(canvasNode, image);
+            renderGridBordersAndHighlightIndex(canvasNode,nodeIndex);
+
+            nodeIndex++;
         }
     }
 

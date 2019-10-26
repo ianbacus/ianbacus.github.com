@@ -109,9 +109,10 @@ Dropzone.options.testDZ = {
 
 //todo: why is this here? scope?
 var textFile = null;
-function OpenTextFileInNewTab(text)
+function OpenTextFileInNewTab(guitarTabString)
 {
-    var data = new Blob([text], {type: 'text/plain'});
+    var data = new Blob([guitarTabString], {type: 'text/plain'});
+
 
     window.URL.revokeObjectURL(textFile);
     textFile = window.URL.createObjectURL(data);
@@ -153,9 +154,25 @@ $( function()
 	var viewLocalStorageString = "ianbacus.github.io.viewdata";
 	var controllerLocalStorageString = "ianbacus.github.io.state";
 
-    var deserializedModelData = JSON.parse(localStorage.getItem(modelLocalStorageString));
-	var deserializedViewData = JSON.parse(localStorage.getItem(viewLocalStorageString));
-	var deserializedControllerData = JSON.parse(localStorage.getItem(controllerLocalStorageString));
+    try {
+        var modelData = localStorage.getItem(modelLocalStorageString);
+        var viewData = localStorage.getItem(viewLocalStorageString);
+        var controllerData = localStorage.getItem(controllerLocalStorageString);
+
+        console.log(modelData)
+        console.log(viewData)
+        console.log(controllerData)
+
+    	var deserializedViewData = JSON.parse(viewData );
+    	var deserializedControllerData = JSON.parse(controllerData);
+        var deserializedModelData = JSON.parse(modelData);
+
+    } catch (e) {
+        console.log(e);
+        var deserializedModelData = undefined;
+    	var deserializedViewData = undefined;
+    	var deserializedControllerData = undefined;
+    }
 
     function OnPageUnload()
     {
@@ -238,7 +255,9 @@ $( function()
                 var score = ScoreModel.Score.NoteArray;
                 var tabResultData = TheMidiAbstractionLayer.GenerateTabFromCanvas(score);
 
-                console.log(tabResultData.tablatureString)
+                console.log(tabResultData);
+
+                $("#tabberContainer").empty().append(tabResultData.tablatureString);//.replace(/\s/g, '&nbsp;'));
                 if(tabResultData.failureReason == undefined)
                 {
                     OpenTextFileInNewTab(tabResultData.tablatureString);

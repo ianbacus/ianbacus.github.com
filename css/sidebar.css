@@ -4,7 +4,7 @@
     z-index: 100;
 }
 
-.tab-content
+#sidebar
 {
     overflow-y:scroll;
 	width:100%;
@@ -17,7 +17,7 @@
     margin-right: auto;
 	padding-top:50px;
     overflow-y:scroll;
-    height:200px;
+    height:30%;
     width:50%;
 }
 
