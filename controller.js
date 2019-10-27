@@ -476,7 +476,7 @@ class Controller
         return octaveOffset + offsetRemainder
     }
 
-
+    //Midi controller start
     ResetMidiController()
     {
         this.PressedKeys = []
@@ -744,6 +744,8 @@ class Controller
         }
     }
 
+    //Midi controller end
+
 	SetGridWidth(gridWidth)
 	{
 		this.Model.Score.GridWidth = gridWidth;
@@ -756,6 +758,7 @@ class Controller
 		this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
 	}
 
+    //Composition mode controller begin
     HandleCompositionModeKeypress(event)
     {
         //Mode control: select, edit, delete
@@ -974,6 +977,7 @@ class Controller
         }
     }
 
+    //Composition mode controller end
     HandlePlayback(playbackMode)
     {
         if(!this.Playing)
@@ -1046,6 +1050,10 @@ class Controller
         }
     }
 
+    //Make all notes "selected", meaning:
+    //  - they respond to mouse dragging
+    //  - they are highlighted or focused on
+    //  -
     SelectAllNotes()
     {
         this.ModifyNoteArray(this.Model.Score.NoteArray, function(note)

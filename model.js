@@ -366,12 +366,11 @@ class Model
 
 
 		this.Deserialize(initializationParameters);
-
         this.Score = this.GridPreviewList[this.GridPreviewIndex];
     }
     Deserialize(serializedParameters)
     {
-        console.log(serializedParameters);
+        console.log("Deserialize me", serializedParameters);
 
         try {
             var serializedGridScores = serializedParameters.GridList;//[]
@@ -415,13 +414,17 @@ class Model
         } catch (e) {
             this.GridPreviewList = [new NoteScore()];
             this.GridImageList = [null];
+            console.log("no init params... 1 grid preview, null images. " );
         }
 
         try {
-            this.GridPreviewIndex = serializedParameters.GridPreviewIndex;
+            var lastGridIndex = this.GridImageList.length - 1;
+            this.GridPreviewIndex = Math.min(lastGridIndex, Math.abs(serializedParameters.GridPreviewIndex));
         } catch (e) {
+        console.log("Wrong grid preview");
             this.GridPreviewIndex = 0;
         }
+        console.log("Deserialized model.", this.GridPreviewList);
     }
     Serialize()
     {
