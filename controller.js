@@ -322,6 +322,8 @@ class Controller
     RefreshGridPreview()
     {
         this.RefreshEditBoxNotes();
+        //TODO set highlight on previews
+        this.View.HighlightGridArrayWithIndex();
         this.View.GetGridboxThumbnail(this, this.OnThumbnailRender, this.Model.GridPreviewIndex);
     }
 
@@ -530,6 +532,11 @@ class Controller
         ]
         //var chromaticMidiPitches = Array.from({length: ckeys.length}, (x,i) => midiLowest+i);
 
+        this.OnMidiControllerKeyDown = this.InstantKeyDown;
+        this.OnMidiControllerKeyUp = this.InstantKeyUp;
+        // this.OnMidiControllerKeyDown = this.QuantizerKeyUp();
+        // this.OnMidiControllerKeyUp = this.QuantizerKeyUp();
+
         for(var listIndex = 0; listIndex < easyLayout.length; listIndex++)
         {
             var keyLayoutList = easyLayout[listIndex]
@@ -565,32 +572,141 @@ class Controller
         return pitch - note.Pitch;
     }
 
-	MidiControllerInstantKeyCallback(event)
-	{
-        var keyCharacter = event.key.toLowerCase();
+    InstantKeyDown(keyCharacter)
+    {
         var pitch = this.ChromaticKeyMap[keyCharacter];
-        var midiKeyPressed = pitch != undefined;
-
-        var keyAlreadyPressed = this.PressedKeys[keyCharacter] != undefined;
-
-        //Create a note
-        if(midiKeyPressed)
+        var selectCount = this.CountSelectedNotes();
+        if(selectCount == 0) //on first keydown:
         {
-            //Instantiate a note. Check if any ticks have elapsed since the last note placed.
-			//Determine how many ticks should pass after a note is pressed before it is no longer
-			//considered simultaneous. maybe add visual feedback for that.
-			//just keep adding notes to the buffer with the same length as the last note.
-			//add a "current note length" picker
+            this.MidiControllerTicks = 0;
+            this.CapturedPlaybackStartTicks = this.MainPlaybackStartTicks;
+            console.log("First key down", this.CapturedPlaybackStartTicks);
+        }
 
-		} //todo refactor midi controller
-	}
+        var previewNote = this.CreateMidiControllerNote(pitch);
+        previewNote.Duration = this.DefaultNoteDuration;
 
-    MidiControllerQuantizedKeyCallback(event)
+        this.Model.AddNote(previewNote, 0, this.Model.Score.NoteArray, false);
+        this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
+        console.log("Added note at tick", previewNote.StartTimeTicks, previewNote);
+
+        var playbackBuffer = [previewNote];
+
+        var playbackMode = this.GetModeSettings().PlaybackMode;
+        var includeSuspensions = playbackMode == 2;
+        var soloMode = playbackMode == 0;
+
+        if(!soloMode)
+        {
+            this.GetPlaybackIntersections([previewNote], playbackBuffer,  includeSuspensions);
+        }
+
+        //Move the playback line
+        if(playbackBuffer.length > 0)
+        {
+            this.PlayNotes(playbackBuffer,includeSuspensions);
+        }
+
+        return previewNote;
+    }
+    InstantKeyUp(keyCharacter)
+    {
+        if(this.MidiKeysDown == 0)
+        {
+            //advance start tick for new notes
+            var tickAdvance = 4;
+            this.MidiControllerTicks += tickAdvance;
+            var newStartTicks = this.CapturedPlaybackStartTicks + this.MidiControllerTicks;
+
+            this.MainPlaybackStartTicks = newStartTicks;//currentNote.StartTimeTicks;
+            this.View.RenderPlaybackLine(this.MainPlaybackStartTicks, this.CapturedPlaybackStartTicks);
+            console.log("No keys down, advancing ticks to ",newStartTicks)
+        }
+
+        return undefined;
+    }
+
+    QuantizeNoteLength(note)
+    {
+        var startTimeTicks = note.StartTimeTicks;
+        var durationTicks = note.Duration;
+
+        //Get note duration
+        //Find nearest power of two for note duration
+        //  triplet case: todo
+        //  dotted case: align to strong beat proportional to 3/8 length. nearest 2^n + (2^n-1)
+        //  undotted case: align to strong beat proportional to 1/4 length. nearest 2^n
+        // set start ticks to nearest strong beat.
+        //  boundary strong beats for length: -, 0, +
+        //  distance of start ticks to each of the strong beats, pick closest
+        var exponent = Math.round(Math.log2(durationTicks));
+        var duration = (1<<exponent);
+        var modulus = duration;
+
+        var r = startTimeTicks % modulus;
+        if(r > modulus/2)
+        {
+            startTimeTicks += modulus - r;
+        }
+        else
+        {
+            startTimeTicks -= r;
+        }
+        //console.log("Start time quantized x->y/m", note.StartTimeTicks, startTimeTicks, modulus);
+        //console.log("Duration quantized x->y", note.Duration, duration);
+
+        note.StartTimeTicks = startTimeTicks;
+        note.Duration = duration;
+
+    }
+    QuantizerKeyDown(keyCharacter)
+    {
+        var pitch = this.ChromaticKeyMap[keyCharacter];
+        if(this.MidiKeysDown == 0)
+        {
+            // var infiniteStartTicks = 9000;
+            // var sentinelNote = new Note(
+            //     infiniteStartTicks,
+            //     this.TonicKey,
+            //     4,
+            //     this.CurrentTrack,
+            //     false);
+
+            //this.Model.AddNote(sentinelNote, 0, this.Model.Score.NoteArray, false);
+            this.HandlePlayback(PlaybackEnumeration.Resume);
+            this.KickstartMidiControllerTimeout();
+
+            //this.Model.DeleteNote(sentinelNote, 0, this.Model.Score.NoteArray, false);
+        }
+
+        var previewNote = this.CreateMidiControllerNote(pitch);
+
+        var instrumentCode = this.GetTrackInstrument(previewNote.CurrentTrack);// this.CurrentInstrument;//TrackInstruments[previewNote.CurrentTrack];
+        previewNote.PlayIndefinitely(this.MillisecondsPerTick, instrumentCode);
+
+        this.Model.AddNote(previewNote, 0, this.Model.Score.NoteArray, false);
+        this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
+
+        return previewNote;
+    }
+
+    QuantizerKeyUp(keyCharacter)
+    {
+        var previewNote = this.PressedKeys[keyCharacter];
+
+        this.QuantizeNoteLength(previewNote);
+        previewNote.ForceNoteOff();
+        this.View.ApplyNoteStyle(previewNote, this.NoteColorationMode);
+
+        return undefined;
+    }
+
+    MidiControllerKeyCallback(event)
     {
         var keyCharacter = event.key.toLowerCase();
         var pitch = this.ChromaticKeyMap[keyCharacter];
-        var midiKeyPressed = pitch != undefined;
 
+        var midiKeyPressed = pitch != undefined;
         var keyAlreadyPressed = this.PressedKeys[keyCharacter] != undefined;
 
         //Create a note
@@ -599,30 +715,14 @@ class Controller
             event.preventDefault();
             if((event.type == "keydown") && !keyAlreadyPressed)
             {
-                if(this.MidiKeysDown == 0)
-                {
-                    this.KickstartMidiControllerTimeout();
-                }
-
-                var previewNote = this.CreateMidiControllerNote(pitch);
-
-                var instrumentCode = GetTrackInstrument(previewNote.CurrentTrack);// this.CurrentInstrument;//TrackInstruments[previewNote.CurrentTrack];
-                previewNote.PlayIndefinitely(this.MillisecondsPerTick, instrumentCode);
-
-                this.Model.AddNote(previewNote, 0, this.Model.Score.NoteArray, false);
-                this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
-                this.PressedKeys[keyCharacter] = previewNote;
+                this.PressedKeys[keyCharacter] = this.OnMidiControllerKeyDown(keyCharacter);
                 this.MidiKeysDown++;
             }
 
             else if((event.type == "keyup") && keyAlreadyPressed)
             {
-                var previewNote = this.PressedKeys[keyCharacter];
-                previewNote.ForceNoteOff();
-                this.View.ApplyNoteStyle(previewNote, this.NoteColorationMode);
-
-                this.PressedKeys[keyCharacter] = undefined;
                 this.MidiKeysDown--;
+                this.PressedKeys[keyCharacter] = this.OnMidiControllerKeyUp(keyCharacter);
             }
         }
 
@@ -631,6 +731,7 @@ class Controller
 
     KickstartMidiControllerTimeout()
     {
+        //Refresh ticks timeout.
         this.MidiTimeoutTicksRemaining = 16/this.SampleResolutionTicks
         var sampleTimeMilliseconds =  this.SampleResolutionTicks*this.MillisecondsPerTick
 
@@ -659,6 +760,7 @@ class Controller
             }
         }
 
+        //When no keys are pressed, wait 'MidiTimeoutTicksRemaining' ticks before halting recording
         else if(this.MidiTimeoutTicksRemaining > 0)
         {
             this.MidiTimeoutTicksRemaining--;
@@ -683,7 +785,8 @@ class Controller
         //Create a new preview note if edit mode is active
         //if((this.EditorMode == editModeEnumeration.MidiControllerMode) && (selectCount == 0) && (!this.Playing)){
 
-        var startTicks = this.MainPlaybackStartTicks + this.MidiControllerTicks
+        var startTicks = this.CapturedPlaybackStartTicks + this.MidiControllerTicks//TODO should this.MainPlaybackStartTicks  be added here?
+        console.log("capd, miditicks",this.CapturedPlaybackStartTicks, this.MidiControllerTicks);
         var noteIsSelected = true;
         var noteLength = 0//this.SampleResolutionTicks
 
@@ -734,8 +837,8 @@ class Controller
 
         if(keyupThisPointer.EditorMode == editModeEnumeration.MidiControllerMode)
         {
-            eventHandled = keyupThisPointer.MidiControllerQuantizedKeyCallback(event)
-            //eventHandled = keyupThisPointer.MidiControllerInstantKeyCallback(event)
+            //eventHandled = keyupThisPointer.MidiControllerQuantizedKeyCallback(event)
+            eventHandled = keyupThisPointer.MidiControllerKeyCallback(event)
         }
 
         if(!eventHandled)
@@ -883,21 +986,29 @@ class Controller
 
         case 32: //spacebar
             event.preventDefault();
-            if(event.shiftKey)
+            if(!this.Playing)
             {
-                this.HandlePlayback(PlaybackEnumeration.RestartFromLastStart)
-            }
+                if(event.shiftKey)
+                {
+                    this.HandlePlayback(PlaybackEnumeration.RestartFromLastStart);
+                }
 
-            //Ctrl space:
-            else if(event.ctrlKey)
-            {
-                this.HandlePlayback(PlaybackEnumeration.RestartFromBeginning)
-            }
+                //Ctrl space:
+                else if(event.ctrlKey)
+                {
+                    this.HandlePlayback(PlaybackEnumeration.RestartFromBeginning);
+                }
 
-            //Regular space:
+                //Regular space:
+                else
+                {
+                    this.HandlePlayback(PlaybackEnumeration.Resume);
+                }
+
+            }
             else
             {
-                this.HandlePlayback(PlaybackEnumeration.Resume)
+                this.StopPlayingNotes();
             }
 
 
@@ -1042,11 +1153,6 @@ class Controller
 
                 this.PlayNotes(playbackBuffer, false);
             }
-
-        }
-        else
-        {
-            this.StopPlayingNotes();
         }
     }
 
@@ -1458,13 +1564,14 @@ class Controller
         //Create a new preview note if edit mode is active
         if((this.EditorMode == editModeEnumeration.EDIT) && (selectCount == 0) && (!this.Playing))
         {
+            var noteDuration = Math.max(1, this.DefaultNoteDuration);
             var startTicks = this.View.ConvertXIndexToTicks(this.CursorPosition.x);
             var pitch = this.View.ConvertYIndexToPitch(this.CursorPosition.y);
             var noteIsSelected = true;
             var previewNote = new Note(
                 startTicks,
                 pitch,
-                this.DefaultNoteDuration,
+                noteDuration,
                 this.CurrentTrack,
                 true);
 
@@ -1705,122 +1812,133 @@ class Controller
     ///Unselect all selected notes to anchor them and play them
     OnMouseClickUp(event)
     {
-
         if(event.which !== 1)
         {
             return;
         }
 
-        var clickUpThisPointer = c_this;
+        var executingMove = true;
+		c_this.HandleNoteCommit(executingMove);
 
-		//event.preventDefault();
-        clickUpThisPointer.StopPlayingNotes();
+    } //end OnMouseClickUp
 
-		var selectedNotes = clickUpThisPointer.Model.SelectedNotes;
-        var mainScore = clickUpThisPointer.Model.Score.NoteArray;
-        var selectCount = clickUpThisPointer.CountSelectedNotes();
-        var wasSelectingGroup = clickUpThisPointer.SelectingGroup === true;
+    HandleRectangleEndGrab()
+    {
+        var selectCount = this.CountSelectedNotes();
+        this.View.DeleteSelectRectangle();
+        this.SelectingGroup = false;
+        if(selectCount === 0)
+        {
+            var clickupTicks = this.View.ConvertXIndexToTicks(this.CursorPosition.x);
+            this.ResetPlaybackStartTicks(clickupTicks);
+        }
+    }
 
-        clickUpThisPointer.Model.MergeSort(clickUpThisPointer.Model.Score.NoteArray);
-        clickUpThisPointer.Model.MergeSort(clickUpThisPointer.Model.SelectedNotes);
+    GetPlaybackIntersections(targetBuffer, playbackBuffer, includeSuspensions)
+    {
+        const selectedBufferEndIndex = targetBuffer.length-1;
+        const firstSelectedNote = targetBuffer[0];
+        const startTickBoundary = firstSelectedNote.StartTimeTicks;
+        const endTickBoundary =
+            targetBuffer[selectedBufferEndIndex].StartTimeTicks +
+            targetBuffer[selectedBufferEndIndex].Duration;
 
+        this.ModifyNoteArray(this.Model.Score.NoteArray, function(note)
+        {
+            if(!note.IsSelected)
+            {
+                var intersectsSelectedNote =
+                    (startTickBoundary <= note.StartTimeTicks) &&
+                    (note.StartTimeTicks < endTickBoundary);
+
+                var suspendsOverFirstNote =
+                    this.ShouldIncludeNote(firstSelectedNote,note,includeSuspensions);
+
+                if(intersectsSelectedNote)
+                {
+                    this.Model.AddNote(note, 0, playbackBuffer, false);
+                }
+
+                else if(suspendsOverFirstNote)
+                {
+                    var suspendDummyNote = new Note(
+                        firstSelectedNote.StartTimeTicks,
+                        note.Pitch,
+                        firstSelectedNote.Duration,
+                        firstSelectedNote.CurrentTrack,
+                        false);
+                    this.Model.AddNote(suspendDummyNote, 0, playbackBuffer, false);
+                }
+             }
+        });
+    }
+
+    HandleCommitPlayback(executingMove)//for end of note drag
+    {
+        var selectCount = this.CountSelectedNotes();
+        var selectedNotes = this.Model.SelectedNotes;
+        var mainScore = this.Model.Score.NoteArray;
+
+        var playbackBuffer = [];
+        var playbackMode = this.GetModeSettings().PlaybackMode;
+        var sequenceNumber = sequenceNumber = this.GetNextSequenceNumber();
+
+        var includeSuspensions = playbackMode == 2;
+        var soloMode = playbackMode == 0;
+
+        //Play all intersecting chords and handle move completion. If playback mode == 0 (solo),
+        //do not search for intersecting chords.
+        if((selectCount > 0) && !soloMode)
+        {
+            //Find all notes in the score that intersect with the selected notes
+            var selectedNotes = this.Model.SelectedNotes;
+            this.GetPlaybackIntersections(selectedNotes, playbackBuffer, includeSuspensions);
+        }
+
+        //Push all selected notes to the playback buffer, unselect them to place them and handle
+        //move completion. Reverse iterate to allow deselection, which removes notes from the
+        //selectedNotes buffer
+        this.ModifyNoteArray(selectedNotes, function(note)
+        {
+            this.Model.AddNote(note, 0, playbackBuffer, false);
+            note.IsSelected = false;
+            note.OnMoveComplete(sequenceNumber);
+            this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+            this.console.log("OnUnselect: playing note: ", note);
+        }, false);
+
+        //Move the playback line
+        if(playbackBuffer.length > 0)
+        {
+            this.ResetPlaybackStartTicks(playbackBuffer[0].StartTimeTicks);
+            this.PlayNotes(playbackBuffer,includeSuspensions);
+        }
+    }
+
+    HandleNoteCommit(executingMove)
+    {
+        //event.preventDefault();
+        this.StopPlayingNotes();
+        var wasSelectingGroup = this.SelectingGroup === true;
+
+        //Make sure both buffers are sorted to begin with
+        this.Model.MergeSort(this.Model.Score.NoteArray);
+        this.Model.MergeSort(this.Model.SelectedNotes);
+
+        //If a group was selected, close a rectangle
         if(wasSelectingGroup)
         {
-            clickUpThisPointer.View.DeleteSelectRectangle();
-            clickUpThisPointer.SelectingGroup = false;
-            if(selectCount === 0)
-            {
-                var clickupTicks = clickUpThisPointer.View.ConvertXIndexToTicks(clickUpThisPointer.CursorPosition.x);
-                clickUpThisPointer.ResetPlaybackStartTicks(clickupTicks);
-            }
+            this.HandleRectangleEndGrab()
         }
 
         else
         {
-			var playbackBuffer = [];
-            var playbackMode = clickUpThisPointer.GetModeSettings().PlaybackMode;
-            var sequenceNumber = clickUpThisPointer.GetNextSequenceNumber();
-            var includeSuspensions = playbackMode == 2;
-
-			//Play all intersecting chords and handle move completion. If playback mode == 0 (solo),
-            //do not search for intersecting chords.
-            if((selectCount > 0) && (playbackMode != 0))
-            {
-                const selectedBufferEndIndex = selectedNotes.length-1;
-                const firstSelectedNote = selectedNotes[0];
-                const startTickBoundary = firstSelectedNote.StartTimeTicks;
-                const endTickBoundary =
-                    selectedNotes[selectedBufferEndIndex].StartTimeTicks +
-                    selectedNotes[selectedBufferEndIndex].Duration;
-
-                //Find all notes in the score that intersect with the selected notes
-                clickUpThisPointer.ModifyNoteArray(clickUpThisPointer.Model.Score.NoteArray, function(note)
-                {
-                    if(!note.IsSelected)
-                    {
-                        var intersectsSelectedNote =
-                            (startTickBoundary <= note.StartTimeTicks) &&
-                            (note.StartTimeTicks < endTickBoundary);
-
-                        var suspendsOverFirstNote =
-                            this.ShouldIncludeNote(firstSelectedNote,note,includeSuspensions);
-
-                        if(intersectsSelectedNote)
-                        {
-    		                clickUpThisPointer.Model.AddNote(note, 0, playbackBuffer, false);
-                        }
-
-                        else if(suspendsOverFirstNote)
-                        {
-                            var suspendDummyNote = new Note(
-                                firstSelectedNote.StartTimeTicks,
-                                note.Pitch,
-                                firstSelectedNote.Duration,
-                                firstSelectedNote.CurrentTrack,
-                                false);
-    		                clickUpThisPointer.Model.AddNote(suspendDummyNote, 0, playbackBuffer, false);
-                        }
-                     }
-                });
-            }
-
-            //Push all selected notes to the playback buffer, unselect them to place them and handle
-            //move completion. Reverse iterate to allow deselection, which removes notes from the
-            //selectedNotes buffer
-
-            clickUpThisPointer.ModifyNoteArray(selectedNotes, function(note)
-            {
-                clickUpThisPointer.Model.AddNote(note, 0, playbackBuffer, false);
-                note.IsSelected = false;
-                note.OnMoveComplete(sequenceNumber);
-                this.View.ApplyNoteStyle(note, this.NoteColorationMode);
-				this.console.log("Clicked note: ", note)
-            }, false);
-
-
-            //Move the playback line
-            if(playbackBuffer.length > 0)
-            {
-                clickUpThisPointer.ResetPlaybackStartTicks(playbackBuffer[0].StartTimeTicks);
-            }
-
-            //Chords
-            if(playbackMode == 1)
-            {
-                clickUpThisPointer.PlayNotes(playbackBuffer,false);
-            }
-
-            //Suspensions and chords
-            else
-            {
-                clickUpThisPointer.PlayNotes(playbackBuffer,true);
-            }
+            this.HandleCommitPlayback(executingMove);
         }
 
-        clickUpThisPointer.CreateUniqueEditNote();
-        clickUpThisPointer.View.RenderPlaybackLine(clickUpThisPointer.MainPlaybackStartTicks,  clickUpThisPointer.CapturedPlaybackStartTicks);
-
-    } //end OnMouseClickUp
+        this.CreateUniqueEditNote();
+        this.View.RenderPlaybackLine(this.MainPlaybackStartTicks,  this.CapturedPlaybackStartTicks);
+    }
 
     //Resize notes
     HandleControlScroll(scrollUp)

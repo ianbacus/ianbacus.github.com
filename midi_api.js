@@ -5,11 +5,16 @@ class MidiAbstractionLayer
         this.MaximumNotesPerBeat = 8.0;
         this.PitchLookupTable = {"c0":12,"d0":14,"e0":16,"f0":17,"g0":19,"a0":21,"b0":23};
 
-        //this.ActiveNotesMappedToTheirStartTick = {};
-        //this.TickToPitchMidiValueDictionary = {};
-        //this.TimeSignatureEvents = {};
         this.TabberInputData = '';
-        this.TabberMethod = Module.cwrap('javascriptWrapperFunction', 'string',
+
+        // Allocate memory of the required size
+        // typedArray = 
+        // buffer = Module._malloc(typedArray.length * typedArray.BYTES_PER_ELEMENT)
+        // // Load it with the data present in our typedArray
+        // Module.HEAPF32.set(typedArray, buffer >> 2);
+
+        this.TabberMethod = Module.cwrap(
+            'javascriptWrapperFunction', 'string',
             [
                 'string',
                 'string',
@@ -22,13 +27,16 @@ class MidiAbstractionLayer
                 'number',
                 'number',
                 'number',
-        ]);
+            ]
+        );
 
         var pitches = ['c','d','e','f','g','a','b'];
+        var pianoRangeOctaves = 8
 
-        for(var octaveOffset=1; octaveOffset<8; octaveOffset++)
+        for(var octaveOffset=1; octaveOffset< pianoRangeOctaves ; octaveOffset++)
         {
-            var offset = octaveOffset*12;
+            const pitchesPerOctave = 12;
+            var offset = octaveOffset * pitchesPerOctave;
 
             pitches.forEach(function(pitch)
             {
@@ -45,59 +53,41 @@ class MidiAbstractionLayer
     //Convert a score note buffer into a midi file.
 	GenerateMidiFile(score)
 	{
-		var file = new Midi.File();
-		var track1 = file.addTrack();
-		var track = file.addTrack();
-		var currentTime = 0;
 		var timeIndexedInformation = {};
+		//var currentTime = 0;
+		//var activeNotes = {};
 
-		var activeNotes = {};
-
+        //Generate time indexed event map
 		score.forEach(function(note)
 		{
 			var startTimeTicks = note.StartTimeTicks;
 			var duration = note.Duration;
 			var endTimeTicks = startTimeTicks + duration;
 
-			var pitch = note.Pitch;
-			var currentTrack = note.CurrentTrack;
+			//var pitch = note.Pitch; var currentTrack = note.CurrentTrack;
+            var noteOnEvent =  {Note:note, Type:"On"};
+            var noteOffEvent = {Note:note, Type:"Off"};
 
-            console.log(note)
+            function mapPush(map, ticks, event)
+            {
+                if(map[ticks] == undefined)
+    			{
+    				timeIndexedInformation[ticks] = [event];
+    			}
+    			else
+    			{
+    				timeIndexedInformation[ticks].push(event)
+    			}
+            }
+            mapPush(timeIndexedInformation, startTimeTicks,noteOnEvent);
+            mapPush(timeIndexedInformation, endTimeTicks,noteOffEvent );
 
-			var noteOnEvent =
-			{
-				Note: note,
-				Type: "on"
-			}
+		},timeIndexedInformation);
 
-			var noteOffEvent =
-			{
-				Note: note,
-				Type: "off"
-			}
-
-			if(timeIndexedInformation[startTimeTicks] == undefined)
-			{
-				timeIndexedInformation[startTimeTicks] = [noteOnEvent];
-			}
-
-			else
-			{
-				timeIndexedInformation[startTimeTicks].push(noteOnEvent)
-			}
-
-			if(timeIndexedInformation[endTimeTicks] == undefined)
-			{
-				timeIndexedInformation[endTimeTicks] = [noteOffEvent];
-			}
-
-			else
-			{
-				timeIndexedInformation[endTimeTicks].push(noteOffEvent);
-			}
-		},timeIndexedInformation)
-
-
+        //Iterate over each tick, append to
+		var file = new Midi.File();
+		var track1 = file.addTrack();
+		var track = file.addTrack();
         var lastTimeInstant = 0;
 		Object.keys(timeIndexedInformation).forEach(function(timeInstant)
 		{
@@ -113,7 +103,7 @@ class MidiAbstractionLayer
 
                 var delta = (timeInstantInteger - lastTimeInstant)*16
 
-				if(noteEvent.Type == "on")
+				if(noteEvent.Type == "On")
 				{
 					track.noteOn(0, pitch, delta);
 				}
@@ -127,10 +117,9 @@ class MidiAbstractionLayer
 
 			}, track, timeInstantInteger, lastTimeInstant);
 
+    	}, track, timeIndexedInformation, lastTimeInstant)
 
-	}, track, timeIndexedInformation, lastTimeInstant)
-
-    return file.toBytes();
+        return file.toBytes();
 
     }
 
@@ -139,6 +128,7 @@ class MidiAbstractionLayer
     {
         // this.ActiveNotesMappedToTheirStartTick[pitchMidiValue] = currentTimeTicks;
         activeNoteMap[pitchMidiValueEntry.Pitch] = currentTimeTicks;
+        console.log("ANM update", pitchMidiValueEntry.Pitch,currentTimeTicks);
 
         try
         {
@@ -159,6 +149,7 @@ class MidiAbstractionLayer
         //
         //var noteStartTicks = this.ActiveNotesMappedToTheirStartTick[pitchMidiValue];
         var noteStartTicks = activeNoteMap[pitchMidiValueEntry.Pitch];
+        console.log("ANM read, ct?", pitchMidiValueEntry.Pitch,noteStartTicks,currentTimeTicks);
         var noteDuration = currentTimeTicks - noteStartTicks
 
         var entryIndex = 0;
@@ -206,6 +197,7 @@ class MidiAbstractionLayer
             var currentEventTickValue =  2 * (noteAbsoluteStartTime * (this.MaximumNotesPerBeat / timeDivision));
             currentEventTickValue = Math.round(currentEventTickValue);
 
+            //console.log("Parsing midi event.",midiEvent);
             //Note events
             if((noteType == noteOnEvent) || (noteType == noteOffEvent))
             {
@@ -223,10 +215,12 @@ class MidiAbstractionLayer
 
                 if(isNoteOff)
                 {
+                    //console.log("noteOff event");
                     this.ProcessMidiNoteOff(pitchMidiValueEntry, currentEventTickValue, chordMap, activeNoteMap);
                 }
                 else
                 {
+                    //console.log("noteOn event");
                     this.ProcessMidiNoteOn(pitchMidiValueEntry, currentEventTickValue, chordMap, activeNoteMap);
                 }
             }
@@ -238,9 +232,13 @@ class MidiAbstractionLayer
 
                 if(metaEventType == timeSignatureTypeCode)
                 {
+                    //console.log("TS event");
                     var timeSignatureString = noteData[0]+","+noteData[1]
                     var metaEventEntry ={Type:'TimeSignature', Data:timeSignatureString,}
                     metaEventMap[currentEventTickValue] = metaEventEntry;
+                }
+                else {
+                    //console.log("uncaught meta event");
                 }
             }
         }, this, trackAbsoluteTime);
@@ -421,9 +419,11 @@ class MidiAbstractionLayer
 
         var chordMap = {};
         var metaEventMap = {};
+        console.log("Generate tab from canvas");
+        console.log(bytes);
         this.ParseMidiFileToChordMap(bytes, chordMap, metaEventMap);
 
-        //Return tabResultData, {failureReason: undefined, tablatureString: ""}
+        //Returns tabResultData, {failureReason: undefined, tablatureString: ""}
         return this.GenerateTabFromChordMap(chordMap, metaEventMap);
     }
 
@@ -434,7 +434,7 @@ class MidiAbstractionLayer
         chordMap = null;
         metaEventMap = null;
 
-        //Return tabResultData, {failureReason: undefined, tablatureString: ""}
+        //Returns tabResultData, {failureReason: undefined, tablatureString: ""}
         return this.GenerateTabFromTabberString(tabberString);;
     }
 
@@ -488,6 +488,9 @@ class MidiAbstractionLayer
         {
             try
             {
+
+                console.log("Generate tabber output string. data/col:",tabberData, columnFormat);
+
                 var outString = this.TabberMethod(
         			tabberData,
         			tuningStrings,
@@ -500,6 +503,12 @@ class MidiAbstractionLayer
         			sustainCost,
         			arpeggioCost,
         			columnFormat);
+
+                // while(outString[i] != 0)
+                // {
+                //     console.log(outString[i]);
+                // }
+                outString.replace(/\0/g, '')
             }
 
             catch(e)

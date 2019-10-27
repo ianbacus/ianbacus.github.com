@@ -249,7 +249,9 @@ $( function()
 
         if(buttonName == "tab")
         {
-            //Set a timeout so the loader has time to appear after clicking the button
+            //Set a timeout so the loader has time to appear after clicking the button.
+            //When hte timeout occurs (as short as possible) then run the expensive tab
+            //generation function, block for a few ms.
             setTimeout(function()
             {
                 var score = ScoreModel.Score.NoteArray;
@@ -260,13 +262,16 @@ $( function()
                 $("#tabberContainer").empty().append(tabResultData.tablatureString);//.replace(/\s/g, '&nbsp;'));
                 if(tabResultData.failureReason == undefined)
                 {
-                    OpenTextFileInNewTab(tabResultData.tablatureString);
+                    //OpenTextFileInNewTab(tabResultData.tablatureString);
                 }
 
                 else
                 {
                     alert(tabResultData.failureReason)
                 }
+
+                tabResultData = null;
+
 
                 $(".loader").hide();
             }, 10);

@@ -370,8 +370,6 @@ class Model
     }
     Deserialize(serializedParameters)
     {
-        console.log("Deserialize me", serializedParameters);
-
         try {
             var serializedGridScores = serializedParameters.GridList;//[]
             if(serializedParameters.GridList.length == 0)

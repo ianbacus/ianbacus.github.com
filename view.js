@@ -509,12 +509,53 @@ class View
         });
     }
 
+    HighlightGridArrayWithIndex(selectedIndex)
+    {
+        var domGridArray = this.GridArray;
+        var nodeIndex = 0;
+
+        function renderGridBordersAndHighlightIndex(canvasNode, nodeIndex)
+        {
+            if(nodeIndex == selectedIndex)
+            {
+                canvasNode.css({'border':'solid purple 3px'});
+            }
+            else
+            {
+                canvasNode.css({'border':'solid black 1px'});
+            }
+        }
+
+        //Grid images: 1 per grid canvas. Go through grid canvases on the page in order, create new ones if required.
+        $(".gridCanvas").each(function(index, gridCanvas)
+        {
+            var image = gridImages[nodeIndex];
+            var gridCanvas = $(this)
+            renderGridBordersAndHighlightIndex(gridCanvas,nodeIndex);
+
+            nodeIndex++;
+        }, nodeIndex);
+
+        //Create new divs for new images
+        while(nodeIndex < selectedIndex)
+        {
+            var image = gridImages[nodeIndex];
+            var canvasNode = $('<canvas/>');
+            canvasNode.addClass("gridCanvas").attr("gridIndex", nodeIndex);
+            domGridArray.append(canvasNode);
+
+            renderGridBordersAndHighlightIndex(canvasNode,nodeIndex);
+
+            nodeIndex++;
+        }
+
+    }
+
     RenderGridArray(gridImages, selectedIndex)
     {
 		//TODO: make this more efficient, do not re-render everything
-        var numberOfEntries = gridImages.length;
         var domGridArray = this.GridArray;
-        //domGridArray.empty();
+
         var nodeIndex = 0;
 
         function drawGridImage(canvasNode, image)
@@ -551,13 +592,14 @@ class View
         {
             var image = gridImages[nodeIndex];
             var gridCanvas = $(this)
-            drawGridImage(gridCanvas, image);
+            if(image !== undefined) drawGridImage(gridCanvas, image);
             renderGridBordersAndHighlightIndex(gridCanvas,nodeIndex);
 
             nodeIndex++;
         }, nodeIndex);
 
-        while(nodeIndex < numberOfEntries)
+        //Create new divs for new images
+        while((gridImages !== undefined) && nodeIndex < gridImages.length)
         {
             var image = gridImages[nodeIndex];
             var canvasNode = $('<canvas/>');
