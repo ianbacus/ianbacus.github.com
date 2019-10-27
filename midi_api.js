@@ -8,7 +8,7 @@ class MidiAbstractionLayer
         this.TabberInputData = '';
 
         // Allocate memory of the required size
-        // typedArray = 
+        // typedArray =
         // buffer = Module._malloc(typedArray.length * typedArray.BYTES_PER_ELEMENT)
         // // Load it with the data present in our typedArray
         // Module.HEAPF32.set(typedArray, buffer >> 2);

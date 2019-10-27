@@ -6,10 +6,46 @@
 
 #sidebar
 {
+    margin-left: auto;
+    margin-right: auto;
     overflow-y:scroll;
-	width:100%;
 	height:500px;
+    z-index: 5;
 }
+#sidebar .tab-content
+{
+    position: sticky;
+
+}
+.sidebar
+{
+    padding-left:50px;
+	width:80%;
+}
+.columnContainer
+{
+    background:pink url('nebula3.jpg') repeat;
+	border-radius: 25px;
+    padding-bottom:25px;
+    padding-top:25px;
+}
+
+.columnSlave
+{
+    background-color: white;
+	padding-bottom:10px;
+	padding-top:10px;
+	padding-left:10px;
+	border-radius: 25px;
+	width:95%;
+
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+	opacity:.8;
+    border:black;
+}
+
 
 #trackbox
 {
@@ -19,6 +55,8 @@
     overflow-y:scroll;
     height:30%;
     width:50%;
+    background:pink url('nebula3.jpg') repeat;
+	border-radius: 25px;
 }
 
 .trackrow
@@ -35,7 +73,6 @@
 	opacity:.8;
     border:black;
 }
-
 
 .trackrow .volumeSlider{
     width:50%;

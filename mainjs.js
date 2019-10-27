@@ -159,10 +159,6 @@ $( function()
         var viewData = localStorage.getItem(viewLocalStorageString);
         var controllerData = localStorage.getItem(controllerLocalStorageString);
 
-        console.log(modelData)
-        console.log(viewData)
-        console.log(controllerData)
-
     	var deserializedViewData = JSON.parse(viewData );
     	var deserializedControllerData = JSON.parse(controllerData);
         var deserializedModelData = JSON.parse(modelData);
@@ -209,8 +205,15 @@ $( function()
         // .mouseup(onMouseClickUp)
         // .mouseenter(onHoverBegin)
         // .mouseleave(onHoverEnd)
-    $(".trackrow").mouseenter(function(e){console.log("track: hello")}).mouseleave(function(e){console.log("track: goodbye")});
+    $(".trackrow").mouseenter(function(e){console.log("track: hello", this, e )}).mouseleave(function(e){console.log("track: goodbye")});
 
+	$(document).on("click", ".trackrow", function(e)
+    {
+        var trackNumber = parseInt(this.attributes["value"].value);
+
+        ScoreController.CurrentTrack = trackNumber;
+        console.log("track: click me", this, trackNumber, e )
+    });
 
     //$("#GridboxArray").mousedown(function(){console.log("controller: go to grid view");});
 

@@ -529,7 +529,6 @@ class View
         //Grid images: 1 per grid canvas. Go through grid canvases on the page in order, create new ones if required.
         $(".gridCanvas").each(function(index, gridCanvas)
         {
-            var image = gridImages[nodeIndex];
             var gridCanvas = $(this)
             renderGridBordersAndHighlightIndex(gridCanvas,nodeIndex);
 
@@ -821,6 +820,33 @@ class View
     {
         var borderCssString = 'solid '+color+' 3px';
         this.GridboxContainer.css('border',borderCssString);
+    }
+
+    SelectTrack(trackNumber)
+    {
+        var nodeIndex = 0;
+        function renderTrackBordersAndHighlightIndex(trackRow, index)
+        {
+            //var trackNumber = trackRow[0].attributes["value"].value
+            console.log(index,trackRow);
+            if(index == trackNumber)
+            {
+                trackRow.css({'border':'solid white 3px'});
+            }
+            else
+            {
+                trackRow.css({'border':'solid black 1px'});
+            }
+        }
+
+        //Grid images: 1 per grid canvas. Go through grid canvases on the page in order, create new ones if required.
+        $(".trackrow").each(function(index, trackRow)
+        {
+            var trackObject = $(this)
+            renderTrackBordersAndHighlightIndex(trackObject,index);
+
+            nodeIndex++;
+        }, nodeIndex);
     }
 
     //Handle deletions and additions and reset jquery assignments
