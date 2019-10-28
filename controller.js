@@ -41,7 +41,7 @@ class Track
 
     get Instrument()
     {
-        return this._Instrument
+        return this._Instrument;
     }
 
     set Instrument(instrument)
@@ -120,25 +120,38 @@ class Controller
     Initialize(initializationParameters)
     {
         //Load saved settings
-        this.console.log("init controller",initializationParameters)//todo removed log
+//        this.console.log("init controller",initializationParameters)//todo removed log
 
-        for(var i = 0; i<10; i++)
-        {
-               this.AddTrack(i);
-        }
 
         this.InitializeInstrumentSelectors();
         this.CurrentTrack = 0;
 
 		if(initializationParameters != null)
 		{
-			this.TonicKey = initializationParameters.TonicKey;
-			this.MusicalModeIndex = initializationParameters.MusicalModeIndex;
-			this.CurrentTrack = initializationParameters.CurrentTrack;
-			this.NoteColorationMode = initializationParameters.NoteColorationMode;
-			this.EditorMode = initializationParameters.EditorMode;
-            this.Tracks = initializationParameters.Tracks;
+            function copyOrSetDefault(copyValue,defaultValue)
+            {
+                if(copyValue === undefined)
+                {
+                    return defaultValue;
+                }
+                else
+                {
+                    return copyValue;
+                }
+            }
+
+			this.TonicKey = copyOrSetDefault(initializationParameters.TonicKey, 0);
+			this.MusicalModeIndex = copyOrSetDefault(initializationParameters.MusicalModeIndex, 0);
+			this.CurrentTrack = copyOrSetDefault(initializationParameters.CurrentTrack, 0);
+			this.NoteColorationMode = copyOrSetDefault(initializationParameters.NoteColorationMode, false);
+			this.EditorMode = copyOrSetDefault(initializationParameters.EditorMode, editModeEnumeration.EDIT);
+            this.Tracks = copyOrSetDefault(initializationParameters.Tracks, []);
 		}
+        //Make sure there are at least 10 tracks
+        for(var i = 0; i<10; i++)
+        {
+           this.AddTrack(i);
+        }
 
         //Instruments
         this.InitializeInstrumentSelectors()
@@ -182,6 +195,7 @@ class Controller
 
     SetTrackAttribute(trackNumber, attribute, value)
     {
+        console.log(attribute + " track " + trackNumber + "?" + value);
         if(attribute == "Mute")
         {
             this.Tracks[trackNumber].Muted = value;
@@ -203,7 +217,7 @@ class Controller
     }
     GetTrackInstrument(trackNumber)
     {
-        var instrumentCode = this.Tracks[trackNumber].Instrument;
+        var instrumentCode = c_this.Tracks[trackNumber]._Instrument;
         var instrument = m_this.InstrumentEnum[instrumentCode];
         //console.log(instrument, this.Tracks);
         return instrument
@@ -218,30 +232,40 @@ class Controller
 	OnTrackSelectChange(instrumentCode, eventData)
 	{
         var trackIndex = parseInt(eventData.target.parentElement.attributes["value"].value);
-            this.console.log(eventData.target, trackIndex, instrumentCode);//todo removed log
+//            this.console.log(eventData.target, trackIndex, instrumentCode);//todo removed log
         c_this.SetTrackInstrument(trackIndex, instrumentCode);
 		//m_this.Track[trackIndex].InstrumentEnum[instrumentCode];
         //console.log("Track " + trackIndex + " instrument change", instrumentCode, eventData);
 	}
-    UpdateTracks(trackList)
-    {
-        trackList.forEach(function(e)
-        {
-
-        });
-    }
 
 	OnTrackButton(eventData)
 	{
+        eventData.preventDefault();
         try {
-    		var trackIndex = parseInt(eventData.currentTarget.attributes["value"].value);
+            var value = $(this).attr("value");
+            var state = $(this).attr("state");
+
+            if(state == 0)
+            {
+                $(this).css({'background':'red'});
+                $(this).attr("state",1);
+            }
+            else
+            {
+                $(this).css({'background':'white'});
+                $(this).attr("state",0);
+            }
+
+            var trackIndex = $(this).parent().attr("value");
+
+    		//var trackIndex = parseInt(eventData.currentTarget.attributes["value"].value);
             var buttonIndex = eventData.target.attributes["value"].value;
             var buttonStatus = eventData.target.checked
 
-            c_this.SetTrackAttribute(trackIndex,buttonIndex,buttonStatus);
+            c_this.SetTrackAttribute(trackIndex,buttonIndex,(state==0));
 
         } catch (e) {
-            //don't do anything
+            console.log(e)
         }
 	}
 
@@ -284,7 +308,7 @@ class Controller
             modeBuffer.push(modeSlot);
 		});
 
-        this.console.log("Render keys in set key reference");//todo removed log
+//        this.console.log("Render keys in set key reference");//todo removed log
 		this.View.RenderKeys(modeBuffer, this.CursorPosition.x, this.CursorPosition.y);
     }
 
@@ -304,8 +328,10 @@ class Controller
             var instrumentSelector = $('<select>', { class:"InstrumentSelector", val:"Guitar", text: "📯"});
             //var toggleMute = $('<input>', { text: "⛤"});
             //var toggleLock = $('<input>', { typetext: "⛶"});
-            var toggleMute = '<label class="checkbox-inline"> <input type="checkbox" value="Mute" data-toggle="toggle"> ⛤ </label>'
-            var toggleLock = '<label class="checkbox-inline"> <input type="checkbox" value="Lock" data-toggle="toggle"> ⛶ </label>'
+            //var toggleMute = '<label class="checkbox-inline"> <input type="checkbox" value="Mute" data-toggle="toggle"> ⛤ </label>'
+            //var toggleLock = '<label class="checkbox-inline"> <input type="checkbox" value="Lock" data-toggle="toggle"> ⛶ </label>'
+            var toggleMute = '<div class="button" state="0" value="Mute"> ⛤ </label>'
+            var toggleLock = '<div class="button" state="0" value="Lock"> ⛶ </label>'
 
             var pickColor = $('<div>', { text: "֎"}); //click and hold should pull open a color wheel and change all the track colors so they are different
             var toggleButton = '<select data-role="slider"><option value="off">Off</option><option value="on">On</option></select>'
@@ -332,7 +358,7 @@ class Controller
     {
         this.RefreshEditBoxNotes();
         //TODO set highlight on previews
-        this.View.HighlightGridArrayWithIndex();
+        this.View.HighlightGridArrayWithIndex(this.Model.GridPreviewIndex);
         this.View.GetGridboxThumbnail(this, this.OnThumbnailRender, this.Model.GridPreviewIndex);
     }
 
@@ -582,7 +608,7 @@ class Controller
     //Add a key at the same instant as other held down keys.
     InstantKeyDown(keyCharacter)
     {
-        this.console.log("InstantKeyDown");//todo removed log
+//        this.console.log("InstantKeyDown");//todo removed log
         var pitch = this.ChromaticKeyMap[keyCharacter];
         var selectCount = this.CountSelectedNotes();
         if(selectCount == 0) //on first keydown:
@@ -604,17 +630,17 @@ class Controller
         var playbackMode = this.GetModeSettings().PlaybackMode;
         var includeSuspensions = playbackMode == 2;
         var soloMode = playbackMode == 0;
-        this.console.log("Note netry", this.MidiControllerInstantChordNotes);//todo removed log
+//        this.console.log("Note netry", this.MidiControllerInstantChordNotes);//todo removed log
 
         if(!soloMode)
         {
             this.GetPlaybackIntersections(this.MidiControllerInstantChordNotes, playbackBuffer, includeSuspensions);
-            this.console.log("obtained playback intersections: ", playbackBuffer);//todo removed log
+//            this.console.log("obtained playback intersections: ", playbackBuffer);//todo removed log
         }
 
         this.ModifyNoteArray(this.MidiControllerInstantChordNotes, function(note)
         {
-            this.console.log("In-chord notes: playing note: ", note);//todo removed log
+//            this.console.log("In-chord notes: playing note: ", note);//todo removed log
             this.Model.AddNote(note, 0, playbackBuffer, false);
         }, playbackBuffer);
 
@@ -631,7 +657,7 @@ class Controller
     //Move the playback line forward.
     InstantKeyUp(keyCharacter)
     {
-        this.console.log("InstantKeyUp");//todo removed log
+//        this.console.log("InstantKeyUp");//todo removed log
         if(this.MidiKeysDown == 0)
         {
             var selectedNotes = this.Model.SelectedNotes;
@@ -644,7 +670,7 @@ class Controller
 
             this.MainPlaybackStartTicks = newStartTicks;//currentNote.StartTimeTicks;
             this.View.RenderPlaybackLine(this.MainPlaybackStartTicks, this.CapturedPlaybackStartTicks);
-            this.console.log("No keys down, advancing ticks to ",newStartTicks)//todo removed log
+//            this.console.log("No keys down, advancing ticks to ",newStartTicks)//todo removed log
         }
 
         return undefined;
@@ -685,23 +711,11 @@ class Controller
     }
     QuantizerKeyDown(keyCharacter)
     {
-        this.console.log("QuantizerKeyDown");//todo removed log
         var pitch = this.ChromaticKeyMap[keyCharacter];
         if(this.MidiKeysDown == 0)
         {
-            // var infiniteStartTicks = 9000;
-            // var sentinelNote = new Note(
-            //     infiniteStartTicks,
-            //     this.TonicKey,
-            //     4,
-            //     this.CurrentTrack,
-            //     false);
-
-            //this.Model.AddNote(sentinelNote, 0, this.Model.Score.NoteArray, false);
             this.HandlePlayback(PlaybackEnumeration.Resume);
             this.KickstartMidiControllerTimeout();
-
-            //this.Model.DeleteNote(sentinelNote, 0, this.Model.Score.NoteArray, false);
         }
 
         var previewNote = this.CreateMidiControllerNote(pitch);
@@ -717,7 +731,7 @@ class Controller
 
     QuantizerKeyUp(keyCharacter)
     {
-        this.console.log("QuantizerKeyUp");//todo removed log
+//        this.console.log("QuantizerKeyUp");//todo removed log
         var previewNote = this.PressedKeys[keyCharacter];
 
         this.QuantizeNoteLength(previewNote);
@@ -741,7 +755,7 @@ class Controller
             event.preventDefault();
             if((event.type == "keydown") && !keyAlreadyPressed)
             {
-                this.console.log(this.OnMidiControllerKeyDown)//todo removed log
+//                this.console.log(this.OnMidiControllerKeyDown)//todo removed log
                 this.PressedKeys[keyCharacter] = this.OnMidiControllerKeyDown(keyCharacter);
                 this.MidiKeysDown++;
             }
@@ -813,7 +827,7 @@ class Controller
         //if((this.EditorMode == editModeEnumeration.MidiControllerMode) && (selectCount == 0) && (!this.Playing)){
 
         var startTicks = this.CapturedPlaybackStartTicks + this.MidiControllerTicks//TODO should this.MainPlaybackStartTicks  be added here?
-        this.console.log("capd, miditicks",this.CapturedPlaybackStartTicks, this.MidiControllerTicks);//todo removed log
+//        this.console.log("capd, miditicks",this.CapturedPlaybackStartTicks, this.MidiControllerTicks);//todo removed log
         var noteIsSelected = true;
         var noteLength = 0//this.SampleResolutionTicks
 
@@ -856,7 +870,6 @@ class Controller
                     (keyupThisPointer.EditorMode != editModeEnumeration.MidiControllerMode) &&
                     (keyupThisPointer.EditorMode != editModeEnumeration.InstantMidiControllerMode))
                 {
-                    this.console.log(event);//todo removed log
                     if(event.originalEvent.shiftKey)
                     {
                         keyupThisPointer.OnMidiControllerKeyDown = keyupThisPointer.InstantKeyDown;
@@ -869,7 +882,6 @@ class Controller
                         keyupThisPointer.OnMidiControllerKeyUp = keyupThisPointer.QuantizerKeyUp;
                         keyupThisPointer.EditorMode = editModeEnumeration.MidiControllerMode;
                     }
-                    this.console.log(this.OnMidiControllerKeyDown, this.OnMidiControllerKeyUp);//todo removed log
 
                     keyupThisPointer.HandleSelectionReset();
                 }
@@ -892,12 +904,10 @@ class Controller
 
         if(keyupThisPointer.EditorMode == editModeEnumeration.MidiControllerMode)
         {
-            //eventHandled = keyupThisPointer.MidiControllerQuantizedKeyCallback(event)
             eventHandled = keyupThisPointer.MidiControllerKeyCallback(event)
         }
         if(keyupThisPointer.EditorMode == editModeEnumeration.InstantMidiControllerMode)
         {
-            //eventHandled = keyupThisPointer.MidiControllerQuantizedKeyCallback(event)
             eventHandled = keyupThisPointer.MidiControllerKeyCallback(event)
         }
 
@@ -1029,7 +1039,6 @@ class Controller
             {
                 this.TonicKey = (this.TonicKey+7)%keys;
             }
-            this.console.log("xx");//todo removed log
             this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
 
             break;
@@ -1107,15 +1116,18 @@ class Controller
             break;
 
         //Numeric keys
-        case 49: //key 0
-        case 50: //key 1
-        case 51: //...
+        case 48: //key 0
+            event.keyCode += 10; //no track 0, just track 10
+        case 49: //key 1
+        case 50: //...
+        case 51:
         case 52:
         case 53:
         case 54:
         case 55: //...
         case 56: //key 8
         case 57: //key 9
+
             var pressedKey = event.keyCode - 49;
             this.CurrentTrack = pressedKey;
 
@@ -1231,6 +1243,10 @@ class Controller
 
     set CurrentTrack(trackNumber)
     {
+        if(trackNumber < 0)
+        {
+            trackNumber = 0;
+        }
         this._CurrentTrack = trackNumber;
 
         this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
@@ -1244,6 +1260,10 @@ class Controller
 
     get CurrentTrack()
     {
+        if(this._CurrentTrack < 0)
+        {
+            this._CurrentTrack = 0;
+        }
         return this._CurrentTrack;
     }
 
@@ -1278,7 +1298,7 @@ class Controller
         //Instantiate the copied notes in the next buffer
         copyBuffer.forEach(function(note)
         {
-            this.console.log("Transporting note: ", note, oldGridIndex, newGridIndex);//todo removed log
+//            this.console.log("Transporting note: ", note, oldGridIndex, newGridIndex);//todo removed log
 			note.CurrentGridIndex = newGridIndex;
             this.Model.AddNote(note, 0, this.Model.Score.NoteArray, false);
             this.Model.AddNote(note, 0, this.Model.SelectedNotes, false);
@@ -1288,7 +1308,7 @@ class Controller
 		var targetGridWidth = this.Model.Score.GridWidth;
 
 		this.SetGridWidth(targetGridWidth);
-		this.console.log("Transport end:", originalGridWidth, currentGridWidth, targetGridWidth);//todo removed log
+//		this.console.log("Transport end:", originalGridWidth, currentGridWidth, targetGridWidth);//todo removed log
     }
 
     InvertVoices(moveHighestVoiceByOctave)
@@ -1505,12 +1525,12 @@ class Controller
     {
         //Get all notes that play during this note, return the index of the first note that won't be played in this chord
         var [chordNotes,returnIndex] = this.GetChordNotes(noteArray, noteIndex, includeSuspensions, includeSelectedNotes)
-        this.console.log(chordNotes)//todo removed log
+//        this.console.log(chordNotes)//todo removed log
 
         this.ModifyNoteArray(chordNotes, function(note)
         {
             var instrumentCode = this.GetTrackInstrument(note.CurrentTrack);
-            this.console.log("start play",this.MillisecondsPerTick, this, this.OnStopNote, instrumentCode);//todo removed log
+//            this.console.log("start play",this.MillisecondsPerTick, this, this.OnStopNote, instrumentCode);//todo removed log
             note.Play(this.MillisecondsPerTick, this, this.OnStopNote, instrumentCode);
             this.View.ApplyNoteStyle(note, this.NoteColorationMode);
         });
@@ -1605,7 +1625,7 @@ class Controller
 
 				this.View.SmoothScroll(startX, ycoord, 500);
 			}
-            this.console.log("Play notes", noteArray);//todo removed log
+//            this.console.log("Play notes", noteArray);//todo removed log
             this.OnPlayAllNotes(includeSuspensions, includeSelectedNotes);
         }
     }
@@ -2225,7 +2245,7 @@ class Controller
     }
 	OnGridClick(gridIndex)
 	{
-		this.console.log(gridIndex)//todo removed log
+//		c_this.console.log(gridIndex)//todo removed log
 		c_this.HandleGridMove(gridIndex);
 		c_this.RefreshGridPreview();
 		c_this.RefreshGridboxBackground();

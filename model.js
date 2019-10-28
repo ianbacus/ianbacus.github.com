@@ -32,6 +32,10 @@ class Note
         this.BassInterval = undefined;
 
         //Track control information
+        if(currentTrack < 0)
+        {
+            currentTrack = 0;
+        }
         this.CurrentTrack = currentTrack;
 
     }
@@ -140,20 +144,24 @@ class Note
         var milliseconds = millisecondsPerTick * this.Duration;
         var playback = this.Playback;
         playback.key = this.Pitch;
+        try {
+    		playback.envelope=player.queueWaveTable(
+                audioContext,   //audio context
+                audioContext.destination, //audio destination
+                instrumentCode, //instrument
+                0,  //start time
+                playback.key, //pitch
+                milliseconds/1000); //duration
+        } catch (e) {
+            console.log("Failed to play notes");
+        } finally {
+            this.OnStopCallback = {Caller:caller, Callback: onStopCallback};
+            this.IsHighlighted = true;
 
-		playback.envelope=player.queueWaveTable(
-            audioContext,   //audio context
-            audioContext.destination, //audio destination
-            instrumentCode, //instrument
-            0,  //start time
-            playback.key, //pitch
-            milliseconds/1000); //duration
+            this.PendingTimeout = setTimeout(
+                $.proxy(this.StopPlaying, this),milliseconds);
+        }
 
-		this.OnStopCallback = {Caller:caller, Callback: onStopCallback};
-        this.IsHighlighted = true;
-
-        this.PendingTimeout = setTimeout(
-            $.proxy(this.StopPlaying, this),milliseconds);
     }
 
     ForceNoteOff()

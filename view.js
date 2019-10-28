@@ -114,7 +114,6 @@ class View
 			this.GridWidthTicks = this.copyIfValid(initializationParameters.GridWidthTicks, 512);
 			this.GridboxContainer.scrollTop(initializationParameters.ScrollLeft);
 			this.GridboxContainer.scrollLeft(initializationParameters.ScrollTop);
-			console.log(initializationParameters)
 		}
 		else
 		{
@@ -147,6 +146,7 @@ class View
         $(document).on('input change', '#TempoSlider',this.OnSliderChange);
         $(document).on('input change', '.volumeSlider',this.OnSliderChange);
         $(document).on('select change', '.InstrumentSelector', this.OnSelectChange);
+        $(document).on('.button click', '.button',this.OnTrackButton);
 
 		$(document).on("click", ".gridCanvas", function(e)
 		{
@@ -157,7 +157,6 @@ class View
 
         //$(document).on('select change', this.OnSelectChange);
 
-        $(document).on('input[type=checkbox] change', '.trackrow',this.OnTrackButton);
         $(window).on('beforeunload', function ()
         {
             return onPageUnload();
@@ -185,7 +184,6 @@ class View
 
     OnSelectChange(event)
     {
-        console.log(this,event)
         v_this.SelectHandler(this.value,event);
         $('select').blur();
         //v_this.Maingrid.focus();
@@ -518,11 +516,11 @@ class View
         {
             if(nodeIndex == selectedIndex)
             {
-                canvasNode.css({'border':'solid purple 3px'});
+                canvasNode.css({'border':'solid white 5px'});
             }
             else
             {
-                canvasNode.css({'border':'solid black 1px'});
+                canvasNode.css({'border':'solid black 2px'});
             }
         }
 
@@ -538,7 +536,6 @@ class View
         //Create new divs for new images
         while(nodeIndex < selectedIndex)
         {
-            var image = gridImages[nodeIndex];
             var canvasNode = $('<canvas/>');
             canvasNode.addClass("gridCanvas").attr("gridIndex", nodeIndex);
             domGridArray.append(canvasNode);
@@ -569,7 +566,7 @@ class View
                     context.drawImage(image, 0, 0, cWidth,cHeight);
                 }
             } catch (e) {
-                console.log(e);
+                //console.log(e);
             }
         }
 
@@ -577,7 +574,7 @@ class View
         {
             if(nodeIndex == selectedIndex)
             {
-                canvasNode.css({'border':'solid purple 3px'});
+                canvasNode.css({'border':'solid white 7px'});
             }
             else
 			{
@@ -825,28 +822,49 @@ class View
     SelectTrack(trackNumber)
     {
         var nodeIndex = 0;
+        var selectedTrackOffset = 0;
+
         function renderTrackBordersAndHighlightIndex(trackRow, index)
         {
-            //var trackNumber = trackRow[0].attributes["value"].value
-            console.log(index,trackRow);
             if(index == trackNumber)
             {
-                trackRow.css({'border':'solid white 3px'});
+                trackRow.css({'border':'solid white 7px'});
+                selectedTrackOffset = (trackRow.height()+2)*(trackNumber+1);
+                //selectedTrackOffset = trackRow.position().top;
             }
             else
             {
-                trackRow.css({'border':'solid black 1px'});
+                trackRow.css({'border':'solid black 2px'});
             }
         }
 
         //Grid images: 1 per grid canvas. Go through grid canvases on the page in order, create new ones if required.
         $(".trackrow").each(function(index, trackRow)
         {
-            var trackObject = $(this)
+            var trackObject = $(this);
             renderTrackBordersAndHighlightIndex(trackObject,index);
 
             nodeIndex++;
         }, nodeIndex);
+
+        function isScrolledIntoView(elem)
+        {
+            var docViewTop = $(window).scrollTop();
+            var docViewBottom = docViewTop + $(window).height();
+
+            var elemTop = $(elem).offset().top;
+            var elemBottom = elemTop + $(elem).height();
+
+            return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+        }
+
+        var x = $("#trackbox").scrollTop();
+        var y = $("#trackbox").scrollTop() + $("#trackbox").height();
+
+        if((selectedTrackOffset < x) && (selectedTrackOffset > y))
+        {
+            $("#trackbox").scrollTop(selectedTrackOffset);
+        }
     }
 
     //Handle deletions and additions and reset jquery assignments

@@ -1,7 +1,8 @@
 .gridCanvas {
     width:100%;
-    background:whitesmoke;
+    background:orange;
     z-index: 100;
+    border-radius:30px;
 }
 
 #sidebar
@@ -11,16 +12,13 @@
     overflow-y:scroll;
 	height:500px;
     z-index: 5;
+    padding-left:10px;
+	width:85%;
 }
 #sidebar .tab-content
 {
     position: sticky;
 
-}
-.sidebar
-{
-    padding-left:50px;
-	width:80%;
 }
 .columnContainer
 {
@@ -46,6 +44,13 @@
     border:black;
 }
 
+#GridboxArray{
+    width:100%;
+    border:4px solid black;
+    padding-bottom:50px;
+    background:black ;
+	border-radius: 15px;
+}
 
 #trackbox
 {
@@ -53,7 +58,7 @@
     margin-right: auto;
 	padding-top:50px;
     overflow-y:scroll;
-    height:30%;
+    height:250px;
     width:50%;
     background:pink url('nebula3.jpg') repeat;
 	border-radius: 25px;
@@ -61,6 +66,7 @@
 
 .trackrow
 {
+    position:relative;
 	padding-bottom:10px;
 	padding-top:10px;
 	padding-left:50px;
@@ -72,6 +78,20 @@
   margin-right: auto;
 	opacity:.8;
     border:black;
+}
+
+.trackrow .button
+{
+  border: none;
+  background: white;
+  padding: 2px;
+  padding-top: 2px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 36px;
+  margin: 4px 4px;
+    border-radius: 50%;
 }
 
 .trackrow .volumeSlider{
