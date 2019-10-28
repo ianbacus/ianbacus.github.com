@@ -58,7 +58,7 @@
         <div class="col-sm-2">
             <!--- This column contains edit palletes-->
 			<div  class="columnContainer">
-				<div class="columnSlave sidebar">
+				<div class="columnSlave">
 					<ul class="nav nav-tabs">
 					<li id="ktab" ><a data-toggle="tab" href="#keys">🔑</a></li>
 					<li id="stab" class="active"><a data-toggle="tab" href="#settings">✌</a></li>
@@ -66,96 +66,96 @@
 					<li id="ttab" ><a data-toggle="tab" href="#tabber">🎸</a></li>
 				</ul>
 					<div class="row">
-					<div id="sidebar" class="tab-content">
-						<div id="keys" class="tab-pane fade">
-							<div id="helpMenu">
-								<br>
-								Explore
-								<br>
-								<br>
-								<p>↑↓: Navigate</p>
-								<p>Tab: Tonality </p>
-								<p> ~ : Mode </p>
-								<p>[ ]: Play </p>
-								<p>s-[ ]: Replay </p>
-								<p>c-[ ]: Replay all </p>
+						<div class="tab-content sidebar scroller">
+							<div id="keys" class="tab-pane fade">
+								<div id="helpMenu">
+									<br>
+									Explore
+									<br>
+									<br>
+									<p>↑↓: Navigate</p>
+									<p>Tab: Tonality </p>
+									<p> ~ : Mode </p>
+									<p>[ ]: Play </p>
+									<p>s-[ ]: Replay </p>
+									<p>c-[ ]: Replay all </p>
 
+									<br>
+									Modes
+									<br>
+									<br>
+									<p>Z: Create</p>
+									<p>X: Select</p>
+									<br>
+									Commands
+									<br>
+									<br>
+									<p>W: Invertible Swap</p>
+									<p>C: Copy</p>
+									<p>V: Paste</p>
+									<p>D: Delete</p>
+									<p>R: Append</p>
+									<p>c-A: Select all</p>
+									<p>c-Z: Undo</p>
+									<p>s-Z: Redo</p>
+								</div>
+							</div>  <!-- end help tab -->
+							<div id="settings" class="tab-pane fade in active">
 								<br>
-								Modes
-								<br>
-								<br>
-								<p>Z: Create</p>
-								<p>X: Select</p>
-								<br>
-								Commands
-								<br>
-								<br>
-								<p>W: Invertible Swap</p>
-								<p>C: Copy</p>
-								<p>V: Paste</p>
-								<p>D: Delete</p>
-								<p>R: Append</p>
-								<p>c-A: Select all</p>
-								<p>c-Z: Undo</p>
-								<p>s-Z: Redo</p>
-							</div>
-						</div>  <!-- end help tab -->
-						<div id="settings" class="tab-pane fade in active">
-							<br>
-							Invertible Counterpoint
-							<div class="form-group" id="Analysis">
-								<div class="radio">
-									<label><input type="radio" name="optradio0" value=0>None</label>
-								</div>
-								<div class="radio">
-									<label><input type="radio" name="optradio0" value=1 checked="checked">At the 15th</label>
-								</div>
-								<div class="radio">
-									<label><input type="radio" name="optradio0" value=2>At at 12th</label>
-								</div>
-								<div class="radio">
-									<label><input type="radio" name="optradio0" value=3>At at 10th</label>
-								</div>
-							</div>
-							Playback Options
-							<div class="form-group" id="PlayPreview">
-								<div class="radio">
-									<label><input type="radio" name="optradio1" value=0 checked="checked">Solo</label>
-								</div>
-								<div class="radio">
-									<label><input type="radio" name="optradio1" value=1>Chords</label>
-								</div>
-								<div class="radio">
-									<label><input type="radio" name="optradio1" value=2>Suspensions</label>
-								</div>
-							</div>
-							<!--
-							Play Duration
-							<div class="form-group" id="Playback">
-								<div class="radio">
-									<label><input type="radio" name="optradio2" value=1 checked="checked">Current grid</label>
-								</div>
-								<div class="radio">
-									<label><input type="radio" name="optradio2" value=2>All</label>
-								</div>
-							</div>
-							-->
-
-							<div class="slidecontainer">
-								<p id="TempoPreview">Tempo:</p>
-								<input type="range" min="60" max="250" value="120" class="slider" id="TempoSlider">
-							</div>
-							<br>
-						</div> <!-- end mode tab -->
-
-						<div id="preview" class="tab-pane fade in">
-							<div id="gridboxNavigator">
-									<div id="GridboxArray">
+								Invertible Counterpoint
+								<div class="form-group" id="Analysis">
+									<div class="radio">
+										<label><input type="radio" name="optradio0" value=0>None</label>
 									</div>
-							</div>
-						</div> <!-- end preview tab -->
+									<div class="radio">
+										<label><input type="radio" name="optradio0" value=1 checked="checked">At the 15th</label>
+									</div>
+									<div class="radio">
+										<label><input type="radio" name="optradio0" value=2>At at 12th</label>
+									</div>
+									<div class="radio">
+										<label><input type="radio" name="optradio0" value=3>At at 10th</label>
+									</div>
+								</div>
+								Playback Options
+								<div class="form-group" id="PlayPreview">
+									<div class="radio">
+										<label><input type="radio" name="optradio1" value=0 checked="checked">Solo</label>
+									</div>
+									<div class="radio">
+										<label><input type="radio" name="optradio1" value=1>Chords</label>
+									</div>
+									<div class="radio">
+										<label><input type="radio" name="optradio1" value=2>Suspensions</label>
+									</div>
+								</div>
+								<!--
+								Play Duration
+								<div class="form-group" id="Playback">
+									<div class="radio">
+										<label><input type="radio" name="optradio2" value=1 checked="checked">Current grid</label>
+									</div>
+									<div class="radio">
+										<label><input type="radio" name="optradio2" value=2>All</label>
+									</div>
+								</div>
+								-->
 
-						<div id="tabber" class="tab-pane fade in">
+								<div class="slidecontainer">
+									<p id="TempoPreview">Tempo:</p>
+									<input type="range" min="60" max="250" value="120" class="slider" id="TempoSlider">
+								</div>
+								<br>
+							</div> <!-- end mode tab -->
+
+							<div id="preview" class="tab-pane fade in">
+								<div id="gridboxNavigator">
+										<div id="GridboxArray">
+										</div>
+								</div>
+							</div> <!-- end preview tab -->
+
+							<div id="tabber" class="tab-pane fade in">
 							<div id="tablatureSettings">
 
 								<!-- end preview tab <div id="GridboxArray" style="border: 1px solid black"></div> -->
@@ -194,25 +194,31 @@
 								</form>
 
 							</div>
-						</div> <!-- end preview tab -->
-					</div> <!-- end tabular content -->
+							</div> <!-- end preview tab -->
+						</div> <!-- end tabular content -->
 
-				</div> <!-- end row -->
-				</div>
+					</div>
+				</div><!-- end row -->
 			</div>
+			<br>
+			<br>
+			<div class="row columnContainer">
+				<div id="trackbox" class="sidebar scroller">
+				</div>
+			</div><!-- end row -->
 		</div> <!-- end column -->
 
         <!--- This column contains the main editing box -->
         <div class="col-sm-10" >
 			<!--- This column contains edit palletes-->
-			<div class="columnContainer">
-				<div class="columnSlave">
+			<div class="columnContainer2">
+				<div class="columnSlave" id="gridWrapper">
 					<ul class="nav nav-tabs">
 						<li id="prtab" class="active" ><a data-toggle="tab" href="#gridboxContainer">🎵</a></li>
 						<li id="gttab" ><a data-toggle="tab" href="#guitartabs">𝄜</a></li>
 					</ul>
 					<div class="tab-content">
-						<div id="gridboxContainer" class="tab-pane fade in active context-menu-target">
+						<div id="gridboxContainer" class="scroller tab-pane fade in active context-menu-target">
 		                    <div id="gridbox" >
 		                        <div id="testDZ" action="/file-upload">
 		                            <div id="RestartPlaybackLine" class="PlaybackLine"></div>
@@ -222,17 +228,14 @@
 		                	</div>
 						</div>
 						<div id="guitartabs" class="tab-pane fade in">
-			            	<div id="tabberContainer" contenteditable="true" class="context-menu-target">
+			            	<div id="tabberContainer"  class="context-menu-target scroller">
+								<div id="RestartPlaybackLine" class="PlaybackLine"></div>
+								<div id="MainPlaybackLine" class="PlaybackLine"></div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-			<br>
-			<div class="row">
-				<div id="trackbox" class="columnContainer">
-				</div>
-			</div><!-- end row -->
 	</div>
 </div>
 <nav id="context-menu" class="context-menu">

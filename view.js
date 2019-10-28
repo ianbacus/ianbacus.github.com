@@ -211,7 +211,7 @@ class View
         this._PixelsPerTick = pixelsPerTick;
         var maximumPitchRange = this.MaximumPitch;
         var mainGridHeight = pixelsPerTick*maximumPitchRange;
-        var gridboxContainerHeight = 600;
+        var gridboxContainerHeight = 1200;
 
         //Gridbox container should be smaller than gridbox
         //Gridbox container should be
@@ -255,9 +255,6 @@ class View
 
 	get MinimumPitch()
 	{
-		// var mainGridHeight = this.Maingrid.height();
-		// return mainGridHeight*pixelsPerTick;
-
 		return 0;
 	}
 
@@ -817,6 +814,8 @@ class View
     {
         var borderCssString = 'solid '+color+' 3px';
         this.GridboxContainer.css('border',borderCssString);
+        //$("#gridWrapper").css('background',color);
+        //$("body").css('background',color);
     }
 
     SelectTrack(trackNumber)
@@ -859,9 +858,9 @@ class View
         }
 
         var x = $("#trackbox").scrollTop();
-        var y = $("#trackbox").scrollTop() + $("#trackbox").height();
-
-        if((selectedTrackOffset < x) && (selectedTrackOffset > y))
+        var y = $("#trackbox").scrollTop() + $("#trackbox").height()/2;
+        console.log(x,selectedTrackOffset,y);
+        if((selectedTrackOffset < x) || (selectedTrackOffset > y))
         {
             $("#trackbox").scrollTop(selectedTrackOffset);
         }

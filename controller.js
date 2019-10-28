@@ -46,6 +46,7 @@ class Track
 
     set Instrument(instrument)
     {
+        console.log("FUCK CHROME")
         this._Instrument = instrument;
     }
 
@@ -195,7 +196,7 @@ class Controller
 
     SetTrackAttribute(trackNumber, attribute, value)
     {
-        console.log(attribute + " track " + trackNumber + "?" + value);
+        //console.log(attribute + " track " + trackNumber + "?" + value);
         if(attribute == "Mute")
         {
             this.Tracks[trackNumber].Muted = value;
@@ -204,7 +205,6 @@ class Controller
         {
             this.Tracks[trackNumber].Locked = value;
         }
-
     }
 
     SetTrackInstrument(trackNumber,instrumentCode)
@@ -217,7 +217,7 @@ class Controller
     }
     GetTrackInstrument(trackNumber)
     {
-        var instrumentCode = c_this.Tracks[trackNumber]._Instrument;
+        var instrumentCode = c_this.Tracks[trackNumber].Instrument;
         var instrument = m_this.InstrumentEnum[instrumentCode];
         //console.log(instrument, this.Tracks);
         return instrument
@@ -330,16 +330,16 @@ class Controller
             //var toggleLock = $('<input>', { typetext: "⛶"});
             //var toggleMute = '<label class="checkbox-inline"> <input type="checkbox" value="Mute" data-toggle="toggle"> ⛤ </label>'
             //var toggleLock = '<label class="checkbox-inline"> <input type="checkbox" value="Lock" data-toggle="toggle"> ⛶ </label>'
-            var toggleMute = '<div class="button" state="0" value="Mute"> ⛤ </label>'
+            var toggleMute = '<div class="button" state="0" value="Mute"> 🔔 </label>'
             var toggleLock = '<div class="button" state="0" value="Lock"> ⛶ </label>'
 
-            var pickColor = $('<div>', { text: "֎"}); //click and hold should pull open a color wheel and change all the track colors so they are different
+            //var pickColor = $('<div>', { text: "֎"}); //click and hold should pull open a color wheel and change all the track colors so they are different
             var toggleButton = '<select data-role="slider"><option value="off">Off</option><option value="on">On</option></select>'
 
             track.append(instrumentSelector);
             track.append(toggleMute);
             track.append(toggleLock);
-            track.append(pickColor);
+            //track.append(pickColor);
             track.css('background-color', v_this.TrackColors[trackNumber]);
 
             $("#trackbox").append(track);
@@ -664,7 +664,7 @@ class Controller
             this.MidiControllerInstantChordNotes = [];
 
             //advance start tick for new notes
-            var tickAdvance = 4;
+            var tickAdvance = this.DefaultNoteDuration;
             this.MidiControllerTicks += tickAdvance;
             var newStartTicks = this.CapturedPlaybackStartTicks + this.MidiControllerTicks;
 
@@ -712,11 +712,13 @@ class Controller
     QuantizerKeyDown(keyCharacter)
     {
         var pitch = this.ChromaticKeyMap[keyCharacter];
-        if(this.MidiKeysDown == 0)
+        var noKeysDown = (this.MidiKeysDown == 0) ;
+        var noPendingTimeout = (this.MidiControllerPendingTimeout == null);
+        if(noKeysDown && noPendingTimeout)//and no timeout pending
         {
             this.HandlePlayback(PlaybackEnumeration.Resume);
-            this.KickstartMidiControllerTimeout();
         }
+        this.RestartMidiControllerTimeout();
 
         var previewNote = this.CreateMidiControllerNote(pitch);
 
@@ -731,7 +733,6 @@ class Controller
 
     QuantizerKeyUp(keyCharacter)
     {
-//        this.console.log("QuantizerKeyUp");//todo removed log
         var previewNote = this.PressedKeys[keyCharacter];
 
         this.QuantizeNoteLength(previewNote);
@@ -739,6 +740,25 @@ class Controller
         this.View.ApplyNoteStyle(previewNote, this.NoteColorationMode);
 
         return undefined;
+    }
+
+    AdvanceRecordingPlaybackLine(previewNote)
+    {
+        var lastMidiNote = this.LastMidiNote;
+        if(!this.Playing && lastMidiNote !== undefined)
+        {
+            var xStart = this.View.ConvertTicksToXIndex(lastMidiNote.StartTimeTicks);
+            var yStart = this.View.ConvertPitchToYIndex(lastMidiNote.Pitch);
+            var xDestination = this.View.ConvertTicksToXIndex(previewNote.StartTimeTicks);
+            var yDestination =  this.View.ConvertPitchToYIndex(previewNote.Pitch);
+
+            this.View.AutoScroll(xStart, yStart, xDestination, yDestination, this.MillisecondsPerTick)
+
+            //Update playback line after playing each chord
+            this.MainPlaybackStartTicks = previewNote.StartTimeTicks;
+            this.View.RenderPlaybackLine(this.MainPlaybackStartTicks, this.CapturedPlaybackStartTicks);
+        }
+        this.LastMidiNote = previewNote;
     }
 
     MidiControllerKeyCallback(event)
@@ -755,8 +775,11 @@ class Controller
             event.preventDefault();
             if((event.type == "keydown") && !keyAlreadyPressed)
             {
-//                this.console.log(this.OnMidiControllerKeyDown)//todo removed log
-                this.PressedKeys[keyCharacter] = this.OnMidiControllerKeyDown(keyCharacter);
+                var previewNote = this.OnMidiControllerKeyDown(keyCharacter);
+
+                this.AdvanceRecordingPlaybackLine(previewNote);
+
+                this.PressedKeys[keyCharacter]  = previewNote;
                 this.MidiKeysDown++;
             }
 
@@ -770,10 +793,11 @@ class Controller
         return midiKeyPressed;
     }
 
-    KickstartMidiControllerTimeout()
+    RestartMidiControllerTimeout()
     {
         //Refresh ticks timeout.
-        this.MidiTimeoutTicksRemaining = 16/this.SampleResolutionTicks
+        var timeoutTicks = 32;
+        this.MidiTimeoutTicksRemaining = timeoutTicks/this.SampleResolutionTicks
         var sampleTimeMilliseconds =  this.SampleResolutionTicks*this.MillisecondsPerTick
 
         if(this.MidiControllerPendingTimeout == null)
@@ -791,6 +815,9 @@ class Controller
 
         if(this.MidiKeysDown > 0)
         {
+            var timeoutTicks = 32;
+            this.MidiTimeoutTicksRemaining = timeoutTicks/this.SampleResolutionTicks
+
             for (let note of Object.values(this.PressedKeys))
             {
                 if(note != undefined)
@@ -805,6 +832,9 @@ class Controller
         else if(this.MidiTimeoutTicksRemaining > 0)
         {
             this.MidiTimeoutTicksRemaining--;
+            var range = 32.0;
+            var percentageComplete = (range - this.MidiTimeoutTicksRemaining)/range;
+            console.log(percentageComplete);
         }
 
         else
@@ -1109,13 +1139,8 @@ class Controller
             if(event.ctrlKey)
             {
                 event.preventDefault();
-                //ctrl+shift+a: select all notes all tracks
+                //ctrl+shift+a: select current track
                 if(event.shiftKey)
-                {
-                    this.SelectAllNotes();
-                }
-                //ctrl+a: select current track
-                else
                 {
                     this.ModifyNoteArray(this.Model.Score.NoteArray, function(note)
                     {
@@ -1125,6 +1150,11 @@ class Controller
                             this.View.ApplyNoteStyle(note, this.NoteColorationMode);
                         }
                     });
+                }
+                //ctrl+a: select all notes all tracks
+                else
+                {
+                    this.SelectAllNotes();
                 }
             }
 
