@@ -527,7 +527,7 @@ class View
         //Grid images: 1 per grid canvas. Go through grid canvases on the page in order, create new ones if required.
         $(".gridCanvas").each(function(index, gridCanvas)
         {
-            var gridCanvas = $(this)
+            var gridCanvas = $(this);
             renderGridBordersAndHighlightIndex(gridCanvas,nodeIndex);
 
             nodeIndex++;

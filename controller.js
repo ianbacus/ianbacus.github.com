@@ -1109,7 +1109,23 @@ class Controller
             if(event.ctrlKey)
             {
                 event.preventDefault();
-                this.SelectAllNotes();
+                //ctrl+shift+a: select all notes all tracks
+                if(event.shiftKey)
+                {
+                    this.SelectAllNotes();
+                }
+                //ctrl+a: select current track
+                else
+                {
+                    this.ModifyNoteArray(this.Model.Score.NoteArray, function(note)
+                    {
+                        if(note.CurrentTrack == this.CurrentTrack)
+                        {
+                            note.IsSelected = true;
+                            this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+                        }
+                    });
+                }
             }
 
         case 81: //"q" key
