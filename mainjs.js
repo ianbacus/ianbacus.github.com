@@ -26,6 +26,19 @@ var lastTarget = 0
 // ScoreModel.console = console;
 //ScoreController.console = console;
 
+///Directory
+/*
+controller
+    UI: Grid, note manipulation, selection rectangles, form handlers, track mode control, harmony analysis
+
+mainJS: dropzone, subscriptions, initialization
+midiApi: midi export and import, tab generation
+view: highlighting, coloring, rendering notes, playback animation, menu population
+model: Notes, Scores, sorting, undo/redo,
+Harmony analysis
+*/
+var dropzoneChordMap = {};
+var dropzoneMetaEventMap = {};
 Dropzone.autoDiscover = false;
 Dropzone.options.testDZ = {
     url: "/file-upload",
@@ -44,14 +57,21 @@ Dropzone.options.testDZ = {
 
             //console.log(array, midiData);
             //TheMidiAbstractionLayer.ParseMidiFile(array);
-            TheMidiAbstractionLayer.ParseMidiFile(midiData);
+            dropzoneChordMap = {}
+            dropzoneMetaEventMap = {}
+            TheMidiAbstractionLayer.ParseMidiFileToChordMap(midiData, dropzoneChordMap, dropzoneMetaEventMap);
 
             $(".loader").show();
 
             setTimeout(function()
             {
-                var score = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel();
-                if(score.length > 0)
+                //var {score, trackList} = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel();
+                var scoreModel = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel(dropzoneChordMap);
+
+				score = scoreModel.noteBuffer;
+				trackList = scoreModel.tracks;
+				console.log(score)
+				if(score.length > 0)
                 {
                     var lastNote = score[score.length-1];
                     var lastTick = lastNote.StartTimeTicks + lastNote.Duration;
@@ -61,6 +81,7 @@ Dropzone.options.testDZ = {
                     ScoreModel.MergeSort(ScoreModel.Score.NoteArray);
 
                     ScoreController.RefreshNotesAndKey();
+                    ScoreController.UpdateTracks(trackList);
                 }
             }, 20);
 			return false;
@@ -88,9 +109,10 @@ Dropzone.options.testDZ = {
 
 //todo: why is this here? scope?
 var textFile = null;
-function OpenTextFileInNewTab(text)
+function OpenTextFileInNewTab(guitarTabString)
 {
-    var data = new Blob([text], {type: 'text/plain'});
+    var data = new Blob([guitarTabString], {type: 'text/plain'});
+
 
     window.URL.revokeObjectURL(textFile);
     textFile = window.URL.createObjectURL(data);
@@ -132,9 +154,21 @@ $( function()
 	var viewLocalStorageString = "ianbacus.github.io.viewdata";
 	var controllerLocalStorageString = "ianbacus.github.io.state";
 
-    var deserializedModelData = JSON.parse(localStorage.getItem(modelLocalStorageString));
-	var deserializedViewData = JSON.parse(localStorage.getItem(viewLocalStorageString));
-	var deserializedControllerData = JSON.parse(localStorage.getItem(controllerLocalStorageString));
+    try {
+        var modelData = localStorage.getItem(modelLocalStorageString);
+        var viewData = localStorage.getItem(viewLocalStorageString);
+        var controllerData = localStorage.getItem(controllerLocalStorageString);
+
+    	var deserializedViewData = JSON.parse(viewData );
+    	var deserializedControllerData = JSON.parse(controllerData);
+        var deserializedModelData = JSON.parse(modelData);
+
+    } catch (e) {
+        console.log(e);
+        var deserializedModelData = undefined;
+    	var deserializedViewData = undefined;
+    	var deserializedControllerData = undefined;
+    }
 
     function OnPageUnload()
     {
@@ -159,11 +193,27 @@ $( function()
         ScoreController.OnSliderChange,
         ScoreController.OnTrackSliderChange, ScoreController.OnTrackSelectChange, ScoreController.OnTrackButton,
         OnPageUnload, ScoreController.OnRadioButtonPress,
+		ScoreController.OnGridClick
     );
 
     ScoreController.Initialize(deserializedControllerData);
 
     $(".loader").hide();
+
+        // .mousemove(this.OnMouseMove)
+        // .mousedown(onMouseClickDown)
+        // .mouseup(onMouseClickUp)
+        // .mouseenter(onHoverBegin)
+        // .mouseleave(onHoverEnd)
+    $(".trackrow").mouseenter(function(e){console.log("track: hello", this, e )}).mouseleave(function(e){console.log("track: goodbye")});
+
+	$(document).on(".trackrow click", ".trackrow", function(e)
+    {
+        var trackNumber = parseInt(this.attributes["value"].value);
+        ScoreController.CurrentTrack = trackNumber;
+    });
+
+    //$("#GridboxArray").mousedown(function(){console.log("controller: go to grid view");});
 
     $(document).on('dragstart','#testDZ', function(e)
     {
@@ -200,22 +250,29 @@ $( function()
 
         if(buttonName == "tab")
         {
-            //Set a timeout so the loader has time to appear after clicking the button
+            //Set a timeout so the loader has time to appear after clicking the button.
+            //When hte timeout occurs (as short as possible) then run the expensive tab
+            //generation function, block for a few ms.
             setTimeout(function()
             {
                 var score = ScoreModel.Score.NoteArray;
                 var tabResultData = TheMidiAbstractionLayer.GenerateTabFromCanvas(score);
 
-                console.log(tabResultData.tablatureString)
+                console.log(tabResultData);
+
+                $("#tabberContainer").empty().append(tabResultData.tablatureString);//.replace(/\s/g, '&nbsp;'));
                 if(tabResultData.failureReason == undefined)
                 {
-                    OpenTextFileInNewTab(tabResultData.tablatureString);
+                    //OpenTextFileInNewTab(tabResultData.tablatureString);
                 }
 
                 else
                 {
                     alert(tabResultData.failureReason)
                 }
+
+                tabResultData = null;
+
 
                 $(".loader").hide();
             }, 10);

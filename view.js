@@ -1,5 +1,14 @@
 let v_this = undefined;
 
+var ChordTypes =
+{
+    SEVENTH:0,
+    ROOT:1,
+    FIRST_INVERSION:2,
+    SECOND_INVERSION:3,
+    FIRST_INVERSION_SEVENTH:4,
+    SECOND_INVERSION_SEVENTH:5,
+}
 class View
 {
     constructor()
@@ -98,7 +107,8 @@ class View
         //page UI
         onSliderChange,
         onTrackSliderChange,onTrackSelectChange,onTrackButton,
-        onPageUnload,radioButtonHandler)
+        onPageUnload,radioButtonHandler,
+		onGridClick)
     {
         this.Maingrid = $("#gridbox");
         this.GridboxContainer = $("#gridboxContainer");
@@ -113,7 +123,6 @@ class View
 			this.GridWidthTicks = this.copyIfValid(initializationParameters.GridWidthTicks, 512);
 			this.GridboxContainer.scrollTop(initializationParameters.ScrollLeft);
 			this.GridboxContainer.scrollLeft(initializationParameters.ScrollTop);
-			console.log(initializationParameters)
 		}
 		else
 		{
@@ -141,12 +150,22 @@ class View
         this.SliderHandler = onSliderChange;
         this.SelectHandler = onTrackSelectChange;
         this.OnTrackButton = onTrackButton;
+		this.OnGridClick = onGridClick
 
         $(document).on('input change', '#TempoSlider',this.OnSliderChange);
         $(document).on('input change', '.volumeSlider',this.OnSliderChange);
-        $('select').change(this.OnSelectChange);
+        $(document).on('select change', '.InstrumentSelector', this.OnSelectChange);
+        $(document).on('.button click', '.button',this.OnTrackButton);
 
-        $(document).on('input[type=checkbox] change', '.trackrow',this.OnTrackButton);
+		$(document).on("click", ".gridCanvas", function(e)
+		{
+			v_this.OnGridClick(parseInt(this.attributes.gridindex.value));
+		});
+
+        //$('select').on('change', function() {alert( this.value );});
+
+        //$(document).on('select change', this.OnSelectChange);
+
         $(window).on('beforeunload', function ()
         {
             return onPageUnload();
@@ -155,8 +174,8 @@ class View
 
         this.Maingrid.bind('mousewheel DOMMouseScroll', onMouseScroll);
 
-        $("#trackbox select").change();
-        $("#trackbox input").change();
+        //$("#trackbox select").change();
+        //$("#trackbox input").change();
     }
 
 	Serialize()
@@ -188,7 +207,8 @@ class View
 
     PopulateSelectMenu(selectEntryCodes)
     {
-        var $dropdown = $(".InstrumentSelector");
+        var $dropdown = $(".InstrumentSelector");var last;
+        while (last = $dropdown.lastChild) $dropdown.removeChild(last);
         selectEntryCodes.forEach(function(entry)
         {
             $dropdown.append($("<option />").val(entry).text(entry));
@@ -200,7 +220,7 @@ class View
         this._PixelsPerTick = pixelsPerTick;
         var maximumPitchRange = this.MaximumPitch;
         var mainGridHeight = pixelsPerTick*maximumPitchRange;
-        var gridboxContainerHeight = 600;
+        var gridboxContainerHeight = 1200;
 
         //Gridbox container should be smaller than gridbox
         //Gridbox container should be
@@ -244,9 +264,6 @@ class View
 
 	get MinimumPitch()
 	{
-		// var mainGridHeight = this.Maingrid.height();
-		// return mainGridHeight*pixelsPerTick;
-
 		return 0;
 	}
 
@@ -496,42 +513,105 @@ class View
         });
     }
 
-    RenderGridArray(gridImages, selectedIndex)
+    HighlightGridArrayWithIndex(selectedIndex)
     {
-        var numberOfEntries = gridImages.length;
         var domGridArray = this.GridArray;
-        domGridArray.empty();
         var nodeIndex = 0;
 
-        while(nodeIndex < numberOfEntries)
+        function renderGridBordersAndHighlightIndex(canvasNode, nodeIndex)
         {
-            var image = gridImages[nodeIndex];
-            var canvasNode = $('<canvas/>');
-            domGridArray.append(canvasNode);
-
             if(nodeIndex == selectedIndex)
             {
-                canvasNode.css({'border':'solid purple 3px'});
+                canvasNode.css({'border':'solid white 5px'});
             }
-            else {
-                canvasNode.css({'border':'solid black 1px'});
+            else
+            {
+                canvasNode.css({'border':'solid black 2px'});
             }
+        }
 
+        //Grid images: 1 per grid canvas. Go through grid canvases on the page in order, create new ones if required.
+        $(".gridCanvas").each(function(index, gridCanvas)
+        {
+            var gridCanvas = $(this);
+            renderGridBordersAndHighlightIndex(gridCanvas,nodeIndex);
+
+            nodeIndex++;
+        }, nodeIndex);
+
+        //Create new divs for new images
+        while(nodeIndex < selectedIndex)
+        {
+            var canvasNode = $('<canvas/>');
+            canvasNode.addClass("gridCanvas").attr("gridIndex", nodeIndex);
+            domGridArray.append(canvasNode);
+
+            renderGridBordersAndHighlightIndex(canvasNode,nodeIndex);
+
+            nodeIndex++;
+        }
+
+    }
+
+    RenderGridArray(gridImages, selectedIndex)
+    {
+		//TODO: make this more efficient, do not re-render everything
+        var domGridArray = this.GridArray;
+
+        var nodeIndex = 0;
+
+        function drawGridImage(canvasNode, image)
+        {
             try {
                 if(image != null)
                 {
-                    var dataurl = image.toDataURL()
+                    //var dataurl = image.toDataURL()
                     var context = canvasNode[0].getContext("2d");
                     var cWidth = canvasNode.width()*2;
                     var cHeight = canvasNode.height()*2;
                     context.drawImage(image, 0, 0, cWidth,cHeight);
                 }
             } catch (e) {
-                console.log(e);
-            } finally {
-
-                nodeIndex++;
+                //console.log(e);
             }
+        }
+
+        function renderGridBordersAndHighlightIndex(canvasNode, nodeIndex)
+        {
+            if(nodeIndex == selectedIndex)
+            {
+                canvasNode.css({'border':'solid white 7px'});
+            }
+            else
+			{
+                canvasNode.css({'border':'solid black 1px'});
+            }
+        }
+
+
+        //Grid images: 1 per grid canvas. Go through grid canvases on the page in order, create new ones if required.
+        $(".gridCanvas").each(function(index, gridCanvas)
+        {
+            var image = gridImages[nodeIndex];
+            var gridCanvas = $(this)
+            if(image !== undefined) drawGridImage(gridCanvas, image);
+            renderGridBordersAndHighlightIndex(gridCanvas,nodeIndex);
+
+            nodeIndex++;
+        }, nodeIndex);
+
+        //Create new divs for new images
+        while((gridImages !== undefined) && nodeIndex < gridImages.length)
+        {
+            var image = gridImages[nodeIndex];
+            var canvasNode = $('<canvas/>');
+            canvasNode.addClass("gridCanvas").attr("gridIndex", nodeIndex);
+            domGridArray.append(canvasNode);
+
+            drawGridImage(canvasNode, image);
+            renderGridBordersAndHighlightIndex(canvasNode,nodeIndex);
+
+            nodeIndex++;
         }
     }
 
@@ -581,7 +661,6 @@ class View
 		var mainGridHeight = this.Maingrid.height();
         var maximumPitch = this.MaximumPitch;
         $(".keynote").remove();
-        $(".keynote2").remove();
 
         function functionRenderKeyRow(offsetY, colorIndex, noteOpacity,cursorX, cursorY)
         {
@@ -651,6 +730,45 @@ class View
         this.RestartPlaybackLine.css({'left':restartPlaybackXCoordinate})
     }
 
+    PickFigurationColor(note)
+    {
+
+        var inversion = 0;
+        var func = 0;
+        var color = 'White';
+
+        switch (note.Figuring) {
+            case ChordTypes.ROOT:
+            inversion = 0;
+            func = 0;
+            color = 'LightBlue';
+            break;
+            case ChordTypes.FIRST_INVERSION:
+            inversion = 1;
+            func = 0;
+            color = 'Blue';
+            break;
+            case ChordTypes.SECOND_INVERSION:
+            inversion = 0;
+            func = 0;
+            color = 'DarkBlue';
+            break;
+            case ChordTypes.FIRST_INVERSION_SEVENTH:
+            inversion = 1;
+            func = 1;
+            color = 'Red';
+            break;
+            case ChordTypes.SECOND_INVERSION_SEVENTH:
+            inversion = 2;
+            func = 1;
+            color = 'DarkRed';
+            break;
+        }
+
+        return color;
+
+      }
+
     //Apply style to an existing note
     ApplyNoteStyle(note, keyColoration=true)
     {
@@ -688,7 +806,14 @@ class View
             noteOpacity = 0.5;
         }
 
-        if(note.BassInterval !== undefined)
+        //TODO: how to indicate figuring, chord quality?
+
+        if(note.Figuring !== undefined)
+        {
+            var chordFunctionColor = this.PickFigurationColor(note);
+            borderColor = '0px 0px 10px 10px ' + chordFunctionColor;
+        }
+        else if(note.BassInterval !== undefined)
         {
             borderColor = '0px 0px 10px 5px ' + this.IntervalColors[note.BassInterval];
         }
@@ -744,6 +869,56 @@ class View
     {
         var borderCssString = 'solid '+color+' 3px';
         this.GridboxContainer.css('border',borderCssString);
+        //$("#gridWrapper").css('background',color);
+        //$("body").css('background',color);
+    }
+
+    SelectTrack(trackNumber)
+    {
+        var nodeIndex = 0;
+        var selectedTrackOffset = 0;
+
+        function renderTrackBordersAndHighlightIndex(trackRow, index)
+        {
+            if(index == trackNumber)
+            {
+                trackRow.css({'border':'solid white 7px'});
+                selectedTrackOffset = (trackRow.height()+2)*(trackNumber+1);
+                //selectedTrackOffset = trackRow.position().top;
+            }
+            else
+            {
+                trackRow.css({'border':'solid black 2px'});
+            }
+        }
+
+        //Grid images: 1 per grid canvas. Go through grid canvases on the page in order, create new ones if required.
+        $(".trackrow").each(function(index, trackRow)
+        {
+            var trackObject = $(this);
+            renderTrackBordersAndHighlightIndex(trackObject,index);
+
+            nodeIndex++;
+        }, nodeIndex);
+
+        function isScrolledIntoView(elem)
+        {
+            var docViewTop = $(window).scrollTop();
+            var docViewBottom = docViewTop + $(window).height();
+
+            var elemTop = $(elem).offset().top;
+            var elemBottom = elemTop + $(elem).height();
+
+            return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+        }
+
+        var x = $("#trackbox").scrollTop();
+        var y = $("#trackbox").scrollTop() + $("#trackbox").height()/2;
+        console.log(x,selectedTrackOffset,y);
+        if((selectedTrackOffset < x) || (selectedTrackOffset > y))
+        {
+            $("#trackbox").scrollTop(selectedTrackOffset);
+        }
     }
 
     //Handle deletions and additions and reset jquery assignments
