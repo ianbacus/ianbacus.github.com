@@ -32,6 +32,10 @@ class Note
         this.BassInterval = undefined;
 
         //Track control information
+        if(currentTrack < 0)
+        {
+            currentTrack = 0;
+        }
         this.CurrentTrack = currentTrack;
 
     }
@@ -137,23 +141,32 @@ class Note
             return;
         }
 
+        if(this.Figuring != undefined)
+        {
+            console.log(this.Figuring)
+        }
+
         var milliseconds = millisecondsPerTick * this.Duration;
         var playback = this.Playback;
         playback.key = this.Pitch;
+        try {
+    		playback.envelope=player.queueWaveTable(
+                audioContext,   //audio context
+                audioContext.destination, //audio destination
+                instrumentCode, //instrument
+                0,  //start time
+                playback.key, //pitch
+                milliseconds/1000); //duration
+        } catch (e) {
+            console.log("Failed to play notes");
+        } finally {
+            this.OnStopCallback = {Caller:caller, Callback: onStopCallback};
+            this.IsHighlighted = true;
 
-		playback.envelope=player.queueWaveTable(
-            audioContext,   //audio context
-            audioContext.destination, //audio destination
-            instrumentCode, //instrument
-            0,  //start time
-            playback.key, //pitch
-            milliseconds/1000); //duration
+            this.PendingTimeout = setTimeout(
+                $.proxy(this.StopPlaying, this),milliseconds);
+        }
 
-		this.OnStopCallback = {Caller:caller, Callback: onStopCallback};
-        this.IsHighlighted = true;
-
-        this.PendingTimeout = setTimeout(
-            $.proxy(this.StopPlaying, this),milliseconds);
     }
 
     ForceNoteOff()
@@ -277,8 +290,8 @@ class Note
 
 	HandleGridMoveReset(currentGridIndex,selectedGridIndex)
 	{
-		var selectStartGridBuffer = m_this.GridPreviewList[selectedGridIndex];
-		var currentGridBuffer = m_this.GridPreviewList[currentGridIndex];
+		var selectStartGridBuffer = m_this.GridPreviewList[selectedGridIndex].NoteArray;
+		var currentGridBuffer = m_this.GridPreviewList[currentGridIndex].NoteArray;
 
 		m_this.DeleteNote(this, 0, currentGridBuffer, false);
 		m_this.AddNote(this, 0, selectStartGridBuffer, false);
@@ -288,10 +301,10 @@ class Note
 
 class NoteScore
 {
-	constructor()
+	constructor(gridWidth=0)
     {
 		this._NoteArray = []
-		this._GridWidth = 0
+		this._GridWidth = Math.max(gridWidth, 1000);
 	}
 
 	get NoteArray()
@@ -306,6 +319,7 @@ class NoteScore
 
 	get GridWidth()
 	{
+        //TODO: if last tick is past grid width, should grid width throw an error?
 		return this._GridWidth;
 	}
 
@@ -363,50 +377,81 @@ class Model
             this.InstrumentEnum[key] = eval(synthString);
         },this);
 
-		if(initializationParameters == null)
-		{
-			this.GridPreviewList = [new NoteScore()];
-			this.GridImageList = [null];
-		}
-		else
-		{
-			console.log(initializationParameters);
 
-			var initialGridlist = initializationParameters.GridList;
-
-			initialGridlist.forEach(function(noteArray)
-			{
-				var reconstructedNoteArray = new NoteScore();
-				noteArray.forEach(function(noteToCopy)
-				{
-					var copiedNote = new Note(
-						noteToCopy.StartTimeTicks,
-						noteToCopy.Pitch,
-						noteToCopy.Duration,
-						noteToCopy.CurrentTrack,
-						false,
-						noteToCopy.GridIndex);
-
-					reconstructedNoteArray.NoteArray.push(copiedNote);
-				});
-
-				this.GridImageList.push(null);
-				this.GridPreviewList.push(reconstructedNoteArray);
-			},this);
-
-			this.GridPreviewIndex = initializationParameters.GridPreviewIndex;
-		}
-
+		this.Deserialize(initializationParameters);
         this.Score = this.GridPreviewList[this.GridPreviewIndex];
     }
+    Deserialize(serializedParameters)
+    {
+        try {
+            var serializedGridScores = serializedParameters.GridList;//[]
+            if(serializedParameters.GridList.length == 0)
+            {
+                throw "invalid length";
+            }
+            serializedGridScores.forEach(function(gridScore)
+            {
+                var noteArray = gridScore.NoteArray;
+                var gridWidth = gridScore.GridWidth;
 
+                try
+                {
+                    var reconstructedNoteArray = new NoteScore(gridWidth);
+                    noteArray.forEach(function(noteToCopy)
+                    {
+                        var copiedNote = new Note(
+                            noteToCopy.StartTimeTicks,
+                            noteToCopy.Pitch,
+                            noteToCopy.Duration,
+                            noteToCopy.CurrentTrack,
+                            false,
+                            noteToCopy.GridIndex);
+
+                        reconstructedNoteArray.NoteArray.push(copiedNote);
+                    });
+
+                    this.GridImageList.push(null);
+                    this.GridPreviewList.push(reconstructedNoteArray);
+                }
+                catch(e)
+                {
+                    //Could not import score for grid index
+                    console.log("Could not import grid preview");
+                    throw "import error"
+                    //this.GridPreviewList = [new NoteScore()];
+                    //this.GridImageList = [null];
+                }
+            },this);
+        } catch (e) {
+            this.GridPreviewList = [new NoteScore()];
+            this.GridImageList = [null];
+            console.log("no init params... 1 grid preview, null images. " );
+        }
+
+        try {
+            var lastGridIndex = this.GridImageList.length - 1;
+            this.GridPreviewIndex = Math.min(lastGridIndex, Math.abs(serializedParameters.GridPreviewIndex));
+        } catch (e) {
+        console.log("Wrong grid preview");
+            this.GridPreviewIndex = 0;
+        }
+        console.log("Deserialized model.", this.GridPreviewList);
+    }
     Serialize()
     {
         var gridListArray = [];
-        this.GridPreviewList.forEach(function(noteArray)
+        //Iterate over every grid preview box
+        var serializationData = {
+            GridList : this.GridPreviewList,
+            GridPreviewIndex: this.GridPreviewIndex
+        }
+
+        //return JSON.stringify(serializationData);
+
+        this.GridPreviewList.forEach(function(noteScore)
         {
             var unserializedArray = [];
-            noteArray.NoteArray.forEach(function(note)
+            noteScore.NoteArray.forEach(function(note)
             {
                 if(!note.IsSelected)
                 {
@@ -414,25 +459,32 @@ class Model
                     unserializedArray.push(serializedNote);
                 }
             });
-
-            var serializedArray = '['+unserializedArray.join(',')+']';
+            //Save all serialized note objects for this grid list. [n0, ... n_k]
+            var serializedArray = '{"GridWidth":'+noteScore.GridWidth+', "NoteArray":['+unserializedArray.join(',')+']}';
             gridListArray.push(serializedArray);
         });
 
 		var gridStateData =  {GridPreviewIndex: this.GridPreviewIndex};
         var serializedGridListArray =
-			'{"GridList" : ['+gridListArray.join(',')+'],'+
-			'"GridPreviewIndex" :'+this.GridPreviewIndex+'}'
+			'{"GridList" : ['+gridListArray.join(',')+'],'+ //Join all note lists together [[n0, .. n_k], [n0, .. n_j], ... ]
+			'"GridPreviewIndex" :'+this.GridPreviewIndex+'}' //Current grid preview index
 
         return serializedGridListArray;
     }
-
-
 
     SetCurrentGridPreview(scoreObject)
     {
         this.GridPreviewList[this.GridPreviewIndex] = scoreObject;
     }
+
+	GotoGridView(index)
+	{
+		if((index <= this.GridPreviewList.length-1) && (index >= 0))
+		{
+			this.GridPreviewIndex = index;
+			this.Score = this.GridPreviewList[this.GridPreviewIndex];
+		}
+	}
 
     GotoPreviousGrid()
     {
@@ -440,7 +492,6 @@ class Model
         {
             this.GridPreviewIndex--;
             this.Score = this.GridPreviewList[this.GridPreviewIndex];
-
         }
     }
 
@@ -455,8 +506,8 @@ class Model
 
     CreateGridPreview()
     {
-        this.GridPreviewList.push([]);
-        this.GridImageList.push([]);
+        this.GridPreviewList.push(new NoteScore());
+        this.GridImageList.push(null);
     }
 
     SortScoreByTicks()
@@ -552,7 +603,7 @@ class Model
         {
             var mostRecentAction = this.ActivityStack[this.ActivityIndex];
             var moveBuffer = mostRecentAction.MoveBuffer;
-            var gridBuffer = this.GridPreviewList[mostRecentAction.GridIndex];
+            var gridBuffer = this.GridPreviewList[mostRecentAction.GridIndex].NoteArray;
 
             this.console.log(
 				"Undoing " + mostRecentAction.Action +
@@ -610,7 +661,7 @@ class Model
             this.ActivityIndex++;
             var mostRecentAction = this.ActivityStack[this.ActivityIndex]
             var moveBuffer = mostRecentAction.MoveBuffer;
-            var gridBuffer = this.GridPreviewList[mostRecentAction.GridIndex];
+            var gridBuffer = this.GridPreviewList[mostRecentAction.GridIndex].NoteArray;
 
             this.console.log(
 				"Redoing " + mostRecentAction.Action +

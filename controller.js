@@ -11,10 +11,11 @@ var PlaybackEnumeration = {
 }
 
 var editModeEnumeration = {
-	EDIT: 0,
-	SELECT: 1,
+    EDIT: 0,
+    SELECT: 1,
     MidiControllerMode: 2,
-	DELETE: 3,
+    InstantMidiControllerMode:3,
+    DELETE: 4,
 }
 
 var Modes =
@@ -23,19 +24,64 @@ var Modes =
     [2,2,1,2,2,2,1], //major
 ];
 
+var ChordTypes =
+{
+    SEVENTH:0,
+    ROOT:1,
+    FIRST_INVERSION:2,
+    SECOND_INVERSION:3,
+    FIRST_INVERSION_SEVENTH:4,
+    SECOND_INVERSION_SEVENTH:5,
+}
+
 let c_this = undefined;
+
+
+//start of new functions
+class Sample
+{
+    constructor(a)
+    {
+        this.Probabilities = {};
+        this.A = a;
+        this.Selection = undefined;
+    }
+}
+
+class Qual
+{
+    constructor(inversion, f)
+    {
+        this.Inversion = inversion;
+        this.Function = f;
+    }
+
+    toString() {
+        return str(this.Inversion) + str(this.Function);
+    }
+}
 
 class Track
 {
     constructor()
     {
         //this.Instrument = m_this.InstrumentEnum[m_this.InstrumentEnum.flute];
-        this.Instrument = m_this.InstrumentEnum["guitar"];
+        this._Instrument = "guitar";
         //this.Instrument = m_this.InstrumentEnum.flute;
         this.Volume = 0;
         this.Index = 0;
         this.Muted = false;
         this.Selectable = true;
+    }
+
+    get Instrument()
+    {
+        return this._Instrument;
+    }
+
+    set Instrument(instrument)
+    {
+        this._Instrument = instrument;
     }
 
 };
@@ -44,20 +90,20 @@ class Controller
 {
     constructor(view, model)
     {
-		//Member objects
+        //Member objects
         c_this = this;
         this.console = null;
         this.View = view;
         this.Model = model;
 
-		//lookup tables
-        this.EditModeColors = ['orange','blue','green'];
+        //lookup tables
+        this.EditModeColors = ['orange','blue','cyan','green'];
         this.InvertibleCounterpointIntervals =
         [
-			// 12, //free: everything goes down an octave
-			// 12, //15th: a perfect octave
-			// 7,  //12th: a fifth
-			// 4, //10th: a 3rd (3 or 4?)
+            // 12, //free: everything goes down an octave
+            // 12, //15th: a perfect octave
+            // 7,  //12th: a fifth
+            // 4, //10th: a 3rd (3 or 4?)
 
             function(interval) {return undefined;},
             function(interval) {return (12 - (interval%12))%12;}, //Fifteenth:
@@ -65,7 +111,7 @@ class Controller
             function(interval) {return (15 - (interval%12))%12;}, //Tenth:
         ];
 
-		//Session state data
+        //Session state data
         this.Playing = false;
         this.PendingTimeout = null;
         this.SequenceNumber = 0;
@@ -78,45 +124,72 @@ class Controller
         this.SelectorPosition = { x: -1, y: -1 };
         this.DefaultNoteDuration = 4;
         this.PasteBuffer = []
+        this.MidiControllerInstantChordNotes = []
 
         this.MillisecondsPerTick = 100;
         this.IntervalTranslator = this.InvertibleCounterpointIntervals[0];
-		this.CurrentInstrument = null;
-        this.Tracks = [new Track(), new Track(),new Track(), new Track(),new Track(), new Track()];
+        this.CurrentInstrument = null;
+        this.Tracks = [];
         //this.Tracks.fill(new Track(),0,9);
 
-		//Recoverable state data
+        //Recoverable state data
         this.TonicKey = 0;
         this.MusicalModeIndex = 0;
-        this.CurrentTrack = 0;
-		this.NoteColorationMode = false;
+        this._CurrentTrack = 0;
+        this.NoteColorationMode = false;
         this.EditorMode = editModeEnumeration.EDIT;
 
 
     }
 
-    Initialize(initializationParameters)
+    InitializeInstrumentSelectors()
     {
-        //Load saved settings
-        console.log("init controller",initializationParameters)
-		if(initializationParameters != null)
-		{
-			this.TonicKey = initializationParameters.TonicKey;
-			this.MusicalModeIndex = initializationParameters.MusicalModeIndex;
-			this.CurrentTrack = initializationParameters.CurrentTrack;
-			this.NoteColorationMode = initializationParameters.NoteColorationMode;
-			this.EditorMode = initializationParameters.EditorMode;
-            //this.Tracks = initializationParameters.Tracks;
-		}
-
-        //Instruments
         var instrumentOptions = [];
         var instrumentEnumeration = this.Model.InstrumentEnum;
         this.CurrentInstrument = instrumentEnumeration.flute;//Object.keys(instrumentEnumeration)[0];
-        this.TrackInstruments = [instrumentEnumeration.flute,instrumentEnumeration.flute];
 
         Object.keys(instrumentEnumeration).forEach(function(key) { instrumentOptions.push(key); });
         this.View.PopulateSelectMenu(instrumentOptions);
+    }
+
+    Initialize(initializationParameters)
+    {
+        //Load saved settings
+//        this.console.log("init controller",initializationParameters)//todo removed log
+
+
+        this.InitializeInstrumentSelectors();
+        this.CurrentTrack = 0;
+
+        if(initializationParameters != null)
+        {
+            function copyOrSetDefault(copyValue,defaultValue)
+            {
+                if(copyValue === undefined)
+                {
+                    return defaultValue;
+                }
+                else
+                {
+                    return copyValue;
+                }
+            }
+
+            this.TonicKey = copyOrSetDefault(initializationParameters.TonicKey, 0);
+            this.MusicalModeIndex = copyOrSetDefault(initializationParameters.MusicalModeIndex, 0);
+            this.CurrentTrack = copyOrSetDefault(initializationParameters.CurrentTrack, 0);
+            this.NoteColorationMode = copyOrSetDefault(initializationParameters.NoteColorationMode, false);
+            this.EditorMode = copyOrSetDefault(initializationParameters.EditorMode, editModeEnumeration.EDIT);
+            this.Tracks = copyOrSetDefault(initializationParameters.Tracks, []);
+        }
+        //Make sure there are at least 10 tracks
+        for(var i = 0; i<10; i++)
+        {
+           this.AddTrack(i);
+        }
+
+        //Instruments
+        this.InitializeInstrumentSelectors()
 
         //Analysis
         var analysisOption = this.GetModeSettings().AnalysisMode;
@@ -131,21 +204,21 @@ class Controller
         this.View.SetBorderColor(editModeColor);
     }
 
-	Serialize()
-	{
+    Serialize()
+    {
         //Save the current settings into a JSON object to pass back to initialize later
-		var serializedData =
-		{
-			TonicKey: this.TonicKey,
-			MusicalModeIndex: this.MusicalModeIndex,
-			CurrentTrack: this.CurrentTrack,
-			NoteColorationMode: this.NoteColorationMode,
-			EditorMode: this.EditorMode,
+        var serializedData =
+        {
+            TonicKey: this.TonicKey,
+            MusicalModeIndex: this.MusicalModeIndex,
+            CurrentTrack: this.CurrentTrack,
+            NoteColorationMode: this.NoteColorationMode,
+            EditorMode: this.EditorMode,
             Tracks: this.Tracks,
-		}
+        }
 
-		return JSON.stringify(serializedData);
-	}
+        return JSON.stringify(serializedData);
+    }
 
     SetTrackVolume(trackNumber, volume)
     {
@@ -157,6 +230,7 @@ class Controller
 
     SetTrackAttribute(trackNumber, attribute, value)
     {
+        //console.log(attribute + " track " + trackNumber + "?" + value);
         if(attribute == "Mute")
         {
             this.Tracks[trackNumber].Muted = value;
@@ -165,7 +239,6 @@ class Controller
         {
             this.Tracks[trackNumber].Locked = value;
         }
-
     }
 
     SetTrackInstrument(trackNumber,instrumentCode)
@@ -174,38 +247,61 @@ class Controller
         {
             instrumentCode = 'guitar';
         }
-        this.Tracks[trackNumber].Instrument = m_this.InstrumentEnum[instrumentCode];
+        this.Tracks[trackNumber].Instrument = instrumentCode;// m_this.InstrumentEnum[instrumentCode];
     }
     GetTrackInstrument(trackNumber)
     {
-        var instrument = this.Tracks[trackNumber].Instrument;
+        var instrumentCode = c_this.Tracks[trackNumber].Instrument;
+        var instrument = m_this.InstrumentEnum[instrumentCode];
         //console.log(instrument, this.Tracks);
         return instrument
     }
 
-	OnTrackSliderChange(eventData)
-	{
-		trackIndex = 0;
-		m_this.Track[trackIndex].Volume = eventData;
-	}
+    OnTrackSliderChange(eventData)
+    {
+        trackIndex = 0;
+        m_this.Track[trackIndex].Volume = eventData;
+    }
 
-	OnTrackSelectChange(instrumentCode, eventData)
-	{
-        console.log(eventData.target);
+    OnTrackSelectChange(instrumentCode, eventData)
+    {
         var trackIndex = parseInt(eventData.target.parentElement.attributes["value"].value);
+//            this.console.log(eventData.target, trackIndex, instrumentCode);//todo removed log
         c_this.SetTrackInstrument(trackIndex, instrumentCode);
-		//m_this.Track[trackIndex].InstrumentEnum[instrumentCode];
+        //m_this.Track[trackIndex].InstrumentEnum[instrumentCode];
         //console.log("Track " + trackIndex + " instrument change", instrumentCode, eventData);
-	}
+    }
 
-	OnTrackButton(eventData)
-	{
-		var trackIndex = parseInt(eventData.currentTarget.attributes["value"].value);
-        var buttonIndex = eventData.target.attributes["value"].value;
-        var buttonStatus = eventData.target.checked
+    OnTrackButton(eventData)
+    {
+        eventData.preventDefault();
+        try {
+            var value = $(this).attr("value");
+            var state = $(this).attr("state");
 
-        c_this.SetTrackAttribute(trackIndex,buttonIndex,buttonStatus);
-	}
+            if(state == 0)
+            {
+                $(this).css({'background':'red'});
+                $(this).attr("state",1);
+            }
+            else
+            {
+                $(this).css({'background':'white'});
+                $(this).attr("state",0);
+            }
+
+            var trackIndex = $(this).parent().attr("value");
+
+            //var trackIndex = parseInt(eventData.currentTarget.attributes["value"].value);
+            var buttonIndex = eventData.target.attributes["value"].value;
+            var buttonStatus = eventData.target.checked
+
+            c_this.SetTrackAttribute(trackIndex,buttonIndex,(state==0));
+
+        } catch (e) {
+            console.log(e)
+        }
+    }
 
     OnSelectChange(instrumentCode,eventData)
     {
@@ -226,12 +322,12 @@ class Controller
         var tonicOpacity = 0.25;
         var dominantOpacity = 0.20;
 
-		var modeBuffer = [{Pitch:tonic, Opacity: tonicOpacity}];
+        var modeBuffer = [{Pitch:tonic, Opacity: tonicOpacity}];
         var currentTone = tonic;
         var intervals = Modes[modeIndex]
 
-		intervals.some(function(interval)
-		{
+        intervals.some(function(interval)
+        {
             var noteOpacity = 0.15;
             currentTone += interval;
             var relativeInterval = Math.abs(currentTone - tonic)
@@ -244,9 +340,10 @@ class Controller
 
             var modeSlot = {Pitch:currentTone, Opacity: noteOpacity};
             modeBuffer.push(modeSlot);
-		});
+        });
 
-		this.View.RenderKeys(modeBuffer, this.CursorPosition.x, this.CursorPosition.y);
+//        this.console.log("Render keys in set key reference");//todo removed log
+        this.View.RenderKeys(modeBuffer, this.CursorPosition.x, this.CursorPosition.y);
     }
 
     RefreshNotesAndKey()
@@ -255,9 +352,47 @@ class Controller
         this.RefreshEditBoxNotes();
     }
 
+    AddTrack(trackNumber)
+    {
+        ///Create a new track modifier and unlock edits on that track.
+        ///TODO: call this when music is imported
+        if(trackNumber < v_this.TrackColors.length)
+        {
+            var track = $('<div>', { class: "trackrow", value:trackNumber, "background-color": v_this.TrackColors[trackNumber], border:'black'});
+            var instrumentSelector = $('<select>', { class:"InstrumentSelector", val:"Guitar", text: "📯"});
+            //var toggleMute = $('<input>', { text: "⛤"});
+            //var toggleLock = $('<input>', { typetext: "⛶"});
+            //var toggleMute = '<label class="checkbox-inline"> <input type="checkbox" value="Mute" data-toggle="toggle"> ⛤ </label>'
+            //var toggleLock = '<label class="checkbox-inline"> <input type="checkbox" value="Lock" data-toggle="toggle"> ⛶ </label>'
+            var toggleMute = '<div class="button" state="0" value="Mute"> 🔔 </label>'
+            var toggleLock = '<div class="button" state="0" value="Lock"> ⛶ </label>'
+
+            //var pickColor = $('<div>', { text: "֎"}); //click and hold should pull open a color wheel and change all the track colors so they are different
+            var toggleButton = '<select data-role="slider"><option value="off">Off</option><option value="on">On</option></select>'
+
+            track.append(instrumentSelector);
+            track.append(toggleMute);
+            track.append(toggleLock);
+            //track.append(pickColor);
+            track.css('background-color', v_this.TrackColors[trackNumber]);
+
+            $("#trackbox").append(track);
+            this.Tracks.push(new Track())
+            this.SetTrackInstrument(trackNumber, "");
+        }
+    }
+
+    DeleteTrack(tracknumber)
+    {
+        //TODO
+        alert("todo");
+    }
+
     RefreshGridPreview()
     {
         this.RefreshEditBoxNotes();
+        //TODO set highlight on previews
+        this.View.HighlightGridArrayWithIndex(this.Model.GridPreviewIndex);
         this.View.GetGridboxThumbnail(this, this.OnThumbnailRender, this.Model.GridPreviewIndex);
     }
 
@@ -306,7 +441,7 @@ class Controller
             var modifyIndex = noteArray.length;
             while(modifyIndex-- > 0)
             {
-    			var note = noteArray[modifyIndex];
+                var note = noteArray[modifyIndex];
                 modifyFunction.call(this,note);
             }
         }
@@ -324,7 +459,7 @@ class Controller
     {
         //Get a sequence number for identifying undo/redo operations. The maximum number should be greater
         //than the size of the undo/redo buffer.
-		var maximumSequenceNumber = this.Model.MaximumActivityStackLength + 1;//Number.MAX_SAFE_INTEGER-1;
+        var maximumSequenceNumber = this.Model.MaximumActivityStackLength + 1;//Number.MAX_SAFE_INTEGER-1;
         this.SequenceNumber = (this.SequenceNumber+1)%maximumSequenceNumber;
         return this.SequenceNumber;
     }
@@ -412,7 +547,7 @@ class Controller
         return octaveOffset + offsetRemainder
     }
 
-
+    //Midi controller start
     ResetMidiController()
     {
         this.PressedKeys = []
@@ -432,7 +567,7 @@ class Controller
 
         var capsCode = '\f'
         var enterCode = '\r'
-        var tabCode = '\t'
+        var tabCode = '    '
         var rShiftCode = '\v'
 
         var midiLowest = 36 //c2
@@ -465,6 +600,9 @@ class Controller
             Array.from({length: wkeys.length}, (x,i) => this.GetNextMidiPitch(midiLowest,whiteKeyMidiValues,i))
         ]
         //var chromaticMidiPitches = Array.from({length: ckeys.length}, (x,i) => midiLowest+i);
+
+        this.OnMidiControllerKeyDown = this.QuantizerKeyDown;
+        this.OnMidiControllerKeyUp = this.QuantizerKeyUp;
 
         for(var listIndex = 0; listIndex < easyLayout.length; listIndex++)
         {
@@ -501,13 +639,169 @@ class Controller
         return pitch - note.Pitch;
     }
 
+    //Add a key at the same instant as other held down keys.
+    InstantKeyDown(keyCharacter)
+    {
+//        this.console.log("InstantKeyDown");//todo removed log
+        var pitch = this.ChromaticKeyMap[keyCharacter];
+        var selectCount = this.CountSelectedNotes();
+        if(selectCount == 0) //on first keydown:
+        {
+            this.MidiControllerInstantChordNotes = []
+            this.MidiControllerTicks = 0;
+            this.CapturedPlaybackStartTicks = this.MainPlaybackStartTicks;
+        }
+
+        var previewNote = this.CreateMidiControllerNote(pitch);
+        previewNote.Duration = this.DefaultNoteDuration;
+
+        this.Model.AddNote(previewNote, 0, this.Model.Score.NoteArray, false);
+        this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
+
+        var playbackBuffer = [];
+        this.Model.AddNote(previewNote, 0, this.MidiControllerInstantChordNotes, false);
+
+        var playbackMode = this.GetModeSettings().PlaybackMode;
+        var includeSuspensions = playbackMode == 2;
+        var soloMode = playbackMode == 0;
+//        this.console.log("Note netry", this.MidiControllerInstantChordNotes);//todo removed log
+
+        if(!soloMode)
+        {
+            this.GetPlaybackIntersections(this.MidiControllerInstantChordNotes, playbackBuffer, includeSuspensions);
+//            this.console.log("obtained playback intersections: ", playbackBuffer);//todo removed log
+        }
+
+        this.ModifyNoteArray(this.MidiControllerInstantChordNotes, function(note)
+        {
+//            this.console.log("In-chord notes: playing note: ", note);//todo removed log
+            this.Model.AddNote(note, 0, playbackBuffer, false);
+        }, playbackBuffer);
+
+        if(playbackBuffer.length > 0)
+        {
+            var includeSelectedNotes = true;
+            this.PlayNotes(playbackBuffer,includeSuspensions, includeSelectedNotes);
+        }
+
+        return previewNote;
+
+    } //InstantKeyDown
+
+    //Move the playback line forward.
+    InstantKeyUp(keyCharacter)
+    {
+//        this.console.log("InstantKeyUp");//todo removed log
+        if(this.MidiKeysDown == 0)
+        {
+            var selectedNotes = this.Model.SelectedNotes;
+            this.MidiControllerInstantChordNotes = [];
+
+            //advance start tick for new notes
+            var tickAdvance = this.DefaultNoteDuration;
+            this.MidiControllerTicks += tickAdvance;
+            var newStartTicks = this.CapturedPlaybackStartTicks + this.MidiControllerTicks;
+
+            this.MainPlaybackStartTicks = newStartTicks;//currentNote.StartTimeTicks;
+            this.View.RenderPlaybackLine(this.MainPlaybackStartTicks, this.CapturedPlaybackStartTicks);
+//            this.console.log("No keys down, advancing ticks to ",newStartTicks)//todo removed log
+        }
+
+        return undefined;
+    }
+
+    QuantizeNoteLength(note)
+    {
+        var startTimeTicks = note.StartTimeTicks;
+        var durationTicks = note.Duration;
+
+        //Get note duration
+        //Find nearest power of two for note duration
+        //  triplet case: todo
+        //  dotted case: align to strong beat proportional to 3/8 length. nearest 2^n + (2^n-1)
+        //  undotted case: align to strong beat proportional to 1/4 length. nearest 2^n
+        // set start ticks to nearest strong beat.
+        //  boundary strong beats for length: -, 0, +
+        //  distance of start ticks to each of the strong beats, pick closest
+        var exponent = Math.round(Math.log2(durationTicks));
+        var duration = (1<<exponent);
+        var modulus = duration;
+
+        var r = startTimeTicks % modulus;
+        if(r > modulus/2)
+        {
+            startTimeTicks += modulus - r;
+        }
+        else
+        {
+            startTimeTicks -= r;
+        }
+        //console.log("Start time quantized x->y/m", note.StartTimeTicks, startTimeTicks, modulus);
+        //console.log("Duration quantized x->y", note.Duration, duration);
+
+        note.StartTimeTicks = startTimeTicks;
+        note.Duration = duration;
+
+    }
+    QuantizerKeyDown(keyCharacter)
+    {
+        var pitch = this.ChromaticKeyMap[keyCharacter];
+        var noKeysDown = (this.MidiKeysDown == 0) ;
+        var noPendingTimeout = (this.MidiControllerPendingTimeout == null);
+        if(noKeysDown && noPendingTimeout)//and no timeout pending
+        {
+            this.HandlePlayback(PlaybackEnumeration.Resume);
+        }
+        this.RestartMidiControllerTimeout();
+
+        var previewNote = this.CreateMidiControllerNote(pitch);
+
+        var instrumentCode = this.GetTrackInstrument(previewNote.CurrentTrack);// this.CurrentInstrument;//TrackInstruments[previewNote.CurrentTrack];
+        previewNote.PlayIndefinitely(this.MillisecondsPerTick, instrumentCode);
+
+        this.Model.AddNote(previewNote, 0, this.Model.Score.NoteArray, false);
+        this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
+
+        return previewNote;
+    }
+
+    QuantizerKeyUp(keyCharacter)
+    {
+        var previewNote = this.PressedKeys[keyCharacter];
+
+        this.QuantizeNoteLength(previewNote);
+        previewNote.ForceNoteOff();
+        this.View.ApplyNoteStyle(previewNote, this.NoteColorationMode);
+
+        return undefined;
+    }
+
+    AdvanceRecordingPlaybackLine(previewNote)
+    {
+        var lastMidiNote = this.LastMidiNote;
+        if(!this.Playing && lastMidiNote !== undefined)
+        {
+            var xStart = this.View.ConvertTicksToXIndex(lastMidiNote.StartTimeTicks);
+            var yStart = this.View.ConvertPitchToYIndex(lastMidiNote.Pitch);
+            var xDestination = this.View.ConvertTicksToXIndex(previewNote.StartTimeTicks);
+            var yDestination =  this.View.ConvertPitchToYIndex(previewNote.Pitch);
+
+            this.View.AutoScroll(xStart, yStart, xDestination, yDestination, this.MillisecondsPerTick)
+
+            //Update playback line after playing each chord
+            this.MainPlaybackStartTicks = previewNote.StartTimeTicks;
+            this.View.RenderPlaybackLine(this.MainPlaybackStartTicks, this.CapturedPlaybackStartTicks);
+        }
+        this.LastMidiNote = previewNote;
+    }
+
     MidiControllerKeyCallback(event)
     {
         var keyCharacter = event.key.toLowerCase();
         var pitch = this.ChromaticKeyMap[keyCharacter];
-        var midiKeyPressed = pitch != undefined;
 
-        var keyAlreadyPressed = this.PressedKeys[keyCharacter] != undefined
+        var midiKeyPressed = pitch != undefined;
+        var keyAlreadyPressed = this.PressedKeys[keyCharacter] != undefined;
 
         //Create a note
         if(midiKeyPressed)
@@ -515,39 +809,29 @@ class Controller
             event.preventDefault();
             if((event.type == "keydown") && !keyAlreadyPressed)
             {
-                if(this.MidiKeysDown == 0)
-                {
-                    this.KickstartMidiControllerTimeout()
-                }
+                var previewNote = this.OnMidiControllerKeyDown(keyCharacter);
 
-                var previewNote = this.CreateMidiControllerNote(pitch)
+                this.AdvanceRecordingPlaybackLine(previewNote);
 
-                var instrumentCode = this.TrackInstruments[previewNote.CurrentTrack];
-                previewNote.PlayIndefinitely(this.MillisecondsPerTick, instrumentCode)
-
-                this.Model.AddNote(previewNote, 0, this.Model.Score.NoteArray, false);
-                this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
-                this.PressedKeys[keyCharacter] = previewNote
-                this.MidiKeysDown++
+                this.PressedKeys[keyCharacter]  = previewNote;
+                this.MidiKeysDown++;
             }
 
             else if((event.type == "keyup") && keyAlreadyPressed)
             {
-                var previewNote = this.PressedKeys[keyCharacter]
-                previewNote.ForceNoteOff()
-                this.View.ApplyNoteStyle(previewNote, this.NoteColorationMode);
-
-                this.PressedKeys[keyCharacter] = undefined
-                this.MidiKeysDown--
+                this.MidiKeysDown--;
+                this.PressedKeys[keyCharacter] = this.OnMidiControllerKeyUp(keyCharacter);
             }
         }
 
         return midiKeyPressed;
     }
 
-    KickstartMidiControllerTimeout()
+    RestartMidiControllerTimeout()
     {
-        this.MidiTimeoutTicksRemaining = 16/this.SampleResolutionTicks
+        //Refresh ticks timeout.
+        var timeoutTicks = 32;
+        this.MidiTimeoutTicksRemaining = timeoutTicks/this.SampleResolutionTicks
         var sampleTimeMilliseconds =  this.SampleResolutionTicks*this.MillisecondsPerTick
 
         if(this.MidiControllerPendingTimeout == null)
@@ -559,12 +843,15 @@ class Controller
     }
 
     OnMidiControllerNoteTimeout(note)
-	{
+    {
         var sampleResolutionTicks = this.SampleResolutionTicks
         var sampleTimeMilliseconds = sampleResolutionTicks*this.MillisecondsPerTick
 
         if(this.MidiKeysDown > 0)
         {
+            var timeoutTicks = 32;
+            this.MidiTimeoutTicksRemaining = timeoutTicks/this.SampleResolutionTicks
+
             for (let note of Object.values(this.PressedKeys))
             {
                 if(note != undefined)
@@ -575,9 +862,13 @@ class Controller
             }
         }
 
+        //When no keys are pressed, wait 'MidiTimeoutTicksRemaining' ticks before halting recording
         else if(this.MidiTimeoutTicksRemaining > 0)
         {
             this.MidiTimeoutTicksRemaining--;
+            var range = 32.0;
+            var percentageComplete = (range - this.MidiTimeoutTicksRemaining)/range;
+            console.log(percentageComplete);
         }
 
         else
@@ -591,7 +882,7 @@ class Controller
         this.MidiControllerPendingTimeout =
             setTimeout($.proxy(this.OnMidiControllerNoteTimeout, this), sampleTimeMilliseconds);
 
-	}
+    }
 
     CreateMidiControllerNote(pitch)
     {
@@ -599,7 +890,8 @@ class Controller
         //Create a new preview note if edit mode is active
         //if((this.EditorMode == editModeEnumeration.MidiControllerMode) && (selectCount == 0) && (!this.Playing)){
 
-        var startTicks = this.MainPlaybackStartTicks + this.MidiControllerTicks
+        var startTicks = this.CapturedPlaybackStartTicks + this.MidiControllerTicks//TODO should this.MainPlaybackStartTicks  be added here?
+//        this.console.log("capd, miditicks",this.CapturedPlaybackStartTicks, this.MidiControllerTicks);//todo removed log
         var noteIsSelected = true;
         var noteLength = 0//this.SampleResolutionTicks
 
@@ -622,13 +914,39 @@ class Controller
 
         switch(event.keyCode)
         {
+        case 13: //enter
+        if(event.type == "keyup")
+        {
+            keyupThisPointer.HandleNoteCommit(true);
+        }
+        break;
+        case 8: //backspace
+        if(event.type == "keyup")
+        {
+
+        }
+        break;
         case 20: //capslock
 
             if(event.type == "keyup")
             {
-                if(keyupThisPointer.EditorMode != editModeEnumeration.MidiControllerMode)
+                if(
+                    (keyupThisPointer.EditorMode != editModeEnumeration.MidiControllerMode) &&
+                    (keyupThisPointer.EditorMode != editModeEnumeration.InstantMidiControllerMode))
                 {
-                    keyupThisPointer.EditorMode = editModeEnumeration.MidiControllerMode;
+                    if(event.originalEvent.shiftKey)
+                    {
+                        keyupThisPointer.OnMidiControllerKeyDown = keyupThisPointer.InstantKeyDown;
+                        keyupThisPointer.OnMidiControllerKeyUp = keyupThisPointer.InstantKeyUp;
+                        keyupThisPointer.EditorMode = editModeEnumeration.InstantMidiControllerMode;
+                    }
+                    else
+                    {
+                        keyupThisPointer.OnMidiControllerKeyDown = keyupThisPointer.QuantizerKeyDown;
+                        keyupThisPointer.OnMidiControllerKeyUp = keyupThisPointer.QuantizerKeyUp;
+                        keyupThisPointer.EditorMode = editModeEnumeration.MidiControllerMode;
+                    }
+
                     keyupThisPointer.HandleSelectionReset();
                 }
 
@@ -652,6 +970,10 @@ class Controller
         {
             eventHandled = keyupThisPointer.MidiControllerKeyCallback(event)
         }
+        if(keyupThisPointer.EditorMode == editModeEnumeration.InstantMidiControllerMode)
+        {
+            eventHandled = keyupThisPointer.MidiControllerKeyCallback(event)
+        }
 
         if(!eventHandled)
         {
@@ -659,13 +981,21 @@ class Controller
         }
     }
 
-	SetGridWidth(gridWidth)
-	{
-		this.Model.Score.GridWidth = gridWidth;
-		this.View.GridWidthTicks = gridWidth;
-		this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
-	}
+    //Midi controller end
 
+    SetGridWidth(gridWidth)
+    {
+        this.Model.Score.GridWidth = gridWidth;
+        this.RefreshGridboxBackground()
+    }
+
+    RefreshGridboxBackground()
+    {
+        this.View.GridWidthTicks = this.Model.Score.GridWidth;
+        this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
+    }
+
+    //Composition mode controller begin
     HandleCompositionModeKeypress(event)
     {
         //Mode control: select, edit, delete
@@ -730,30 +1060,31 @@ class Controller
 
             break;
 
-		case 219: //"{" key
-			var gridWidth = this.View.GridWidthTicks - 16;
-			var lastTick = 512;
-			var score = this.Model.Score.NoteArray;
-			var currentGridWidth = this.View.GridWidthTicks
-			if(score.length > 0)
-			{
-				var lastNote = score[score.length-1];
-				lastTick = lastNote.StartTimeTicks + lastNote.Duration;
-			}
+        case 219: //"[" key
+            //Make sure not to underflow past note ticks
+            var gridWidth = this.View.GridWidthTicks - 16;
+            var lastTick = 512;
+            var score = this.Model.Score.NoteArray;
+            var currentGridWidth = this.View.GridWidthTicks
+            if(score.length > 0)
+            {
+                var lastNote = score[score.length-1];
+                lastTick = lastNote.StartTimeTicks + lastNote.Duration;
+            }
 
-			var shrinkingGrid = (gridWidth < currentGridWidth);
-			var gridBoundaryClippingLastNote = (gridWidth > lastTick);
+            var shrinkingGrid = (gridWidth < currentGridWidth);
+            var gridBoundaryClippingLastNote = (gridWidth > lastTick);
 
-			if((shrinkingGrid && gridBoundaryClippingLastNote) || (!shrinkingGrid))
-			{
-				this.SetGridWidth(gridWidth);
-			}
-			break;
+            if((shrinkingGrid && gridBoundaryClippingLastNote) || (!shrinkingGrid))
+            {
+                this.SetGridWidth(gridWidth);
+            }
+            break;
 
-		case 221: //"}" key
-			var gridWidth = this.View.GridWidthTicks + 16;
-			this.SetGridWidth(gridWidth);
-			break;
+        case 221: //"]" key
+            var gridWidth = this.View.GridWidthTicks + 16;
+            this.SetGridWidth(gridWidth);
+            break;
 
         case 46: //"del" key
         case 68: //"d" key
@@ -772,14 +1103,16 @@ class Controller
             {
                 this.TonicKey = (this.TonicKey+7)%keys;
             }
+
             this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
+            this.AnalyzeIntervals(this.Model.Score.NoteArray);
 
             break;
 
-		case 75: //"k" key : change coloration mode
-			this.NoteColorationMode = !this.NoteColorationMode;
-			this.View.UpdateExistingNotes(this.Model.Score.NoteArray, this.NoteColorationMode);
-			break;
+        case 75: //"k" key : change coloration mode
+            this.NoteColorationMode = !this.NoteColorationMode;
+            this.View.UpdateExistingNotes(this.Model.Score.NoteArray, this.NoteColorationMode);
+            break;
 
         case 192: //` tilde key: change mode
             this.MusicalModeIndex = (this.MusicalModeIndex+1) % Modes.length;
@@ -788,21 +1121,29 @@ class Controller
 
         case 32: //spacebar
             event.preventDefault();
-            if(event.shiftKey)
+            if(!this.Playing)
             {
-                this.HandlePlayback(PlaybackEnumeration.RestartFromLastStart)
-            }
+                if(event.shiftKey)
+                {
+                    this.HandlePlayback(PlaybackEnumeration.RestartFromLastStart);
+                }
 
-            //Ctrl space:
-            else if(event.ctrlKey)
-            {
-                this.HandlePlayback(PlaybackEnumeration.RestartFromBeginning)
-            }
+                //Ctrl space:
+                else if(event.ctrlKey)
+                {
+                    this.HandlePlayback(PlaybackEnumeration.RestartFromBeginning);
+                }
 
-            //Regular space:
+                //Regular space:
+                else
+                {
+                    this.HandlePlayback(PlaybackEnumeration.Resume);
+                }
+
+            }
             else
             {
-                this.HandlePlayback(PlaybackEnumeration.Resume)
+                this.StopPlayingNotes();
             }
 
 
@@ -834,24 +1175,43 @@ class Controller
             if(event.ctrlKey)
             {
                 event.preventDefault();
-                this.SelectAllNotes();
+                //ctrl+shift+a: select current track
+                if(event.shiftKey)
+                {
+                    this.ModifyNoteArray(this.Model.Score.NoteArray, function(note)
+                    {
+                        if(note.CurrentTrack == this.CurrentTrack)
+                        {
+                            note.IsSelected = true;
+                            this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+                        }
+                    });
+                }
+                //ctrl+a: select all notes all tracks
+                else
+                {
+                    this.SelectAllNotes();
+                }
             }
 
         case 81: //"q" key
             break;
 
         //Numeric keys
-        case 49: //key 0
-        case 50: //key 1
-        case 51: //...
+        case 48: //key 0
+            event.keyCode += 10; //no track 0, just track 10
+        case 49: //key 1
+        case 50: //...
+        case 51:
         case 52:
         case 53:
         case 54:
         case 55: //...
         case 56: //key 8
         case 57: //key 9
+
             var pressedKey = event.keyCode - 49;
-            this.SetCurrentTrack(pressedKey);
+            this.CurrentTrack = pressedKey;
 
             break;
 
@@ -868,21 +1228,21 @@ class Controller
             this.Model.CreateGridPreview();
             this.RefreshGridPreview();
             break;
-        case 38: //up arrow: select grid
+        case 38: //up arrow: go to previous grid
+            //TODO: if notes are selected move them up and down and side to side
             event.preventDefault();
-			var upwardDirection = true;
-            this.HandleGridMove(upwardDirection);
+            this.HandleGridMove(this.Model.GridPreviewIndex-1);
             this.RefreshGridPreview();
             break;
-        case 40: //down arrow: select grid
+        case 40: //down arrow: go to next grid
             event.preventDefault();
-			var upwardDirection = false;
-            this.HandleGridMove(upwardDirection);
+            this.HandleGridMove(this.Model.GridPreviewIndex+1);
             this.RefreshGridPreview();
             break;
         }
     }
 
+    //Composition mode controller end
     HandlePlayback(playbackMode)
     {
         if(!this.Playing)
@@ -947,14 +1307,13 @@ class Controller
 
                 this.PlayNotes(playbackBuffer, false);
             }
-
-        }
-        else
-        {
-            this.StopPlayingNotes();
         }
     }
 
+    //Make all notes "selected", meaning:
+    //  - they respond to mouse dragging
+    //  - they are highlighted or focused on
+    //  -
     SelectAllNotes()
     {
         this.ModifyNoteArray(this.Model.Score.NoteArray, function(note)
@@ -964,46 +1323,49 @@ class Controller
         });
     }
 
-    SetCurrentTrack(trackNumber)
+    set CurrentTrack(trackNumber)
     {
-        this.CurrentTrack = trackNumber;
+        if(trackNumber < 0)
+        {
+            trackNumber = 0;
+        }
+        this._CurrentTrack = trackNumber;
 
         this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
         {
-            note.CurrentTrack = this.CurrentTrack;
+            note.CurrentTrack = this._CurrentTrack;
             this.View.ApplyNoteStyle(note, this.NoteColorationMode);
         });
+
+        this.View.SelectTrack(trackNumber);
     }
 
-    HandleGridMove(upwardsDirection)
+    get CurrentTrack()
+    {
+        if(this._CurrentTrack < 0)
+        {
+            this._CurrentTrack = 0;
+        }
+        return this._CurrentTrack;
+    }
+
+    HandleGridMove(gridIndex)
     {
         var moveFunction;
         var copyBuffer = [];
+        var oldGridIndex = this.Model.GridPreviewIndex
         var newGridIndex;
-		var newGridWidth = 0;
+        var newGridWidth = 0;
 
-		var originalGridWidth = this.View.GridWidthTicks;
-
-        if(upwardsDirection)
-        {
-            moveFunction = this.Model.GotoPreviousGrid;
-            newGridIndex = Math.max(this.Model.GridPreviewIndex-1, 0);
-        }
-
-        else
-        {
-            moveFunction = this.Model.GotoNextGrid;
-            newGridIndex = Math.min(this.Model.GridPreviewIndex+1, this.Model.GridPreviewList.length-1);
-        }
+        var originalGridWidth = this.View.GridWidthTicks;
 
         this.Model.SetCurrentGridPreview(this.Model.Score);
-
         this.console.log("Transport begin");
 
         //Capture any selected notes and delete them before changing grids
         this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
         {
-			var copiedNote = note;
+            var copiedNote = note;
             this.console.log("Packing note: ", note);
             copyBuffer.push(copiedNote);
         });
@@ -1011,22 +1373,24 @@ class Controller
         this.DeleteSelectedNotes(false, 0);
 
         //Change to the next grid
-        moveFunction.call(this.Model);
+        //moveFunction.call(this.Model);
+        this.Model.GotoGridView(gridIndex);
+        newGridIndex = this.Model.GridPreviewIndex;
 
         //Instantiate the copied notes in the next buffer
         copyBuffer.forEach(function(note)
         {
-            this.console.log("Transporting note: ", note, newGridIndex);
-			note.CurrentGridIndex = newGridIndex;
+//            this.console.log("Transporting note: ", note, oldGridIndex, newGridIndex);//todo removed log
+            note.CurrentGridIndex = newGridIndex;
             this.Model.AddNote(note, 0, this.Model.Score.NoteArray, false);
             this.Model.AddNote(note, 0, this.Model.SelectedNotes, false);
         },this);
 
-		var currentGridWidth = this.View.GridWidthTicks;
-		var targetGridWidth = this.Model.Score.GridWidth;
+        var currentGridWidth = this.View.GridWidthTicks;
+        var targetGridWidth = this.Model.Score.GridWidth;
 
-		this.SetGridWidth(targetGridWidth);
-		console.log("Transport end:", originalGridWidth, currentGridWidth, targetGridWidth);
+        this.SetGridWidth(targetGridWidth);
+//        this.console.log("Transport end:", originalGridWidth, currentGridWidth, targetGridWidth);//todo removed log
     }
 
     InvertVoices(moveHighestVoiceByOctave)
@@ -1233,20 +1597,22 @@ class Controller
         return [chordNotes,returnIndex];
     }
 
-	OnStopNote(note)
-	{
+    OnStopNote(note)
+    {
         note.IsHighlighted = false;
         this.View.ApplyNoteStyle(note, this.NoteColorationMode)
-	}
+    }
 
-    PlayChord(noteArray, noteIndex, includeSuspensions)
+    PlayChord(noteArray, noteIndex, includeSuspensions, includeSelectedNotes=false)
     {
         //Get all notes that play during this note, return the index of the first note that won't be played in this chord
-        var [chordNotes,returnIndex] = this.GetChordNotes(noteArray, noteIndex, includeSuspensions)
+        var [chordNotes,returnIndex] = this.GetChordNotes(noteArray, noteIndex, includeSuspensions, includeSelectedNotes)
+//        this.console.log(chordNotes)//todo removed log
 
         this.ModifyNoteArray(chordNotes, function(note)
         {
             var instrumentCode = this.GetTrackInstrument(note.CurrentTrack);
+//            this.console.log("start play",this.MillisecondsPerTick, this, this.OnStopNote, instrumentCode);//todo removed log
             note.Play(this.MillisecondsPerTick, this, this.OnStopNote, instrumentCode);
             this.View.ApplyNoteStyle(note, this.NoteColorationMode);
         });
@@ -1254,12 +1620,12 @@ class Controller
         return returnIndex;
     }
 
-    OnPlayAllNotes(includeSuspensions=false)
+    OnPlayAllNotes(includeSuspensions=false, includeSelectedNotes=false)
     {
         var playbackNoteArray = this.PlaybackNoteArray;
         const noteIndex = this.NoteIndex;
         const currentNote = playbackNoteArray[noteIndex];
-        const nextNoteIndex = this.PlayChord(playbackNoteArray, noteIndex, includeSuspensions);
+        const nextNoteIndex = this.PlayChord(playbackNoteArray, noteIndex, includeSuspensions, includeSelectedNotes);
 
         if(nextNoteIndex < playbackNoteArray.length)
         {
@@ -1307,7 +1673,7 @@ class Controller
 
     }
 
-    PlayNotes(noteArray, includeSuspensions)
+    PlayNotes(noteArray, includeSuspensions,includeSelectedNotes=false)
     {
         this.NoteIndex = 0;
         this.ResetPlayback();
@@ -1326,23 +1692,23 @@ class Controller
             var playbackDurationMilliseconds = (endTime - startTime)*this.MillisecondsPerTick;
 
             //Begin scrolling along with the notes
-			if(firstNote.StartTimeTicks != lastNote.StartTimeTicks)
-			{
+            if(firstNote.StartTimeTicks != lastNote.StartTimeTicks)
+            {
                 //Find the middle Y coordinate
-				var [chord,x] = this.GetChordNotes(noteArray, 0, includeSuspensions);
-				var averagePitchSum = 0;
-				chord.forEach(function(note)
-				{
-					averagePitchSum += note.Pitch;
-				});
+                var [chord,x] = this.GetChordNotes(noteArray, 0, includeSuspensions);
+                var averagePitchSum = 0;
+                chord.forEach(function(note)
+                {
+                    averagePitchSum += note.Pitch;
+                });
 
-				var averagePitch = averagePitchSum / chord.length;
-				var ycoord = this.View.ConvertPitchToYIndex(averagePitch);
+                var averagePitch = averagePitchSum / chord.length;
+                var ycoord = this.View.ConvertPitchToYIndex(averagePitch);
 
-				this.View.SmoothScroll(startX, ycoord, 500);
-			}
-
-            this.OnPlayAllNotes(includeSuspensions);
+                this.View.SmoothScroll(startX, ycoord, 500);
+            }
+//            this.console.log("Play notes", noteArray);//todo removed log
+            this.OnPlayAllNotes(includeSuspensions, includeSelectedNotes);
         }
     }
 
@@ -1369,13 +1735,14 @@ class Controller
         //Create a new preview note if edit mode is active
         if((this.EditorMode == editModeEnumeration.EDIT) && (selectCount == 0) && (!this.Playing))
         {
+            var noteDuration = Math.max(1, this.DefaultNoteDuration);
             var startTicks = this.View.ConvertXIndexToTicks(this.CursorPosition.x);
             var pitch = this.View.ConvertYIndexToPitch(this.CursorPosition.y);
             var noteIsSelected = true;
             var previewNote = new Note(
                 startTicks,
                 pitch,
-                this.DefaultNoteDuration,
+                noteDuration,
                 this.CurrentTrack,
                 true);
 
@@ -1422,20 +1789,20 @@ class Controller
         this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
         {
             //Unselect and reset the position of notes that existed before selection
-			if(note.StateWhenSelected != null)
-			{
+            if(note.StateWhenSelected != null)
+            {
                 this.console.log("Handling reset with reposition",note)
-				note.IsSelected = false;
-				note.ResetPosition();
-			}
+                note.IsSelected = false;
+                note.ResetPosition();
+            }
 
-			//Delete preview notes that were not initially selected
-			else
-			{
+            //Delete preview notes that were not initially selected
+            else
+            {
                 this.console.log("Handling reset with deletion",note)
-				this.Model.DeleteNote(note, 0, this.Model.Score.NoteArray, false);
+                this.Model.DeleteNote(note, 0, this.Model.Score.NoteArray, false);
                 this.View.DeleteNotes([note]);
-			}
+            }
         }, false);
 
         this.AnalyzeIntervals(this.Model.Score.NoteArray);
@@ -1447,88 +1814,88 @@ class Controller
     {
         var mouseMoveThisPointer = c_this;
 
-		//Only process mouse move events if the position changes
+        //Only process mouse move events if the position changes
         if((mouseMoveThisPointer.CursorPosition.x != cursorPosition.x) ||
             (mouseMoveThisPointer.CursorPosition.y != cursorPosition.y))
         {
             mouseMoveThisPointer.LastCursorPosition = mouseMoveThisPointer.CursorPosition;
-			mouseMoveThisPointer.CursorPosition = cursorPosition;
+            mouseMoveThisPointer.CursorPosition = cursorPosition;
 
-			//If there are selected notes, move them
-			var selectCount = mouseMoveThisPointer.CountSelectedNotes();
+            //If there are selected notes, move them
+            var selectCount = mouseMoveThisPointer.CountSelectedNotes();
 
-			//If a selection rectangle is being drawn, begin selecting notes caught in the rectangle
-			if(mouseMoveThisPointer.SelectingGroup)
-			{
-				mouseMoveThisPointer.View.RenderSelectRectangle(mouseMoveThisPointer.SelectorPosition, mouseMoveThisPointer.CursorPosition);
-				var selectRectangle =
-				{
-					x1: Math.min(mouseMoveThisPointer.SelectorPosition.x, mouseMoveThisPointer.CursorPosition.x),
-					y1: Math.min(mouseMoveThisPointer.SelectorPosition.y, mouseMoveThisPointer.CursorPosition.y),
-					x2: Math.max(mouseMoveThisPointer.SelectorPosition.x, mouseMoveThisPointer.CursorPosition.x),
-					y2: Math.max(mouseMoveThisPointer.SelectorPosition.y, mouseMoveThisPointer.CursorPosition.y)
-				};
+            //If a selection rectangle is being drawn, begin selecting notes caught in the rectangle
+            if(mouseMoveThisPointer.SelectingGroup)
+            {
+                mouseMoveThisPointer.View.RenderSelectRectangle(mouseMoveThisPointer.SelectorPosition, mouseMoveThisPointer.CursorPosition);
+                var selectRectangle =
+                {
+                    x1: Math.min(mouseMoveThisPointer.SelectorPosition.x, mouseMoveThisPointer.CursorPosition.x),
+                    y1: Math.min(mouseMoveThisPointer.SelectorPosition.y, mouseMoveThisPointer.CursorPosition.y),
+                    x2: Math.max(mouseMoveThisPointer.SelectorPosition.x, mouseMoveThisPointer.CursorPosition.x),
+                    y2: Math.max(mouseMoveThisPointer.SelectorPosition.y, mouseMoveThisPointer.CursorPosition.y)
+                };
 
-				mouseMoveThisPointer.ModifyNoteArray(mouseMoveThisPointer.Model.Score.NoteArray, function(note)
-				{
-					var noteRectangle = mouseMoveThisPointer.GetNoteRectangle(note);
-					var noteIsCaptured = mouseMoveThisPointer.DoesRectangle1CoverRectangle2(selectRectangle, noteRectangle);
+                mouseMoveThisPointer.ModifyNoteArray(mouseMoveThisPointer.Model.Score.NoteArray, function(note)
+                {
+                    var noteRectangle = mouseMoveThisPointer.GetNoteRectangle(note);
+                    var noteIsCaptured = mouseMoveThisPointer.DoesRectangle1CoverRectangle2(selectRectangle, noteRectangle);
                     var noteSelectionInitialState = note.IsSelected;
 
-					if(noteIsCaptured)
-					{
-						note.IsSelected = true;
-					}
+                    if(noteIsCaptured)
+                    {
+                        note.IsSelected = true;
+                    }
 
-					else
-					{
-						note.IsSelected = false;
-					}
+                    else
+                    {
+                        note.IsSelected = false;
+                    }
 
                     if(noteSelectionInitialState != note.IsSelected)
                     {
                         this.View.ApplyNoteStyle(note, this.NoteColorationMode);
                     }
-				});
-			}
+                });
+            }
 
-			//If no selection rectangle is being drawn, move all selected notes
-			else if(selectCount > 0)
-			{
+            //If no selection rectangle is being drawn, move all selected notes
+            else if(selectCount > 0)
+            {
                 var selectedNotes = mouseMoveThisPointer.Model.SelectedNotes;
 
-				var x_offset =
-					mouseMoveThisPointer.View.ConvertXIndexToTicks(mouseMoveThisPointer.CursorPosition.x) -
-					mouseMoveThisPointer.View.ConvertXIndexToTicks(mouseMoveThisPointer.LastCursorPosition.x);
+                var x_offset =
+                    mouseMoveThisPointer.View.ConvertXIndexToTicks(mouseMoveThisPointer.CursorPosition.x) -
+                    mouseMoveThisPointer.View.ConvertXIndexToTicks(mouseMoveThisPointer.LastCursorPosition.x);
 
-				var y_offset =
-					mouseMoveThisPointer.View.ConvertYIndexToPitch(mouseMoveThisPointer.CursorPosition.y) -
-					mouseMoveThisPointer.View.ConvertYIndexToPitch(mouseMoveThisPointer.LastCursorPosition.y);
+                var y_offset =
+                    mouseMoveThisPointer.View.ConvertYIndexToPitch(mouseMoveThisPointer.CursorPosition.y) -
+                    mouseMoveThisPointer.View.ConvertYIndexToPitch(mouseMoveThisPointer.LastCursorPosition.y);
 
-				var previousNote = undefined;
-				function IsScaleDegree(pitch)
-				{
-					return false;
-				}
+                var previousNote = undefined;
+                function IsScaleDegree(pitch)
+                {
+                    return false;
+                }
 
-				mouseMoveThisPointer.ModifyNoteArray(selectedNotes, function(note)
-				{
-					//Tonal transpose?
+                mouseMoveThisPointer.ModifyNoteArray(selectedNotes, function(note)
+                {
+                    //Tonal transpose?
 
-					note.Move(x_offset, y_offset);
-					previousNote = note;
+                    note.Move(x_offset, y_offset);
+                    previousNote = note;
 
-				});
+                });
 
 
                 mouseMoveThisPointer.Model.MergeSort(selectedNotes);
                 mouseMoveThisPointer.Model.MergeSort(mouseMoveThisPointer.Model.Score.NoteArray);
                 mouseMoveThisPointer.AnalyzeIntervals(mouseMoveThisPointer.Model.Score.NoteArray);
 
-			}
+            }
             //mouseMoveThisPointer.SetKeyReference(mouseMoveThisPointer.TonicKey, mouseMoveThisPointer.MusicalModeIndex);
             //TODO: draw a circle around cursor showing note colors
-		}
+        }
     } //end OnMouseMove
 
     HandleIndividualNotePlayback(noteIndex, playbackMode)
@@ -1536,49 +1903,49 @@ class Controller
         var score = this.Model.Score.NoteArray;
         var note = score[noteIndex];
 
-		//Solo
+        //Solo
         if(playbackMode == 0)
         {
             this.PlayChord([note], noteIndex, false)
         }
 
-		//Chords: play notes that have the same start time
+        //Chords: play notes that have the same start time
         else if(playbackMode == 1)
         {
             this.PlayChord(score, noteIndex, false)
         }
 
-		//Suspensions: play notes whose durations extend over the selected note
+        //Suspensions: play notes whose durations extend over the selected note
         else
         {
             this.PlayChord(score, noteIndex, true)
         }
     }
 
-	GetModeSettings(eventData=undefined)
-	{
+    GetModeSettings(eventData=undefined)
+    {
         if(eventData == undefined)
         {
              eventData = this.View.GetFormData();
         }
 
-		var modeSettings = {};
+        var modeSettings = {};
 
-		eventData.forEach(function(formData)
-		{
-			if(formData.id == 'PlayPreview')
-			{
-				modeSettings.PlaybackMode = formData.value;
-			}
+        eventData.forEach(function(formData)
+        {
+            if(formData.id == 'PlayPreview')
+            {
+                modeSettings.PlaybackMode = formData.value;
+            }
 
             if(formData.id == 'Analysis')
             {
                 modeSettings.AnalysisMode = formData.value;
             }
-		});
+        });
 
-		return modeSettings;
-	}
+        return modeSettings;
+    }
 
     OnMouseClickDown(event)
     {
@@ -1589,9 +1956,10 @@ class Controller
             return;
         }
 
-		//event.preventDefault();
-        if((clickdownThisPointer.EditorMode == editModeEnumeration.SELECT) ||
-        (clickdownThisPointer.EditorMode == editModeEnumeration.MidiControllerMode))
+        //event.preventDefault();
+        //if editor mode in list
+        if([editModeEnumeration.SELECT, editModeEnumeration.MidiControllerMode, editModeEnumeration.InstantMidiControllerMode].indexOf(clickdownThisPointer.EditorMode) >-1)
+        //if((clickdownThisPointer.EditorMode == editModeEnumeration.SELECT) || (clickdownThisPointer.EditorMode == editModeEnumeration.MidiControllerMode))
         {
             var selectCount = clickdownThisPointer.CountSelectedNotes();
             var clickedNoteIndex = clickdownThisPointer.GetNoteIndexOfOverlappingNote().ClickedNoteIndex;
@@ -1616,122 +1984,134 @@ class Controller
     ///Unselect all selected notes to anchor them and play them
     OnMouseClickUp(event)
     {
-
         if(event.which !== 1)
         {
             return;
         }
 
-        var clickUpThisPointer = c_this;
+        var executingMove = true;
+        c_this.HandleNoteCommit(executingMove);
 
-		//event.preventDefault();
-        clickUpThisPointer.StopPlayingNotes();
 
-		var selectedNotes = clickUpThisPointer.Model.SelectedNotes;
-        var mainScore = clickUpThisPointer.Model.Score.NoteArray;
-        var selectCount = clickUpThisPointer.CountSelectedNotes();
-        var wasSelectingGroup = clickUpThisPointer.SelectingGroup === true;
+    } //end OnMouseClickUp
 
-        clickUpThisPointer.Model.MergeSort(clickUpThisPointer.Model.Score.NoteArray);
-        clickUpThisPointer.Model.MergeSort(clickUpThisPointer.Model.SelectedNotes);
+    HandleRectangleEndGrab()
+    {
+        var selectCount = this.CountSelectedNotes();
+        this.View.DeleteSelectRectangle();
+        this.SelectingGroup = false;
+        if(selectCount === 0)
+        {
+            var clickupTicks = this.View.ConvertXIndexToTicks(this.CursorPosition.x);
+            this.ResetPlaybackStartTicks(clickupTicks);
+        }
+    }
 
+    GetPlaybackIntersections(targetBuffer, playbackBuffer, includeSuspensions)
+    {
+        const selectedBufferEndIndex = targetBuffer.length-1;
+        const firstSelectedNote = targetBuffer[0];
+        const startTickBoundary = firstSelectedNote.StartTimeTicks;
+        const endTickBoundary =
+            targetBuffer[selectedBufferEndIndex].StartTimeTicks +
+            targetBuffer[selectedBufferEndIndex].Duration;
+
+        this.ModifyNoteArray(this.Model.Score.NoteArray, function(note)
+        {
+            if(!note.IsSelected)
+            {
+                var intersectsSelectedNote =
+                    (startTickBoundary <= note.StartTimeTicks) &&
+                    (note.StartTimeTicks < endTickBoundary);
+
+                var suspendsOverFirstNote =
+                    this.ShouldIncludeNote(firstSelectedNote,note,includeSuspensions);
+
+                if(intersectsSelectedNote)
+                {
+                    this.Model.AddNote(note, 0, playbackBuffer, false);
+                }
+
+                else if(suspendsOverFirstNote)
+                {
+                    var suspendDummyNote = new Note(
+                        firstSelectedNote.StartTimeTicks,
+                        note.Pitch,
+                        firstSelectedNote.Duration,
+                        firstSelectedNote.CurrentTrack,
+                        false);
+                    this.Model.AddNote(suspendDummyNote, 0, playbackBuffer, false);
+                }
+             }
+        });
+    }
+
+    HandleCommitPlayback(executingMove)//for end of note drag
+    {
+        var selectCount = this.CountSelectedNotes();
+        var selectedNotes = this.Model.SelectedNotes;
+        var mainScore = this.Model.Score.NoteArray;
+
+        var playbackBuffer = [];
+        var playbackMode = this.GetModeSettings().PlaybackMode;
+        var sequenceNumber = sequenceNumber = this.GetNextSequenceNumber();
+
+        var includeSuspensions = playbackMode == 2;
+        var soloMode = playbackMode == 0;
+
+        //Play all intersecting chords and handle move completion. If playback mode == 0 (solo),
+        //do not search for intersecting chords.
+        if((selectCount > 0) && !soloMode)
+        {
+            //Find all notes in the score that intersect with the selected notes
+            var selectedNotes = this.Model.SelectedNotes;
+            this.GetPlaybackIntersections(selectedNotes, playbackBuffer, includeSuspensions);
+        }
+
+        //Push all selected notes to the playback buffer, unselect them to place them and handle
+        //move completion. Reverse iterate to allow deselection, which removes notes from the
+        //selectedNotes buffer
+        this.ModifyNoteArray(selectedNotes, function(note)
+        {
+            this.Model.AddNote(note, 0, playbackBuffer, false);
+            note.IsSelected = false;
+            note.OnMoveComplete(sequenceNumber);
+            this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+            this.console.log("OnUnselect: playing note: ", note);
+        }, false);
+
+        //Move the playback line
+        if(playbackBuffer.length > 0)
+        {
+            this.ResetPlaybackStartTicks(playbackBuffer[0].StartTimeTicks);
+            this.PlayNotes(playbackBuffer,includeSuspensions);
+        }
+    }
+
+    HandleNoteCommit(executingMove)
+    {
+        //event.preventDefault();
+        this.StopPlayingNotes();
+        var wasSelectingGroup = this.SelectingGroup === true;
+
+        //Make sure both buffers are sorted to begin with
+        this.Model.MergeSort(this.Model.Score.NoteArray);
+        this.Model.MergeSort(this.Model.SelectedNotes);
+
+        //If a group was selected, close a rectangle
         if(wasSelectingGroup)
         {
-            clickUpThisPointer.View.DeleteSelectRectangle();
-            clickUpThisPointer.SelectingGroup = false;
-            if(selectCount === 0)
-            {
-                var clickupTicks = clickUpThisPointer.View.ConvertXIndexToTicks(clickUpThisPointer.CursorPosition.x);
-                clickUpThisPointer.ResetPlaybackStartTicks(clickupTicks);
-            }
+            this.HandleRectangleEndGrab()
         }
 
         else
         {
-			var playbackBuffer = [];
-            var playbackMode = clickUpThisPointer.GetModeSettings().PlaybackMode;
-            var sequenceNumber = clickUpThisPointer.GetNextSequenceNumber();
-            var includeSuspensions = playbackMode == 2;
-
-			//Play all intersecting chords and handle move completion. If playback mode == 0 (solo),
-            //do not search for intersecting chords.
-            if((selectCount > 0) && (playbackMode != 0))
-            {
-                const selectedBufferEndIndex = selectedNotes.length-1;
-                const firstSelectedNote = selectedNotes[0];
-                const startTickBoundary = firstSelectedNote.StartTimeTicks;
-                const endTickBoundary =
-                    selectedNotes[selectedBufferEndIndex].StartTimeTicks +
-                    selectedNotes[selectedBufferEndIndex].Duration;
-
-                //Find all notes in the score that intersect with the selected notes
-                clickUpThisPointer.ModifyNoteArray(clickUpThisPointer.Model.Score.NoteArray, function(note)
-                {
-                    if(!note.IsSelected)
-                    {
-                        var intersectsSelectedNote =
-                            (startTickBoundary <= note.StartTimeTicks) &&
-                            (note.StartTimeTicks < endTickBoundary);
-
-                        var suspendsOverFirstNote =
-                            this.ShouldIncludeNote(firstSelectedNote,note,includeSuspensions);
-
-                        if(intersectsSelectedNote)
-                        {
-    		                clickUpThisPointer.Model.AddNote(note, 0, playbackBuffer, false);
-                        }
-
-                        else if(suspendsOverFirstNote)
-                        {
-                            var suspendDummyNote = new Note(
-                                firstSelectedNote.StartTimeTicks,
-                                note.Pitch,
-                                firstSelectedNote.Duration,
-                                firstSelectedNote.CurrentTrack,
-                                false);
-    		                clickUpThisPointer.Model.AddNote(suspendDummyNote, 0, playbackBuffer, false);
-                        }
-                     }
-                });
-            }
-
-            //Push all selected notes to the playback buffer, unselect them to place them and handle
-            //move completion. Reverse iterate to allow deselection, which removes notes from the
-            //selectedNotes buffer
-
-            clickUpThisPointer.ModifyNoteArray(selectedNotes, function(note)
-            {
-                clickUpThisPointer.Model.AddNote(note, 0, playbackBuffer, false);
-                note.IsSelected = false;
-                note.OnMoveComplete(sequenceNumber);
-                this.View.ApplyNoteStyle(note, this.NoteColorationMode);
-				this.console.log("Clicked note: ", note)
-            }, false);
-
-
-            //Move the playback line
-            if(playbackBuffer.length > 0)
-            {
-                clickUpThisPointer.ResetPlaybackStartTicks(playbackBuffer[0].StartTimeTicks);
-            }
-
-            //Chords
-            if(playbackMode == 1)
-            {
-                clickUpThisPointer.PlayNotes(playbackBuffer,false);
-            }
-
-            //Suspensions and chords
-            else
-            {
-                clickUpThisPointer.PlayNotes(playbackBuffer,true);
-            }
+            this.HandleCommitPlayback(executingMove);
         }
 
-        clickUpThisPointer.CreateUniqueEditNote();
-        clickUpThisPointer.View.RenderPlaybackLine(clickUpThisPointer.MainPlaybackStartTicks,  clickUpThisPointer.CapturedPlaybackStartTicks);
-
-    } //end OnMouseClickUp
+        this.CreateUniqueEditNote();
+        this.View.RenderPlaybackLine(this.MainPlaybackStartTicks,  this.CapturedPlaybackStartTicks);
+    }
 
     //Resize notes
     HandleControlScroll(scrollUp)
@@ -1875,7 +2255,8 @@ class Controller
 
                     note.HorizontalModify(newPosition, newDuration, sequenceNumber);
                 }
-            });
+            }); //end modify
+
             this.AnalyzeIntervals(this.Model.Score.NoteArray);
         }
     }
@@ -1900,11 +2281,11 @@ class Controller
         {
             var xOffset = c_this.DefaultNoteDuration*c_this.View.PixelsPerTick;
 
-			var cursorPosition =
-			{
-				x:null,
-				y:c_this.CursorPosition.y
-			}
+            var cursorPosition =
+            {
+                x:null,
+                y:c_this.CursorPosition.y
+            }
 
             if(scrollUp)
             {
@@ -1912,19 +2293,19 @@ class Controller
             }
 
             var actualXOffset = c_this.View.ScrollHorizontal(xOffset);
-			cursorPosition.x = c_this.CursorPosition.x + actualXOffset
-			c_this.OnMouseMove(cursorPosition);
+            cursorPosition.x = c_this.CursorPosition.x + actualXOffset
+            c_this.OnMouseMove(cursorPosition);
         }
 
         else
         {
             var yOffset = c_this.View.PixelsPerTick;
 
-			var cursorPosition =
-			{
-				x:c_this.CursorPosition.x,
-				y:null
-			}
+            var cursorPosition =
+            {
+                x:c_this.CursorPosition.x,
+                y:null
+            }
 
             if(scrollUp)
             {
@@ -1932,8 +2313,8 @@ class Controller
             }
 
             var actualYOffset = c_this.View.ScrollVertical(yOffset);
-			cursorPosition.y = c_this.CursorPosition.y + actualYOffset
-			c_this.OnMouseMove(cursorPosition);
+            cursorPosition.y = c_this.CursorPosition.y + actualYOffset
+            c_this.OnMouseMove(cursorPosition);
         }
     }
 
@@ -1945,7 +2326,13 @@ class Controller
 
         c_this.AnalyzeIntervals(score);
     }
-
+    OnGridClick(gridIndex)
+    {
+//        c_this.console.log(gridIndex)//todo removed log
+        c_this.HandleGridMove(gridIndex);
+        c_this.RefreshGridPreview();
+        c_this.RefreshGridboxBackground();
+    }
     GetNoteRectangle(note)
     {
         var x1Value = this.View.ConvertTicksToXIndex(note.StartTimeTicks);
@@ -2035,6 +2422,364 @@ class Controller
         return result;
     }
 
+    UpdateProbabilityMap(probabilities, updateMap, factor)
+    {
+        updateMap.forEach(function(probability, quality, map)
+        {
+            var scaledProbability = probability * factor;
+
+            if(probabilities.get(quality) !== undefined)
+            {
+                var currentValue = probabilities.get(quality)
+                scaledProbability += currentValue;
+                console.log("Increment case", currentValue)
+            }
+            probabilities.set(quality, scaledProbability);
+            console.log(`Set ${quality} to ${scaledProbability}`)
+        })
+
+        return probabilities;
+    }
+
+    DetermineChordQualities(sample)
+    {
+          var qualityLut =
+          [
+              new Map([[ChordTypes.ROOT,3],[ChordTypes.FIRST_INVERSION,2.5],[ChordTypes.SEVENTH,2],[ChordTypes.FIRST_INVERSION_SEVENTH,1.5]]),     //0
+              new Map([[ChordTypes.FIRST_INVERSION_SEVENTH,3],[ChordTypes.FIRST_INVERSION_SEVENTH,2]]),                //m2
+              new Map([[ChordTypes.FIRST_INVERSION_SEVENTH,3],[ChordTypes.FIRST_INVERSION_SEVENTH,2]]),                 //M2
+              new Map([[ChordTypes.ROOT,3],[ChordTypes.FIRST_INVERSION,2],[ChordTypes.SEVENTH,1]]),           //m3
+              new Map([[ChordTypes.ROOT,3],[ChordTypes.FIRST_INVERSION,2],[ChordTypes.SEVENTH,1]]),    //M3
+              new Map([[ChordTypes.FIRST_INVERSION_SEVENTH,3]]),                 //4
+              new Map([]),             //tritone
+              new Map([[ChordTypes.ROOT,3],[ChordTypes.SEVENTH,2]]),                 //5
+              new Map([[ChordTypes.FIRST_INVERSION,3],[ChordTypes.SECOND_INVERSION_SEVENTH,2]]),     //m6
+              new Map([[ChordTypes.FIRST_INVERSION,3],[ChordTypes.SECOND_INVERSION_SEVENTH,2]]),     //M6
+              new Map([[ChordTypes.SEVENTH,5]]),                 //m7
+              new Map([[ChordTypes.SEVENTH,5]])                 //M7
+          ]
+
+          var predictionsForChord = new Map();
+
+          var estimatedStartTimeTicks = 0;
+          var averageNoteDuration = 0;
+          var estimatedNoteTimeMap = new Map();
+
+          sample.A.forEach(function(note)
+          {
+              var startTime = note.StartTimeTicks;
+              var pitch = note.Pitch;
+              var noteDuration = note.Duration;
+
+              averageNoteDuration += noteDuration;
+              var startTimeCount = estimatedNoteTimeMap.get(startTime);
+
+              if(startTimeCount == undefined)
+              {
+                  estimatedNoteTimeMap.set(startTime, startTimeCount + 1);
+              }
+
+              else
+              {
+                  estimatedNoteTimeMap.set(startTime, 1);
+              }
+          });
+
+          var maximumCountValue = 0;
+
+          estimatedNoteTimeMap.forEach(function(key, countValue, map)
+          {
+              if(countValue > maximumCountValue)
+              {
+                  estimatedStartTimeTicks = key;
+              }
+          }, maximumCountValue, estimatedStartTimeTicks);
+
+          sample.A.forEach(function(note)
+          {
+              var startTimeTicks = note.StartTimeTicks;
+              var pitch = note.Pitch;
+              var noteDuration = note.Duration;
+              var factor = 1.0;
+
+              if(startTimeTicks != estimatedStartTimeTicks)
+              {
+                  factor -= .25;
+              }
+
+              if(noteDuration >averageNoteDuration)
+              {
+                  factor += .25;
+              }
+              //TODO: notes should be weighted based on their start time and their duration.
+              //Longer notes should be weighted more heavily, and notes that don't coincide with
+              //the beat (suspensions) should not contribute as much to the harmony as
+              //the other notes. The problem is that a chord can be broken/rolled and then
+              //there is no consensus among the notes about where the chord starts.
+              //It should be safe to assume that most of the time, a majority of the notes in
+              //a given chord will occur at the same time, and these notes will outnumber the ones
+              //that are suspended. If many suspended notes occur at the same time that will affect this
+
+              //Get the bass interval, if this is the bass note use zero. THe interval
+              //relative to the bass will be used as a predictor of the chord quality`
+              var bassInterval = undefined == note.BassInterval ? 0 : note.BassInterval;
+              var bassIntervalModuloIndex = bassInterval % qualityLut.length;
+              var predictionsForBassInterval = qualityLut[bassIntervalModuloIndex];
+
+              console.log(`Updating predictions ${predictionsForChord} with  ${predictionsForBassInterval} for ${bassInterval} -> ${bassIntervalModuloIndex}`, predictionsForChord, predictionsForBassInterval)
+              this.UpdateProbabilityMap(predictionsForChord, predictionsForBassInterval, 1.0);//factor);
+
+          }, this);
+
+          return predictionsForChord;
+    }
+
+    ConcatenateWithProbability(sourceLabelList, newLabels, probability)
+    {
+        newLabels.forEach(function(noteLabel)
+        {
+            var mapEntry = [noteLabel, probability];
+            sourceLabelList.push(mapEntry)
+        }, sourceLabelList, probability);
+    }
+
+    GetFiguredSampleLabel(sample)
+    {
+        var inversion = 0;
+        var func = 0;
+        var rootNote = sample.A[0];
+
+        switch (rootNote.Figuring)
+        {
+            case ChordTypes.ROOT:
+                inversion = 0;
+                func = 0;
+                break;
+            case ChordTypes.FIRST_INVERSION:
+                inversion = 1;
+                func = 0;
+                break;
+            case ChordTypes.SECOND_INVERSION:
+                inversion = 0;
+                func = 0;
+                break;
+            case ChordTypes.FIRST_INVERSION_SEVENTH:
+                inversion = 1;
+                func = 1;
+                break;
+            case ChordTypes.SECOND_INVERSION_SEVENTH:
+                inversion = 2;
+                func = 1;
+                break;
+        }
+
+        var ss = sample.Selection;
+        var n = 3
+        var offset = inversion*n
+        //var b = this.TonicKey + rootNote.Pitch - offset;
+        var b = rootNote.Pitch - offset + 12 - this.TonicKey;
+        var type = ['Ro','Sv'][func]
+        var labels = [
+            'i',
+            'ii',
+            'II',
+            'iii',
+            'III',
+            'iv',
+            'x',
+            'v',
+            'vi',
+            'VI',
+            'vii',
+            'VII']
+
+          //Give an indication of the function: TODO. thinking about the function
+          //like that isn't really smart - at least, it should be obvious from the
+          //inversion
+
+          var index = (b + labels.length - offset) % labels.length
+          var label = labels[index]
+          var res = `${label} ${type}${inversion}i`
+
+          return label;
+    }
+
+    MakeContextualSelection(sample, lastChordLabel)
+    {
+        //Get the overall sequence in the left and right windows,
+        //list all of the most likely next steps. If the sample has a
+        //probability matching one of the most likely options, pick that.
+        //TODO: handle edge cases where the context is outweighed by the
+        //individual sample probs
+        var fromTonicLabels = [];
+        var fromSubDominantLabels = [];
+        var fromDominantLabels = [];
+
+        //TODO this will be really slow
+        this.ConcatenateWithProbability(fromTonicLabels, ['iii','III','vi','VI'], 3);
+        this.ConcatenateWithProbability(fromTonicLabels, ['ii','II','iv','IV'], 2.5);
+        this.ConcatenateWithProbability(fromTonicLabels, ['V','vii','VII'], 2);
+        this.ConcatenateWithProbability(fromTonicLabels, ['i'], 1.5);
+
+        this.ConcatenateWithProbability(fromSubDominantLabels, ['ii','II','iv','IV'], 3);
+        this.ConcatenateWithProbability(fromSubDominantLabels, ['V','vii','VII'], 2.5);
+        this.ConcatenateWithProbability(fromSubDominantLabels, ['i'], 2);
+
+        this.ConcatenateWithProbability(fromDominantLabels, ['V','vii','VII'], 3);
+        this.ConcatenateWithProbability(fromDominantLabels, ['i'], 3);
+
+        var full = new Map(fromTonicLabels);
+        var sq = new Map(fromSubDominantLabels);//sourceLabels.slice(4,full.length); //start from ii
+        var dq = new Map(fromDominantLabels);//sourceLabels.slice(8,full.length); //start from v
+        //todo: assign a probability to each
+        var bestFitMap = new Map(
+        [
+            ['i',full],//['v','vii','iv', 'IV', 'ii','II','iii','III','vi','VI','vii','VII'],
+            ['ii',sq],
+            ['II',sq],
+            ['iii',full],
+            ['III',full],
+            ['x',[]],
+            ['iv',sq],
+            ['v',dq],
+            ['vi',full],
+            ['VI',full],
+            ['vii',dq],
+            ['VII',dq]
+        ]);
+
+        try
+        {
+            var bestFits = bestFitMap.get(lastChordLabel);
+            this.UpdateProbabilityMap(sample.Probabilities, qualitiesToProbabilitiesMap);
+        }
+        catch
+        {
+            //console.log("No context data. Using tonic default.")
+        }
+
+        var probKeys = [...sample.Probabilities.keys()];
+
+        probKeys.sort(function(keyA,keyB)
+        {
+            var returnValue = sample.Probabilities.get(keyA) - sample.Probabilities.get(keyB);
+        });
+
+        var selection = probKeys[0];//sample.Probabilities.get(probKeys[1])
+        var label = this.GetFiguredSampleLabel(sample);
+
+        console.log(`Chose ${selection} from`,sample.Probabilities, probKeys);
+        var returnValue =
+        {
+            Figuring:selection,
+            ChordLabel:label,
+        };
+
+        return returnValue;
+    }
+
+    // ParseSamples(samples)
+    // {
+    //     var N = 3;
+    //     var M = 3;
+    //
+    //     //First pass assign probabilities
+    //     samples.forEach(function(sample)
+    //     {
+    //         var probabilities = this.DetermineChordQualities(sample);
+    //         sample.Probabilities = probabilities;
+    //
+    //     });
+    //
+    //     //Second pass rolling window chronological
+    //     for(var index=0; index<samples.length;index++)
+    //     {
+    //         var sample = samples[index]
+    //         var windowL = min(0, c-N)
+    //         var windowR = max(len(sbp), c+M)
+    //         var probabilities = sample.Probabilities;
+    //         var selection = this.MakeContextualSelection(probabilities)
+    //
+    //     }
+    // }
+
+    AssignBassIntervals(chordNotes)
+    {
+        var bassNote = chordNotes[0];
+        var invertibleNote = chordNotes[chordNotes.length - 1];
+        chordNotes.some(function(note)
+        {
+            if(note.BassInterval == undefined)
+            {
+                //Upper voice(s)
+                if(note.Pitch > bassNote.Pitch)
+                {
+                    var bassInterval = note.Pitch - bassNote.Pitch;
+                    note.BassInterval = bassInterval % 12;
+                }
+
+                //Paired bass note
+                else if(
+                    (note.Pitch == bassNote.Pitch) &&
+                    (invertibleNote.Pitch != bassNote.Pitch))
+                {
+                    var bassInterval = invertibleNote.Pitch - bassNote.Pitch;
+                    note.BassInterval = this.IntervalTranslator(bassInterval);
+                }
+            }
+
+            //unpaired note
+            this.View.ApplyNoteStyle(note, this.NoteColorationMode);
+
+        },this);
+    }
+
+    GetBassNote(chordNotes)
+    {
+        var bassNote = chordNotes[0];
+
+        chordNotes.forEach(function(note)
+        {
+            if(note.Pitch < bassNote.Pitch)
+            {
+                bassNote = note;
+            }
+        }, bassNote)
+
+        return bassNote;
+    }
+
+    AssignFiguredBass(chordNotes, lastChordLabel)
+    {
+        var sample = new Sample(chordNotes);
+
+        var probabilities = this.DetermineChordQualities(sample);
+        sample.Probabilities = probabilities;
+
+        //console.log(probabilities);
+        var selectedChordQuality =
+            this.MakeContextualSelection(sample, lastChordLabel);
+
+        console.log(probabilities)
+        var figuring = selectedChordQuality.Figuring;
+        var chordLabel = selectedChordQuality.ChordLabel;
+        lastChordLabel = chordLabel;
+
+        var bassNote = this.GetBassNote(chordNotes);
+
+        if(bassNote.Figuring == undefined)
+        {
+            bassNote.Figuring = figuring;
+        }
+        if(bassNote.Label == undefined)
+        {
+            bassNote.Label = chordLabel;
+        }
+
+        this.View.ApplyNoteStyle(bassNote, this.NoteColorationMode);
+    }
+
+    //end of new functions
     //Calculate the interval associated with each note relative to the bass
     AnalyzeIntervals(noteArray)
     {
@@ -2042,144 +2787,146 @@ class Controller
         var noteIndex = 0;
         var chordNotes = [];
 
-		this.ModifyNoteArray(noteArray, function(note)
-		{
-			note.BassInterval = undefined;
-		});
+        this.ModifyNoteArray(noteArray, function(note)
+        {
+            note.Label = undefined;
+            note.BassInterval = undefined;
+            note.Figuring = undefined;
+        });
+
+        var lastChordLabel = undefined;
 
         while(noteIndex < arrayLength)
         {
+          var analyzeCounterpoint = true;
+          var analyzeHarmony = this.GetModeSettings().AnalysisMode == 0;
+
             //Include suspensions and allow selected notes to be analyzed
-            [chordNotes, noteIndex] = this.GetChordNotes(noteArray, noteIndex, true, true);
+            [chordNotes, noteIndex] = this.GetChordNotes(
+                noteArray,
+                noteIndex,
+                true,
+                true);
 
-            var bassNote = chordNotes[0];
-            var invertibleNote = chordNotes[chordNotes.length - 1];
-            chordNotes.some(function(note)
+            if(analyzeCounterpoint)
             {
-				if(note.BassInterval == undefined)
-				{
-					//Upper voice(s)
-					if(note.Pitch > bassNote.Pitch)
-					{
-						var bassInterval = note.Pitch - bassNote.Pitch;
-						note.BassInterval = bassInterval % 12;
-					}
+                this.AssignBassIntervals(chordNotes);
 
-					//Paired bass note
-					else if(
-						(note.Pitch == bassNote.Pitch) &&
-						(invertibleNote.Pitch != bassNote.Pitch))
-					{
-						var bassInterval = invertibleNote.Pitch - bassNote.Pitch;
-						note.BassInterval = this.IntervalTranslator(bassInterval);
-					}
-				}
-
-                //unpaired note
-                this.View.ApplyNoteStyle(note, this.NoteColorationMode);
-
-            },this);
+                //TODO: analyze harmony on key changes without resetting bass intervals
+                if(analyzeHarmony)
+                {
+                    this.AssignFiguredBass(chordNotes, lastChordLabel);
+                }
+            }
         }
+
+        //todo second pass
+
+        // while(noteIndex < arrayLength)
+        // {
+        //     //Include suspensions and allow selected notes to be analyzed
+        //     [chordNotes, noteIndex] = this.GetChordNotes(noteArray, noteIndex, true, true);
+        // }
     }
 
-        	/* analysis suite
+            /* analysis suite
 
         function getNoteArray()
         {
-        	var noteArray = [];
+            var noteArray = [];
 
-        	$(".node").each(function()
-        	{
+            $(".node").each(function()
+            {
             var pitch = 72-(parseInt($(this).css('top'),10)/snapY);
             var delta = parseInt($(this).css('left'),10)/snapX;
             var duration = parseInt($(this).css('width'),10)/snapX;
             var entry = {'pitch':pitch,'delta':delta,'duration':duration};
             noteArray.push(entry);
             //c_this.console.log(entry);
-        	});
-        	return noteArray;
+            });
+            return noteArray;
         }
 
         function getIntervalArray()
         {
-        	var noteArray = getNoteArray();
-        	var temporalDict = {};
-        	for(var i =0; i<noteArray.length;i++)
-        	{
+            var noteArray = getNoteArray();
+            var temporalDict = {};
+            for(var i =0; i<noteArray.length;i++)
+            {
             noteEntry = noteArray[i];
             delta = noteEntry.delta;
             if(!temporalDict[delta])
-            	temporalDict[delta] = [];
+                temporalDict[delta] = [];
             temporalDict[delta].push(noteEntry);
-        	}
-        	temporaryDict = {};
-        	for(var delta in temporalDict)
-        	{
+            }
+            temporaryDict = {};
+            for(var delta in temporalDict)
+            {
             chunk = temporalDict[delta];
             delta = parseInt(delta,10);
             for(var j=0; j<chunk.length;j++)
             {
-            	//for each note in the chunk at this moment
-            	note = chunk[j];
-            	duration = note.duration;
+                //for each note in the chunk at this moment
+                note = chunk[j];
+                duration = note.duration;
 
-            	while(duration-- > 0)
-            	{
+                while(duration-- > 0)
+                {
 
                 tempDelta = duration+delta;
                 if(temporalDict[tempDelta])
                 {
-                	if(!temporaryDict[tempDelta])
+                    if(!temporaryDict[tempDelta])
                     temporaryDict[tempDelta] = [];
-                	temporaryDict[tempDelta].push(note);
+                    temporaryDict[tempDelta].push(note);
                 }
-            	}
+                }
 
 
             }
-        	}
-        	//merged dict of temporal events
-        	//c_this.console.log('temporary: '+JSON.stringify(temporaryDict));
-        	//c_this.console.log('main: '+JSON.stringify(temporalDict));
+            }
+            //merged dict of temporal events
+            //c_this.console.log('temporary: '+JSON.stringify(temporaryDict));
+            //c_this.console.log('main: '+JSON.stringify(temporalDict));
 
-        	for(var delta in temporaryDict)
-        	{
+            for(var delta in temporaryDict)
+            {
             temporaryNoteChunk = temporaryDict[delta];
             temporalNoteChunk = temporalDict[delta];
 
             if(!temporalDict[delta])
-            	temporalDict[delta] = temporaryNoteChunk;
+                temporalDict[delta] = temporaryNoteChunk;
             else
             {
-            	for(var i=0;i<temporaryNoteChunk.length;i++)
-            	{
+                for(var i=0;i<temporaryNoteChunk.length;i++)
+                {
                 var noteToAdd = temporaryNoteChunk[i]
                 var pitchAlreadyPresent = false;
                 for(var j=0;j<temporalNoteChunk.length;j++)
                 {
 
-                	if(temporalNoteChunk[j].pitch == noteToAdd.pitch)
+                    if(temporalNoteChunk[j].pitch == noteToAdd.pitch)
                     pitchAlreadyPresent = true;
                 }
                 if(!pitchAlreadyPresent)
                 {
-                	temporalDict[delta].push(noteToAdd);
+                    temporalDict[delta].push(noteToAdd);
 
                 }
-            	}
+                }
             }
-        	}
-        	var intervals = []
-        	c_this.console.log(JSON.stringify(temporalDict));
-        	for(var delta in temporalDict)
-        	{
+            }
+            var intervals = []
+            c_this.console.log(JSON.stringify(temporalDict));
+            for(var delta in temporalDict)
+            {
             //If more than 2 entries, just ignore it.. use outer eventually
             if(temporalDict[delta].length == 2)
-            	intervals.push(Math.abs(temporalDict[delta][0].pitch - temporalDict[delta][1].pitch));
+                intervals.push(Math.abs(temporalDict[delta][0].pitch - temporalDict[delta][1].pitch));
 
-        	}
-        	c_this.console.log(intervals);
-        	return intervals;
+            }
+            c_this.console.log(intervals);
+            return intervals;
 
         }
         function CheckMelody(track)
@@ -2189,48 +2936,48 @@ class Controller
 
         function CheckCounterpoint()
         {
-        	//Fux's fundamental rules:
-        	//Any interval -> Perfect: contrary/oblique
+            //Fux's fundamental rules:
+            //Any interval -> Perfect: contrary/oblique
 
-        	//Species:
-        	//Strong beat: consonance
-        	//1st: 1:1 notes
-        	//2nd
-        	//3rd
-        	//4th
+            //Species:
+            //Strong beat: consonance
+            //1st: 1:1 notes
+            //2nd
+            //3rd
+            //4th
 
-        	//General:
-        	//Balance leaps of a fifth or more by going down afterwards
-        	//Don't move stepwise into a leap in the same direction
-        	//
+            //General:
+            //Balance leaps of a fifth or more by going down afterwards
+            //Don't move stepwise into a leap in the same direction
+            //
 
-        	//getNoteArray();
-        	var perfectIntervals = new Set([0, 7, 12]); //unison, fifth, octave
-        	var imperfectIntervals = new Set([3,4,8,9]); //m3,M3,m6,M6
-        	var dissonantIntervals = new Set([1,2,5,6,10,11]);
-        	var intervals = getIntervalArray();
-        	var directions = getDirectionsArray();
-        	var beats = getBeatsArray();
-        	var previousStrongBeatInterval = null;
-        	for(var i=0; i<intervals.length-1;i++)
-        	{
+            //getNoteArray();
+            var perfectIntervals = new Set([0, 7, 12]); //unison, fifth, octave
+            var imperfectIntervals = new Set([3,4,8,9]); //m3,M3,m6,M6
+            var dissonantIntervals = new Set([1,2,5,6,10,11]);
+            var intervals = getIntervalArray();
+            var directions = getDirectionsArray();
+            var beats = getBeatsArray();
+            var previousStrongBeatInterval = null;
+            for(var i=0; i<intervals.length-1;i++)
+            {
             var oppositeMotion = (directions[i] == 'contrary') || (directions[i] == 'oblique');
             var directMotionToPerfectInterval = (perfectIntervals.has(intervals[i+1]) && !oppositeMotion);
             var parallelPerfectIntervals = perfectIntervals.has(intervals[i+1]) && perfectIntervals.has(intervals[i])
 
             if(beats[i] == 'strong')
             {
-            	var directConsonantBeats = perfectIntervals.has(previousStrongBeatInterval) && perfectIntervals.has(intervals[i]);
-            	var strongbeatDissonance = dissonantIntervals.has(intervals[i]);
-            	previousStrongBeatInterval = intervals[i];
+                var directConsonantBeats = perfectIntervals.has(previousStrongBeatInterval) && perfectIntervals.has(intervals[i]);
+                var strongbeatDissonance = dissonantIntervals.has(intervals[i]);
+                previousStrongBeatInterval = intervals[i];
             }
 
             if(directMotionToPerfectInterval || strongbeatDissonance || parallelPerfectIntervals)
             {
-            	//bad
+                //bad
             }
 
-        	}
+            }
 
         }
         DrawBeats(4);*/
