@@ -209,6 +209,7 @@ class View
     {
         var $dropdown = $(".InstrumentSelector");var last;
         while (last = $dropdown.lastChild) $dropdown.removeChild(last);
+
         selectEntryCodes.forEach(function(entry)
         {
             $dropdown.append($("<option />").val(entry).text(entry));
