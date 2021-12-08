@@ -6,13 +6,15 @@ class ContextMenuHandler
     constructor()
     {
         ctx_this = this
-        this.MenuState = 0;
-        this.ContextMenuClassName = "context-menu";
+        this.MenuState = 0; //0: off, 1: on
+        this.ComposerContextMenuClassName = "composer-context-menu";
+        this.TablatureContextMenuClassName = "tablature-context-menu";
         this.ContextMenuItemClassName = "context-menu__item";
         this.ContextMenuLinkClassName = "context-menu__link";
         this.ContextMenuActive = "context-menu--active";
 
         this.GridBoxClassName = "context-menu-target";
+        this.TablatureClassName = "context-menu-target";
         this.GridboxElement;
 
         this.ContextMenuElement;
@@ -20,14 +22,21 @@ class ContextMenuHandler
 
     Initialize(OnContextMenuSelectionCallback)
     {
-        this.ContextMenuElement = document.querySelector("#context-menu");
+        this.ContextMenuElement = document.querySelector("#composer-context-menu");
         this.menuItems = this.ContextMenuElement.querySelectorAll(".context-menu__item");
 
 		//document.querySelector('#gridboxContainer')
         document.addEventListener( "contextmenu", function(e)
         {
-            ctx_this.GridboxElement = ctx_this.GetClickedElementIfClassnameValid( e, this.ContextMenuClassName );
-
+            ctx_this.GridboxElement = ctx_this.GetClickedElementIfClassnameValid( e, this.ComposerContextMenuClassName );
+            if ( ctx_this.GridboxElement )
+            {
+                e.preventDefault();
+            }
+        });
+        document.addEventListener( "contextmenu", function(e)
+        {
+            ctx_this.GridboxElement = ctx_this.GetClickedElementIfClassnameValid( e, this.TablatureContextMenuClassName );
             if ( ctx_this.GridboxElement )
             {
                 e.preventDefault();
@@ -37,13 +46,22 @@ class ContextMenuHandler
         //document.querySelector('#gridboxContainer').addEventListener( "contextmenu", function(e)
         document.addEventListener( "click", function(e)
 		{
+            console.log('click');
             ctx_this.OnClick(e);
         });
 		
 		$('#gridbox').contextmenu(function(e)
 		{
+            console.log('gb click');
             ctx_this.OnClick(e);
         });
+        
+        $('#guitartabs').contextmenu(function(e)
+		{
+            console.log('gt click');
+            ctx_this.OnClick(e);
+        });
+
 
         window.onresize = function(e)
         {
@@ -101,16 +119,72 @@ class ContextMenuHandler
         }
     }
 
-    OnClick(event)
+    HandleOpenContextMenu(event)
+    {
+        console.log('menustate?');
+        var clickeElIsLink = this.GetClickedElementIfClassnameValid( event, this.ContextMenuLinkClassName );
+
+        if ( clickeElIsLink )
+        {
+            event.preventDefault();
+            this.OnMenuItemSelection( clickeElIsLink );
+        }
+
+        else
+        {
+            var taskElement = this.GetClickedElementIfClassnameValid( event, this.GridBoxClassName );
+            if ( button === leftClickCode )
+            {
+                this.ToggleMenuOff();
+            }
+            else if(taskElement && (button === rightClickCode))
+            {
+                this.MoveContextMenu(event);
+            }
+        }
+    }
+
+    GridboxContextMenu(event)
     {
         var button = event.which || e.button;
         var leftClickCode = 1;
         var rightClickCode = 3;
-
+        console.log(this.MenuState);
         if(this.MenuState == 0)
         {
             this.GridboxElement = this.GetClickedElementIfClassnameValid(event, this.GridBoxClassName );
-            if ( this.GridboxElement && (button == 3))
+            if ( this.GridboxElement && (button === rightClickCode))
+            {
+                event.preventDefault();
+                this.ToggleMenuOn();
+                this.MoveContextMenu(event);
+            }
+
+            else
+            {
+                // event.preventDefault();
+                console.log('close');
+                this.GridboxElement = null;
+                this.ToggleMenuOff();
+            }
+        }
+
+        else
+        {
+            this.HandleOpenContextMenu();
+        }
+        console.log(this.MenuState);
+    }
+
+    TablatureContextMenu(event)
+    {
+        var button = event.which || e.button;
+        var leftClickCode = 1;
+        var rightClickCode = 3;
+        if(this.MenuState == 0)
+        {
+            this.GridboxElement = this.GetClickedElementIfClassnameValid(event, this.GridBoxClassName );
+            if ( this.GridboxElement && (button === rightClickCode))
             {
                 event.preventDefault();
                 this.ToggleMenuOn();
@@ -148,6 +222,35 @@ class ContextMenuHandler
             }
         }
     }
+
+    OnClick(event)
+    {
+        try {
+            console.log(event.currentTarget);
+            // document.querySelector("#composer-context-menu")
+            if(event.currentTarget.id == "gridbox")
+            {
+                this.GridboxContextMenu(event);
+            }
+            else if(event.currentTarget.id == "guitartabs")
+            {
+                this.TablatureContextMenu(event);
+            }
+            else if(this.MenuState == 1)
+            {
+                this.HandleOpenContextMenu(event);
+            }
+            else
+            {
+                this.ToggleMenuOff();
+            }
+        }
+        catch 
+        {
+            this.ToggleMenuOff();
+        }
+    }
+
     ToggleMenuOn()
     {
         if ( this.MenuState !== 1 )

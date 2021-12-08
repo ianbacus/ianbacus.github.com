@@ -128,10 +128,52 @@ function ExportScoreToMidiFile()
 
 }
 
+function GenerateTablature(event) 
+{
+    $(".loader").show();
+    event.preventDefault();
+    var buttonName = $(this).attr("name");
+
+    if(buttonName == "tab")
+    {
+        //Set a timeout so the loader has time to appear after clicking the button.
+        //When hte timeout occurs (as short as possible) then run the expensive tab
+        //generation function, block for a few ms.
+        setTimeout(function()
+        {
+            var score = ScoreModel.Score.NoteArray;
+            var tabResultData = TheMidiAbstractionLayer.GenerateTabFromCanvas(score);
+
+            console.log(tabResultData);
+
+            $("#tabberContainer").empty().append(tabResultData.tablatureString);//.replace(/\s/g, '&nbsp;'));
+            if(tabResultData.failureReason == undefined)
+            {
+                //OpenTextFileInNewTab(tabResultData.tablatureString);
+            }
+
+            else
+            {
+                alert(tabResultData.failureReason)
+            }
+
+            tabResultData = null;
+
+
+            $(".loader").hide();
+        }, 10);
+    }
+    
+    return false;
+}
+
 function OnContextMenuSelection(selection)
 {
     switch(selection)
     {
+        case "Tab":
+            GenerateTablature();
+            break;
         case "Export":
             ExportScoreToMidiFile();
             break;
@@ -142,6 +184,10 @@ function OnContextMenuSelection(selection)
             ScoreController.SelectAllNotes();
             ScoreController.DeleteSelectedNotes(true);
             ScoreController.RefreshGridPreview()
+            break;
+        case "ExportTab":
+            break;
+        case "CopyTab":
             break;
         default:
             break;
@@ -205,7 +251,7 @@ $( function()
         // .mouseup(onMouseClickUp)
         // .mouseenter(onHoverBegin)
         // .mouseleave(onHoverEnd)
-    $(".trackrow").mouseenter(function(e){console.log("track: hello", this, e )}).mouseleave(function(e){console.log("track: goodbye")});
+    // $(".trackrow").mouseenter(function(e){console.log("track: hello", this, e )}).mouseleave(function(e){console.log("track: goodbye")});
 
 	$(document).on(".trackrow click", ".trackrow", function(e)
     {
@@ -244,41 +290,7 @@ $( function()
     //$(document).on('submit', '#TabSettingsForm',
     $('#TabSettingsForm .midi-form-button').click(function(event)
 	{
-        $(".loader").show();
-		event.preventDefault();
-        var buttonName = $(this).attr("name");
-
-        if(buttonName == "tab")
-        {
-            //Set a timeout so the loader has time to appear after clicking the button.
-            //When hte timeout occurs (as short as possible) then run the expensive tab
-            //generation function, block for a few ms.
-            setTimeout(function()
-            {
-                var score = ScoreModel.Score.NoteArray;
-                var tabResultData = TheMidiAbstractionLayer.GenerateTabFromCanvas(score);
-
-                console.log(tabResultData);
-
-                $("#tabberContainer").empty().append(tabResultData.tablatureString);//.replace(/\s/g, '&nbsp;'));
-                if(tabResultData.failureReason == undefined)
-                {
-                    //OpenTextFileInNewTab(tabResultData.tablatureString);
-                }
-
-                else
-                {
-                    alert(tabResultData.failureReason)
-                }
-
-                tabResultData = null;
-
-
-                $(".loader").hide();
-            }, 10);
-        }
-
-		return false;
+        GenerateTablature(event);
 	});
 
 });

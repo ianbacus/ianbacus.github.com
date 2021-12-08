@@ -364,16 +364,26 @@ class Controller
             //var toggleLock = $('<input>', { typetext: "⛶"});
             //var toggleMute = '<label class="checkbox-inline"> <input type="checkbox" value="Mute" data-toggle="toggle"> ⛤ </label>'
             //var toggleLock = '<label class="checkbox-inline"> <input type="checkbox" value="Lock" data-toggle="toggle"> ⛶ </label>'
-            var toggleMute = '<div class="button" state="0" value="Mute"> 🔔 </label>'
-            var toggleLock = '<div class="button" state="0" value="Lock"> ⛶ </label>'
+            var toggleMute = '<div class="button" state="0" value="Mute"> 🔔'
+            var toggleLock = '<div class="button" state="0" value="Lock"> ⛶'
 
             //var pickColor = $('<div>', { text: "֎"}); //click and hold should pull open a color wheel and change all the track colors so they are different
             var toggleButton = '<select data-role="slider"><option value="off">Off</option><option value="on">On</option></select>'
+            
+            var trackRowLeftPanel = $('<div>', { class: "trackRowPanel"});
+            var trackRowRightPanel = $('<div>', { class: "trackRowPanel"});
+            
+            //var trackRow = '<div>' + instrumentSelector + '</div> <div col-sm-4>' + toggleMute + toggleLock + '</div>'
+            trackRowLeftPanel.append(instrumentSelector);
+            trackRowRightPanel.append(toggleMute);
+            trackRowRightPanel.append(toggleLock);
 
-            track.append(instrumentSelector);
-            track.append(toggleMute);
-            track.append(toggleLock);
+            // track.append(instrumentSelector);
+            // track.append(toggleMute);
+            // track.append(toggleLock);
             //track.append(pickColor);
+            track.append(trackRowLeftPanel);
+            track.append(trackRowRightPanel);
             track.css('background-color', v_this.TrackColors[trackNumber]);
 
             $("#trackbox").append(track);
@@ -2154,7 +2164,7 @@ class Controller
                 this.View.ScrollToPitchTickCenter(cursorTickPosition.x, cursorTickPosition.y);
                 this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
             }
-
+            console.log('HandleControlScroll');
             return;
         }
 

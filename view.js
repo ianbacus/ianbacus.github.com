@@ -169,7 +169,6 @@ class View
         $(window).on('beforeunload', function ()
         {
             return onPageUnload();
-            return true;
         });
 
         this.Maingrid.bind('mousewheel DOMMouseScroll', onMouseScroll);
@@ -411,6 +410,7 @@ class View
         if(this.XTickCount > 0)
         {
             x += this.PixelsPerTick/2;
+            console.log(this.PixelsPerTick, this.XTickCount);
             this.XTickCount--;
             shouldScroll = true;
         }
@@ -437,10 +437,12 @@ class View
             this.PendingTimeout = setTimeout(
                 $.proxy(this.ScrollDelegate, this), this.MillisecondsPerTick);
         }
+        console.log('Scroll-D');
     }
 
     SmoothScroll(xCoordinate, yCoordinate)
     {
+        console.log('SmoothScroll');
         var mainDiv = this.GridboxContainer;
         var gridWidth = mainDiv.width();
 
@@ -883,8 +885,8 @@ class View
         {
             if(index == trackNumber)
             {
-                trackRow.css({'border':'solid white 7px'});
-                selectedTrackOffset = (trackRow.height()+2)*(trackNumber+1);
+                trackRow.css({'border':'solid white 2px'});
+                selectedTrackOffset = (trackRow.height()*1.5+2)*(trackNumber+1);
                 //selectedTrackOffset = trackRow.position().top;
             }
             else
@@ -902,7 +904,7 @@ class View
             nodeIndex++;
         }, nodeIndex);
 
-        function isScrolledIntoView(elem)
+        function isScrolledIntoView(elem, window)
         {
             var docViewTop = $(window).scrollTop();
             var docViewBottom = docViewTop + $(window).height();
@@ -913,10 +915,12 @@ class View
             return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
         }
 
-        var x = $("#trackbox").scrollTop();
-        var y = $("#trackbox").scrollTop() + $("#trackbox").height()/2;
-        console.log(x,selectedTrackOffset,y);
-        if((selectedTrackOffset < x) || (selectedTrackOffset > y))
+        var boxTop = $("#trackbox").scrollTop();
+        var boxHalf = $("#trackbox").scrollTop() + $("#trackbox").height();
+        console.log(boxTop,selectedTrackOffset,boxHalf);
+        // if(!isScrolledIntoView(selectedTrackOffset))
+        //Outside top or below halfway point
+        if((selectedTrackOffset < boxTop) || (selectedTrackOffset > boxHalf))
         {
             $("#trackbox").scrollTop(selectedTrackOffset);
         }

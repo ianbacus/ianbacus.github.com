@@ -1,6 +1,8 @@
 canvas {
     width:100%;
-    background:whitesmoke;
+    background:rgb(54, 65, 82);
+    /* background:whitesmoke; */
+    
 }
 html,body {
     margin:0;
@@ -65,42 +67,6 @@ html,body {
   background-color: #fff;
   border: solid 1px #dfdfdf;
   box-shadow: 1px 1px 2px #cfcfcf;
-}
-
-.trackrow
-{
-	padding-bottom:10px;
-	padding-top:10px;
-	padding-left:50px;
-	width:40%;
-	border-radius: 25px;
-  
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-	opacity:.8;
-}
-
-
-.trackrow .volumeSlider{
-    width:50%;
-}
-.trackrow:nth-child(1)
-{
-    background-color: black;
-
-}
-.trackrow:nth-child(2)
-{
-    background-color:  darkgoldenrod;
-}
-.trackrow:nth-child(3)
-{
-    background-color:  purple;
-}
-.trackrow:nth-child(4)
-{
-    background-color:  red;
 }
 
 .context-menu--active {

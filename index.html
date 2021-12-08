@@ -26,13 +26,13 @@
 <script src='sound/0560_JCLive_sf2_file.js'></script>
 <script src='sound/0240_JCLive_sf2_file.js'></script>
 
-<script src='https://surikov.github.io/webaudiofontdata/sound/0140_FluidR3_GM_sf2_file.js'></script>
+<!-- <script src='https://surikov.github.io/webaudiofontdata/sound/0140_FluidR3_GM_sf2_file.js'></script>
 <script src='https://surikov.github.io/webaudiofontdata/sound/0300_Chaos_sf2_file.js'></script>
 <script src='https://surikov.github.io/webaudiofontdata/sound/0461_FluidR3_GM_sf2_file.js'></script>
 <script src='https://surikov.github.io/webaudiofontdata/sound/0900_SBLive_sf2.js'></script>
 <script src='https://surikov.github.io/webaudiofontdata/sound/1231_GeneralUserGS_sf2_file.js'></script>
 <script src='https://surikov.github.io/webaudiofontdata/sound/1100_SBLive_sf2.js'></script>
-<script src='https://surikov.github.io/webaudiofontdata/sound/1230_Chaos_sf2_file.js'></script>
+<script src='https://surikov.github.io/webaudiofontdata/sound/1230_Chaos_sf2_file.js'></script> -->
 
 <script src='https://gitcdn.link/cdn/colxi/midi-parser-js/339ae97d484fdca3814a55859e3ba4b849501c20/src/midi-parser.js'></script>
 <script src='FileSaver.js'></script>
@@ -43,6 +43,7 @@
 
 <script src="js_tabber.js"></script>
 <script src="contextMenuController.js"></script>
+<script src="midi_parser.js"></script>
 <script src="midi_api.js"></script>
 <script src="model.js"></script>
 <script src="view.js"></script>
@@ -54,10 +55,19 @@
 <body>
 
 <div class="container">
-	<h2>Browser Composer</h2>
         <div class="col-sm-2">
+			<h2 style="color: white">Browser Composer</h2>
+			<div class="row columnContainer">
+				<div id="trackbox" class="sidebar scroller">
+				<div class="slidecontainer">
+					<p id="TempoPreview">Tempo:</p>
+					<input type="range" min="60" max="250" value="120" class="slider" id="TempoSlider">
+					<br>
+				</div>
+				</div>
+			</div><!-- end row -->
             <!--- This column contains edit palletes-->
-			<div  class="columnContainer">
+			<div  class="columnContainer editPalletes">
 				<div class="columnSlave">
 					<ul class="nav nav-tabs">
 					<li id="ktab" ><a data-toggle="tab" href="#keys">🔑</a></li>
@@ -140,11 +150,6 @@
 									</div>
 								</div>
 								-->
-
-								<div class="slidecontainer">
-									<p id="TempoPreview">Tempo:</p>
-									<input type="range" min="60" max="250" value="120" class="slider" id="TempoSlider">
-								</div>
 								<br>
 							</div> <!-- end mode tab -->
 
@@ -161,7 +166,11 @@
 								<!-- end preview tab <div id="GridboxArray" style="border: 1px solid black"></div> -->
 
 								<form id="TabSettingsForm">
-									<h4>Tab settings:</h4>
+									<input class="midi-form-button" type="submit" name="tab" value="Generate Tab" /> <br>
+									<label for="transpose">Transposition:</label><br>
+									<input type="number" name="transpose" id="transpose" value="0" /> <br>
+									<label for="screenLength">Screen length:</label><br>
+									<input type="number" name="screenLength" id="screenLength" value="150" /> <br>
 									<label for="frets">Frets:</label><br>
 									<input type="number" name="frets" id="frets" min="0" max="24" value="12" /> <br>
 									<label for="strings">Instrument tuning:</label><br>
@@ -173,11 +182,6 @@
 										<option value="d3,g2,b2,e3">Ukulele</option>
 									</datalist><br>
 
-									<label for="transpose">Transposition:</label><br>
-									<input type="number" name="transpose" id="transpose" value="0" /> <br>
-									<label for="screenLength">Screen length:</label><br>
-									<input type="number" name="screenLength" id="screenLength" value="150" /> <br>
-									<input class="midi-form-button" type="submit" name="tab" value="Generate Tab" />
 
 									<br><h4>Optimization costs:</h4>
 									<label for="neckCost">Fret position:</label><br>
@@ -200,12 +204,6 @@
 					</div>
 				</div><!-- end row -->
 			</div>
-			<br>
-			<br>
-			<div class="row columnContainer">
-				<div id="trackbox" class="sidebar scroller">
-				</div>
-			</div><!-- end row -->
 		</div> <!-- end column -->
 
         <!--- This column contains the main editing box -->
@@ -227,8 +225,8 @@
 		                        </div>
 		                	</div>
 						</div>
-						<div id="guitartabs" class="tab-pane fade in">
-			            	<div id="tabberContainer"  class="context-menu-target scroller">
+						<div id="guitartabs" class="scroller tab-pane fade in context-menu-target">
+			            	<div id="tabberContainer">
 								<div id="RestartPlaybackLine" class="PlaybackLine"></div>
 								<div id="MainPlaybackLine" class="PlaybackLine"></div>
 							</div>
@@ -238,16 +236,29 @@
 			</div>
 	</div>
 </div>
-<nav id="context-menu" class="context-menu">
+<nav id="composer-context-menu" class="context-menu">
 	<ul class="context-menu__items">
-	  <li class="context-menu__item">
-		<a href="#" class="context-menu__link" data-action="Export"><i class="fa fa-eye"></i> Export midi</a>
-	  </li>
+		<li class="context-menu__item">
+		  <a href="#" class="context-menu__link" data-action="Tab"><i class="fa fa-eye"></i> Generate tab</a>
+		</li>
+		<li class="context-menu__item">
+		  <a href="#" class="context-menu__link" data-action="Export"><i class="fa fa-eye"></i> Export midi</a>
+		</li>
 	  <li class="context-menu__item">
 		<a href="#" class="context-menu__link" data-action="Select"><i class="fa fa-edit"></i> Select all</a>
 	  </li>
 	  <li class="context-menu__item">
 		<a href="#" class="context-menu__link" data-action="Delete"><i class="fa fa-times"></i> Delete all</a>
+	  </li>
+	</ul>
+</nav>
+<nav id="tablature-context-menu" class="context-menu">
+	<ul class="context-menu__items">
+	  <li class="context-menu__item">
+		<a href="#" class="context-menu__link" data-action="ExportTab"><i class="fa fa-eye"></i> Export tab</a>
+	  </li>
+	  <li class="context-menu__item">
+		<a href="#" class="context-menu__link" data-action="CopyTab"><i class="fa fa-edit"></i> Copy tab</a>
 	  </li>
 	</ul>
 </nav>

@@ -121,7 +121,7 @@ class Note
         var milliseconds = millisecondsPerTick * this.Duration;
         var playback = this.Playback;
         playback.key = this.Pitch;
-
+        // console.log("play indefinitely", instrumentCode);
 		playback.envelope=player.queueWaveTable(
             audioContext,   //audio context
             audioContext.destination, //audio destination
@@ -143,13 +143,15 @@ class Note
 
         if(this.Figuring != undefined)
         {
-            console.log(this.Figuring)
+            console.log(this.Figuring);
         }
 
         var milliseconds = millisecondsPerTick * this.Duration;
         var playback = this.Playback;
         playback.key = this.Pitch;
-        try {
+		
+        try {        
+            // console.log("play for duration", instrumentCode, audioContext);
     		playback.envelope=player.queueWaveTable(
                 audioContext,   //audio context
                 audioContext.destination, //audio destination
@@ -158,7 +160,7 @@ class Note
                 playback.key, //pitch
                 milliseconds/1000); //duration
         } catch (e) {
-            console.log("Failed to play notes");
+            console.log("Failed to play notes: ", e);
         } finally {
             this.OnStopCallback = {Caller:caller, Callback: onStopCallback};
             this.IsHighlighted = true;
@@ -337,22 +339,6 @@ class Model
         m_this = this;
 
 		//Constants
-        this.InstrumentEnum =
-        {
-            guitar : '_tone_0240_JCLive_sf2_file',
-            harp: '_tone_0461_FluidR3_GM_sf2_file',
-            sitar : '_tone_1040_GeneralUserGS_sf2_file',
-            synth: '_tone_0900_SBLive_sf2',
-            rock: '_tone_0300_Chaos_sf2_file',
-            fiddle: '_tone_1100_SBLive_sf2',
-            harpsichord : '_tone_0060_SBLive_sf2',
-            piano : '_tone_0000_GeneralUserGS_sf2_file',
-            flute : '_tone_0731_SoundBlasterOld_sf2',
-            ocarina : '_tone_0790_SoundBlasterOld_sf2',
-            choir : '_tone_0530_Soul_Ahhs_sf2_file',
-            choir2 : '_tone_0540_JCLive_sf2_file',
-            horn : '_tone_0560_JCLive_sf2_file',
-        };
         this.MaximumActivityStackLength = 100;
 
 		//Session data
@@ -369,12 +355,27 @@ class Model
 
     Initialize(initializationParameters)
     {
+        this.InstrumentEnum =
+        {
+            guitar : _tone_0240_JCLive_sf2_file,
+            // harp: _tone_0461_FluidR3_GM_sf2_file,
+            sitar : _tone_1040_GeneralUserGS_sf2_file,
+            // synth: _tone_0900_SBLive_sf2,
+            // rock: _tone_0300_Chaos_sf2_file,
+            // fiddle: _tone_1100_SBLive_sf2,
+            // harpsichord : _tone_0060_SBLive_sf2,
+            piano : _tone_0000_GeneralUserGS_sf2_file,
+            flute : _tone_0731_SoundBlasterOld_sf2,
+            ocarina : _tone_0790_SoundBlasterOld_sf2,
+            choir : _tone_0530_Soul_Ahhs_sf2_file,
+            choir2 : _tone_0540_JCLive_sf2_file,
+            horn : _tone_0560_JCLive_sf2_file,
+        };
         var instrumentEnumeration = this.InstrumentEnum;
         Object.keys(instrumentEnumeration).forEach(function(key)
         {
             var synthString = instrumentEnumeration[key];
             player.loader.decodeAfterLoading(audioContext,synthString);
-            this.InstrumentEnum[key] = eval(synthString);
         },this);
 
 
