@@ -410,7 +410,7 @@ class View
         if(this.XTickCount > 0)
         {
             x += this.PixelsPerTick/2;
-            console.log(this.PixelsPerTick, this.XTickCount);
+            // console.log(this.PixelsPerTick, this.XTickCount);
             this.XTickCount--;
             shouldScroll = true;
         }
@@ -437,7 +437,7 @@ class View
             this.PendingTimeout = setTimeout(
                 $.proxy(this.ScrollDelegate, this), this.MillisecondsPerTick);
         }
-        console.log('Scroll-D');
+        // console.log('Scroll-D');
     }
 
     SmoothScroll(xCoordinate, yCoordinate)

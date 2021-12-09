@@ -55,8 +55,8 @@
 <body>
 
 <div class="container">
+	<h2 style="color: white">Browser Composer</h2>
         <div class="col-sm-2">
-			<h2 style="color: white">Browser Composer</h2>
 			<div class="row columnContainer">
 				<div id="trackbox" class="sidebar scroller">
 				<div class="slidecontainer">
@@ -126,6 +126,14 @@
 									<div class="radio">
 										<label><input type="radio" name="optradio0" value=3>At at 10th</label>
 									</div>
+									<div class="radio">
+										<label><input type="radio" name="optradio0" value=4>Canon</label>
+										<label for="canonInterval">Interval</label><br>
+										<input type="number" name="canonInterval" id="canonInterval" min="0" max="24" width="50" value="7" /> <br>
+										<label for="canonDelay">Delay</label><br>
+										<input type="number" name="canonDelay" id="canonDelay" min="0" max="64" width="50" value="4" /> <br>
+									</div>
+
 								</div>
 								Playback Options
 								<div class="form-group" id="PlayPreview">

@@ -92,7 +92,7 @@ class Controller
     {
         //Member objects
         c_this = this;
-        this.console = null;
+        console = console;
         this.View = view;
         this.Model = model;
 
@@ -123,7 +123,9 @@ class Controller
         this.CursorPosition = { x: -1, y: -1 };
         this.SelectorPosition = { x: -1, y: -1 };
         this.DefaultNoteDuration = 4;
-        this.PasteBuffer = []
+        this.PasteBuffer = [];
+        this.CanonBuffer = [];
+        this.CanonNotes = {};
         this.MidiControllerInstantChordNotes = []
 
         this.MillisecondsPerTick = 100;
@@ -155,7 +157,7 @@ class Controller
     Initialize(initializationParameters)
     {
         //Load saved settings
-//        this.console.log("init controller",initializationParameters)//todo removed log
+//        console.log("init controller",initializationParameters)//todo removed log
 
 
         this.InitializeInstrumentSelectors();
@@ -266,7 +268,7 @@ class Controller
     OnTrackSelectChange(instrumentCode, eventData)
     {
         var trackIndex = parseInt(eventData.target.parentElement.attributes["value"].value);
-//            this.console.log(eventData.target, trackIndex, instrumentCode);//todo removed log
+//            console.log(eventData.target, trackIndex, instrumentCode);//todo removed log
         c_this.SetTrackInstrument(trackIndex, instrumentCode);
         //m_this.Track[trackIndex].InstrumentEnum[instrumentCode];
         //console.log("Track " + trackIndex + " instrument change", instrumentCode, eventData);
@@ -342,7 +344,7 @@ class Controller
             modeBuffer.push(modeSlot);
         });
 
-//        this.console.log("Render keys in set key reference");//todo removed log
+//        console.log("Render keys in set key reference");//todo removed log
         this.View.RenderKeys(modeBuffer, this.CursorPosition.x, this.CursorPosition.y);
     }
 
@@ -460,7 +462,7 @@ class Controller
     CountSelectedNotes()
     {
         var selectCount = this.Model.SelectedNotes.length;
-        this.console.log("Select count: " + selectCount + " notes.");
+        console.log("Select count: " + selectCount + " notes.");
 
         return selectCount;
     }
@@ -472,6 +474,195 @@ class Controller
         var maximumSequenceNumber = this.Model.MaximumActivityStackLength + 1;//Number.MAX_SAFE_INTEGER-1;
         this.SequenceNumber = (this.SequenceNumber+1)%maximumSequenceNumber;
         return this.SequenceNumber;
+    }
+
+    HandleCanonNoteMove(seedNote, tickOffset, pitchOffset)
+    {
+        // var canonDelay = $('#canonDelay').val(); //0 to 64 ticks
+        // var canonInterval = $('#canonInterval').val(); //0 to 24 semitones
+        // var canonInverted = $('#canonInverted').val(); //boolean
+        // var canonRatio = $('#canonRatio').val(); //2^n,-2 to 2
+        var canonDelayTicks = 4;
+        var canonInverted = false;
+        var canonRatio = 2**1;
+        
+        var timeSinceFirstTick = (seedNote.StartTimeTicks - this.FirstCanonNoteTick);
+        var delayedStartTick = seedNote.StartTimeTicks + canonDelayTicks  + timeSinceFirstTick * canonRatio;
+
+        var canonNoteData = this.CanonNotes[note];
+        canonNoteData.parentNote;
+        canonNoteData.childNote;
+        if(note == canonNoteData.parentNote)
+        {
+            canonNoteData.childNote.Move(tickOffset*canonRatio, pitchOffset);
+        }
+        else if(note == canonNoteData.childNote)
+        {
+            canonNoteData.parentNote.Move(tickOffset/canonRatio, pitchOffset);
+        }
+
+        
+    }
+
+    HandleSeedNoteMove(parentNote, seedTickOffset, seedPitchOffset)
+    {
+        // var canonDelay = $('#canonDelay').val(); //0 to 64 ticks
+        // var canonInterval = $('#canonInterval').val(); //0 to 24 semitones
+        // var canonInverted = $('#canonInverted').val(); //boolean
+        // var canonRatio = $('#canonRatio').val(); //2^n,-2 to 2
+        var canonDelayTicks = 4;
+        var canonInterval = 7;
+        var canonInverted = false;
+        var canonRatio = 2**1;
+        
+        // var timeSinceFirstTick = (seedNote.StartTimeTicks - this.FirstCanonNoteTick);
+        // var delayedStartTickOffset = seedNote.StartTimeTicks + canonDelayTicks  + timeSinceFirstTick * canonRatio;
+
+        // parentNote.Move(delayedStartTickOffset, seedPitchOffset);
+    }
+
+    HandleSeedNoteDelete()
+    {
+        // var canonDelay = $('#canonDelay').val(); //0 to 64 ticks
+        // var canonInterval = $('#canonInterval').val(); //0 to 24 semitones
+        // var canonInverted = $('#canonInverted').val(); //boolean
+        // var canonRatio = $('#canonRatio').val(); //2^n,-2 to 2
+        var canonDelayTicks = 4;
+        var canonInverted = false;
+        var canonRatio = 2**1;
+        
+        var timeSinceFirstTick = (seedNote.StartTimeTicks - this.FirstCanonNoteTick);
+        var delayedStartTick = seedNote.StartTimeTicks + canonDelayTicks  + timeSinceFirstTick * canonRatio;
+    }
+
+    HandleCanonNoteDelete()
+    {
+        // var canonDelay = $('#canonDelay').val(); //0 to 64 ticks
+        // var canonInterval = $('#canonInterval').val(); //0 to 24 semitones
+        // var canonInverted = $('#canonInverted').val(); //boolean
+        // var canonRatio = $('#canonRatio').val(); //2^n,-2 to 2
+        var canonDelayTicks = 4;
+        var canonInverted = false;
+        var canonRatio = 2**1;
+        
+        var timeSinceFirstTick = (seedNote.StartTimeTicks - this.FirstCanonNoteTick);
+        var delayedStartTick = seedNote.StartTimeTicks + canonDelayTicks  + timeSinceFirstTick * canonRatio;
+        
+    }
+
+    ConfigureCanonEditor()
+    {
+        //Display faded note at transposition point that copies all
+        //selected notes regardless of contiguity.
+        // Clear canon notes only when exiting canon editor mode.
+        // Play only the target note, not the placed canon note.
+        // TODO When placing canon notes: allow them to be buffered in Interactions menu. Allow buffered canon notes to be 
+        // malleable, 
+
+        // Interactions menu: confirm/deny/pass with a circular queue, with keybindings for..
+        //  f1/f2/f3, shift key to halt while selecting
+        console.log("Configure canon editor");
+        var seedBuffer = this.Model.SelectedNotes;
+        this.PrepareCanonBuffer(seedBuffer);
+    }
+
+    PurgeCanonBuffer()
+    {
+        console.log(this.CanonBuffer);
+        var index = this.CanonBuffer.length;
+        while(index-- > 0)
+        {
+            var note = this.CanonBuffer[index].CanonNote;
+            // console.log(note);
+            this.Model.DeleteNote(note, 0, this.Model.Score.NoteArray, false);
+        }
+    }
+    ResetCanonBuffer()
+    {   
+        this.FirstCanonNoteTick = undefined;
+        this.SeedTrack = undefined;
+        this.CanonBuffer = [];
+    }
+
+    PrepareCanonBuffer(canonSeedBuffer)
+    {
+        // var canonDelay = $('#canonDelay').val(); //0 to 64 ticks
+        // var canonInterval = $('#canonInterval').val(); //0 to 24 semitones
+        // var canonInverted = $('#canonInverted').val(); //boolean
+        // var canonRatio = $('#canonRatio').val(); //2^n,-2 to 2
+        var canonDelayTicks = 4;
+        var canonInterval = 7;
+        var canonInverted = false;
+        var canonRatio = 2**1;
+
+        this.ModifyNoteArray(canonSeedBuffer, function(seedNote)
+        {
+            var delayedStartTick = undefined;
+            if(this.FirstCanonNoteTick == undefined)
+            {
+                this.SeedTrack = seedNote.CurrentTrack;
+                this.FirstCanonNoteTick = seedNote.StartTimeTicks;
+                delayedStartTick = seedNote.StartTimeTicks + canonDelayTicks;
+            }
+            else
+            {
+                var timeSinceFirstTick = (seedNote.StartTimeTicks - this.FirstCanonNoteTick);
+                delayedStartTick = this.FirstCanonNoteTick + canonDelayTicks + (timeSinceFirstTick * canonRatio);
+            }
+
+            //TODO: save a canon buffer session so that:
+            // when entering canon mode: require a seed note to be selected. darken screen, highlight notes on proximity (show canon preview for visible length on highlight)
+            // all canon notes will be put into the canon buffer until canon mode is exited.
+            // when moving or deleting a note in the canonbuffer, also move and delete its parent note. 
+            // use track with index one higher for canon notes
+            // buttons for commit/delete: on side
+
+            //accumulate delay: ratio will cause start times' difference from initial seed to be ratio times larger
+                //0 1 2 3 4 +1, 2x
+                //1 3 5 7 9
+                
+                //0 2 3 4
+                //1 5 7 9
+            
+            var canonNote = new Note(
+                delayedStartTick,
+                seedNote.Pitch + canonInterval,
+                seedNote.Duration * canonRatio,
+                (seedNote.CurrentTrack + 1 ) % this.Tracks.length,
+                false);
+            this.Model.AddNote(canonNote, 0, this.Model.Score.NoteArray, false);
+
+            var canonData =
+            {
+                SeedNote:seedNote,
+                CanonNote:canonNote,
+            };
+
+            this.CanonBuffer.push(canonData);
+            this.CanonNotes[seedNote] = canonData;
+            this.CanonNote[canonNote] = canonData;
+        }, this);
+        
+        this.CanonBuffer.forEach(function(canonData) 
+        {
+            canonData.CanonNote.IsSelected = true;
+        });
+
+        this.RefreshEditBoxNotes();
+    }
+
+    InstantiateCanonBuffer()
+    {
+        //Reset the position of the selected notes in case they were dragged away from their start point
+        this.HandleSelectionReset();
+
+        //Instantiate the copied notes
+        this.CanonBuffer.forEach(function(canonNote)
+        {
+            canonNote.IsSelected = false;
+        });
+        
+        this.CanonBuffer = [];
     }
 
     PreparePasteBuffer(copyBuffer)
@@ -652,7 +843,6 @@ class Controller
     //Add a key at the same instant as other held down keys.
     InstantKeyDown(keyCharacter)
     {
-//        this.console.log("InstantKeyDown");//todo removed log
         var pitch = this.ChromaticKeyMap[keyCharacter];
         var selectCount = this.CountSelectedNotes();
         if(selectCount == 0) //on first keydown:
@@ -674,17 +864,15 @@ class Controller
         var playbackMode = this.GetModeSettings().PlaybackMode;
         var includeSuspensions = playbackMode == 2;
         var soloMode = playbackMode == 0;
-//        this.console.log("Note netry", this.MidiControllerInstantChordNotes);//todo removed log
 
         if(!soloMode)
         {
             this.GetPlaybackIntersections(this.MidiControllerInstantChordNotes, playbackBuffer, includeSuspensions);
-//            this.console.log("obtained playback intersections: ", playbackBuffer);//todo removed log
         }
 
         this.ModifyNoteArray(this.MidiControllerInstantChordNotes, function(note)
         {
-//            this.console.log("In-chord notes: playing note: ", note);//todo removed log
+//            console.log("In-chord notes: playing note: ", note);//todo removed log
             this.Model.AddNote(note, 0, playbackBuffer, false);
         }, playbackBuffer);
 
@@ -701,7 +889,7 @@ class Controller
     //Move the playback line forward.
     InstantKeyUp(keyCharacter)
     {
-//        this.console.log("InstantKeyUp");//todo removed log
+//        console.log("InstantKeyUp");//todo removed log
         if(this.MidiKeysDown == 0)
         {
             var selectedNotes = this.Model.SelectedNotes;
@@ -714,7 +902,7 @@ class Controller
 
             this.MainPlaybackStartTicks = newStartTicks;//currentNote.StartTimeTicks;
             this.View.RenderPlaybackLine(this.MainPlaybackStartTicks, this.CapturedPlaybackStartTicks);
-//            this.console.log("No keys down, advancing ticks to ",newStartTicks)//todo removed log
+//            console.log("No keys down, advancing ticks to ",newStartTicks)//todo removed log
         }
 
         return undefined;
@@ -901,7 +1089,7 @@ class Controller
         //if((this.EditorMode == editModeEnumeration.MidiControllerMode) && (selectCount == 0) && (!this.Playing)){
 
         var startTicks = this.CapturedPlaybackStartTicks + this.MidiControllerTicks//TODO should this.MainPlaybackStartTicks  be added here?
-//        this.console.log("capd, miditicks",this.CapturedPlaybackStartTicks, this.MidiControllerTicks);//todo removed log
+//        console.log("capd, miditicks",this.CapturedPlaybackStartTicks, this.MidiControllerTicks);//todo removed log
         var noteIsSelected = true;
         var noteLength = 0//this.SampleResolutionTicks
 
@@ -1123,8 +1311,12 @@ class Controller
             break;
 
         case 192: //` tilde key: change mode
-            this.MusicalModeIndex = (this.MusicalModeIndex+1) % Modes.length;
-            this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
+            console.log('tilde');
+            this.PurgeCanonBuffer();
+            this.ResetCanonBuffer();
+            this.ConfigureCanonEditor();
+            // this.MusicalModeIndex = (this.MusicalModeIndex+1) % Modes.length;
+            // this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
             break;
 
         case 32: //spacebar
@@ -1368,13 +1560,13 @@ class Controller
         var originalGridWidth = this.View.GridWidthTicks;
 
         this.Model.SetCurrentGridPreview(this.Model.Score);
-        this.console.log("Transport begin");
+        console.log("Transport begin");
 
         //Capture any selected notes and delete them before changing grids
         this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
         {
             var copiedNote = note;
-            this.console.log("Packing note: ", note);
+            console.log("Packing note: ", note);
             copyBuffer.push(copiedNote);
         });
 
@@ -1388,7 +1580,7 @@ class Controller
         //Instantiate the copied notes in the next buffer
         copyBuffer.forEach(function(note)
         {
-//            this.console.log("Transporting note: ", note, oldGridIndex, newGridIndex);//todo removed log
+//            console.log("Transporting note: ", note, oldGridIndex, newGridIndex);//todo removed log
             note.CurrentGridIndex = newGridIndex;
             this.Model.AddNote(note, 0, this.Model.Score.NoteArray, false);
             this.Model.AddNote(note, 0, this.Model.SelectedNotes, false);
@@ -1398,7 +1590,7 @@ class Controller
         var targetGridWidth = this.Model.Score.GridWidth;
 
         this.SetGridWidth(targetGridWidth);
-//        this.console.log("Transport end:", originalGridWidth, currentGridWidth, targetGridWidth);//todo removed log
+//        console.log("Transport end:", originalGridWidth, currentGridWidth, targetGridWidth);//todo removed log
     }
 
     InvertVoices(moveHighestVoiceByOctave)
@@ -1615,12 +1807,12 @@ class Controller
     {
         //Get all notes that play during this note, return the index of the first note that won't be played in this chord
         var [chordNotes,returnIndex] = this.GetChordNotes(noteArray, noteIndex, includeSuspensions, includeSelectedNotes)
-//        this.console.log(chordNotes)//todo removed log
+//        console.log(chordNotes)//todo removed log
 
         this.ModifyNoteArray(chordNotes, function(note)
         {
             var instrumentCode = this.GetTrackInstrument(note.CurrentTrack);
-//            this.console.log("start play",this.MillisecondsPerTick, this, this.OnStopNote, instrumentCode);//todo removed log
+//            console.log("start play",this.MillisecondsPerTick, this, this.OnStopNote, instrumentCode);//todo removed log
             note.Play(this.MillisecondsPerTick, this, this.OnStopNote, instrumentCode);
             this.View.ApplyNoteStyle(note, this.NoteColorationMode);
         });
@@ -1715,7 +1907,7 @@ class Controller
 
                 this.View.SmoothScroll(startX, ycoord, 500);
             }
-//            this.console.log("Play notes", noteArray);//todo removed log
+//            console.log("Play notes", noteArray);//todo removed log
             this.OnPlayAllNotes(includeSuspensions, includeSelectedNotes);
         }
     }
@@ -1756,6 +1948,8 @@ class Controller
 
             this.Model.AddNote(previewNote, 0, this.Model.Score.NoteArray, false);
             c_this.View.InstantiateNotes([previewNote], this.NoteColorationMode);
+            this.PurgeCanonBuffer();
+            this.ConfigureCanonEditor();
         }
     }
 
@@ -1793,13 +1987,14 @@ class Controller
 
     HandleSelectionReset()
     {
-        this.console.log("Resetting all selected notes:")
+        console.log("Resetting all selected notes:");
+        this.CanonBuffer = [];
         this.ModifyNoteArray(this.Model.SelectedNotes, function(note)
         {
             //Unselect and reset the position of notes that existed before selection
             if(note.StateWhenSelected != null)
             {
-                this.console.log("Handling reset with reposition",note)
+                console.log("Handling reset with reposition",note)
                 note.IsSelected = false;
                 note.ResetPosition();
             }
@@ -1807,7 +2002,7 @@ class Controller
             //Delete preview notes that were not initially selected
             else
             {
-                this.console.log("Handling reset with deletion",note)
+                console.log("Handling reset with deletion",note);
                 this.Model.DeleteNote(note, 0, this.Model.Score.NoteArray, false);
                 this.View.DeleteNotes([note]);
             }
@@ -1891,9 +2086,10 @@ class Controller
                     //Tonal transpose?
 
                     note.Move(x_offset, y_offset);
+                    this.HandleCanonNoteMove(note, x_offset, y_offset);
                     previousNote = note;
 
-                });
+                }, this);
 
 
                 mouseMoveThisPointer.Model.MergeSort(selectedNotes);
@@ -2085,7 +2281,7 @@ class Controller
             note.IsSelected = false;
             note.OnMoveComplete(sequenceNumber);
             this.View.ApplyNoteStyle(note, this.NoteColorationMode);
-            this.console.log("OnUnselect: playing note: ", note);
+            console.log("OnUnselect: playing note: ", note);
         }, false);
 
         //Move the playback line
@@ -2336,7 +2532,7 @@ class Controller
     }
     OnGridClick(gridIndex)
     {
-//        c_this.console.log(gridIndex)//todo removed log
+//        c_console.log(gridIndex)//todo removed log
         c_this.HandleGridMove(gridIndex);
         c_this.RefreshGridPreview();
         c_this.RefreshGridboxBackground();
@@ -2742,7 +2938,7 @@ class Controller
             var duration = parseInt($(this).css('width'),10)/snapX;
             var entry = {'pitch':pitch,'delta':delta,'duration':duration};
             noteArray.push(entry);
-            //c_this.console.log(entry);
+            //c_console.log(entry);
             });
             return noteArray;
         }
@@ -2786,8 +2982,8 @@ class Controller
             }
             }
             //merged dict of temporal events
-            //c_this.console.log('temporary: '+JSON.stringify(temporaryDict));
-            //c_this.console.log('main: '+JSON.stringify(temporalDict));
+            //c_console.log('temporary: '+JSON.stringify(temporaryDict));
+            //c_console.log('main: '+JSON.stringify(temporalDict));
 
             for(var delta in temporaryDict)
             {
@@ -2817,7 +3013,7 @@ class Controller
             }
             }
             var intervals = []
-            c_this.console.log(JSON.stringify(temporalDict));
+            c_console.log(JSON.stringify(temporalDict));
             for(var delta in temporalDict)
             {
             //If more than 2 entries, just ignore it.. use outer eventually
@@ -2825,7 +3021,7 @@ class Controller
                 intervals.push(Math.abs(temporalDict[delta][0].pitch - temporalDict[delta][1].pitch));
 
             }
-            c_this.console.log(intervals);
+            c_console.log(intervals);
             return intervals;
 
         }
