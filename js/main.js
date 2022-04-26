@@ -119,10 +119,44 @@ function ExportScoreToMidiFile()
 
 }
 
+function GenerateTablatureFromCanvas()
+{
+    //Set a timeout so the loader has time to appear after clicking the button.
+    //When hte timeout occurs (as short as possible) then run the expensive tab
+    //generation function, block for a few ms.
+    setTimeout(function()
+    {
+        var score = ScoreModel.Score.NoteArray;
+        var tabResultData = TheMidiAbstractionLayer.GenerateTabFromCanvas(score);
+
+        console.log(tabResultData);
+
+        $("#tabberContainer").empty().append(tabResultData.tablatureString);//.replace(/\s/g, '&nbsp;'));
+        if(tabResultData.failureReason == undefined)
+        {
+            //OpenTextFileInNewTab(tabResultData.tablatureString);
+        }
+
+        else
+        {
+            alert(tabResultData.failureReason)
+        }
+
+        tabResultData = null;
+
+
+        $(".loader").hide();
+    }, 10);
+}
+
 function OnContextMenuSelection(selection)
 {
     switch(selection)
     {
+        case "Tab":
+            $(".loader").show();
+            GenerateTablatureFromCanvas();
+            break;
         case "Export":
             ExportScoreToMidiFile();
             break;
@@ -235,38 +269,13 @@ $( function()
     //$(document).on('submit', '#TabSettingsForm',
     $('#TabSettingsForm .midi-form-button').click(function(event)
 	{
-        $(".loader").show();
 		event.preventDefault();
         var buttonName = $(this).attr("name");
 
         if(buttonName == "tab")
         {
-            //Set a timeout so the loader has time to appear after clicking the button.
-            //When hte timeout occurs (as short as possible) then run the expensive tab
-            //generation function, block for a few ms.
-            setTimeout(function()
-            {
-                var score = ScoreModel.Score.NoteArray;
-                var tabResultData = TheMidiAbstractionLayer.GenerateTabFromCanvas(score);
-
-                console.log(tabResultData);
-
-                $("#tabberContainer").empty().append(tabResultData.tablatureString);//.replace(/\s/g, '&nbsp;'));
-                if(tabResultData.failureReason == undefined)
-                {
-                    //OpenTextFileInNewTab(tabResultData.tablatureString);
-                }
-
-                else
-                {
-                    alert(tabResultData.failureReason)
-                }
-
-                tabResultData = null;
-
-
-                $(".loader").hide();
-            }, 10);
+            $(".loader").show();
+            GenerateTablatureFromCanvas();
         }
 
 		return false;

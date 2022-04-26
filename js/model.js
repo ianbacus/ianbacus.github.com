@@ -4,7 +4,6 @@ var AudioContextFunc = window.AudioContext || window.webkitAudioContext;
 var audioContext = new AudioContextFunc();
 var player=new WebAudioFontPlayer();
 
-
 class Note
 {
     constructor(startTimeTicks, pitch, duration, currentTrack, selected,  currentGridIndex=m_this.GridPreviewIndex)
@@ -37,7 +36,6 @@ class Note
             currentTrack = 0;
         }
         this.CurrentTrack = currentTrack;
-
     }
 
     Serialize()
@@ -445,8 +443,6 @@ class Model
             GridList : this.GridPreviewList,
             GridPreviewIndex: this.GridPreviewIndex
         }
-
-        //return JSON.stringify(serializationData);
 
         this.GridPreviewList.forEach(function(noteScore)
         {
@@ -928,8 +924,6 @@ class Model
 
     DeleteNote(note, sequenceNumber, array=this.Score.NoteArray, pushAction=true)
     {
-		//var deletionIndex = this.BinarySearch(array, note, this.CompareNotes, true);
-
         var deletionIndex = 0;
         var index = 0;
 

@@ -31,12 +31,13 @@
 
 <script src='js/html2canvas.js'></script>
 <script src='js/js_tabber.js'></script>
-<script src='js/contextMenuController.js'></script>
+<script src='js/context_menu_controller.js'></script>
 <script src='js/midi_api.js'></script>
+
 <script src='js/model.js'></script>
 <script src='js/view.js'></script>
 <script src='js/controller.js'></script>
-<script src='js/mainjs.js'></script>
+<script src='js/main.js'></script>
 
 </head>
 
@@ -64,9 +65,9 @@
 								<p>↑↓: Navigate</p>
 								<p>Tab: Tonality </p>
 								<p> ~ : Mode </p>
-								<p>[ ]: Play </p>
-								<p>s-[ ]: Replay </p>
-								<p>c-[ ]: Replay all </p>
+								<p>Spacebar: Play </p>
+								<p>shift+Spacebar: Replay </p>
+								<p>ctrl+Spacebar: Play from beginning </p>
 
 								<br>
 								Modes
@@ -165,7 +166,7 @@
 								<input type="number" name="transpose" id="transpose" value="0" /> <br>
 								<label for="screenLength">Screen length:</label><br>
 								<input type="number" name="screenLength" id="screenLength" value="150" /> <br>
-								<input class="midi-form-button" type="submit" name="tab" value="Generate Tab" />
+								<input class="midi-form-button" type="submit" name="tab" value="Generate Tab" /> <br>
 
 								<br><h4>Optimization costs:</h4>
 								<label for="neckCost">Fret position:</label><br>
@@ -229,7 +230,7 @@
 <nav id="context-menu" class="context-menu">
 	<ul class="context-menu__items">
 	  <li class="context-menu__item">
-		<a href="#" class="context-menu__link" data-action="Generate-tab"><i class="fa fa-generate"></i> Generate tab</a>
+		<a href="#" class="context-menu__link" data-action="Tab"><i class="fa fa-generate"></i> Generate tab</a>
 	  </li>
   	  <li class="context-menu__item">
   		<a href="#" class="context-menu__link" data-action="Export"><i class="fa fa-eye"></i> Export midi</a>
