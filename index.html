@@ -2,7 +2,6 @@
 <meta charset="utf-8"/>
 <html>
 <head>
-<title> Browser Composer </title>
 
 <link rel="stylesheet" href="css/bootstrap.min.css">
 <link rel="stylesheet" href="css/dropzone.css">
@@ -10,10 +9,10 @@
 <link rel="stylesheet" href="css/grid_window.css">
 <link rel="stylesheet" href="css/mobile.css">
 
-<script src="jquery.min.js"></script>
-<script src="bootstrap.min.js"></script>
-<script src='WebAudioFontPlayer.js'></script>
-<script src='dropzone.js'></script>
+<script src='js/jquery.min.js'></script>
+<script src='js/bootstrap.min.js'></script>
+<script src='js/WebAudioFontPlayer.js'></script>
+<script src='js/dropzone.js'></script>
 
 <script src='sound/0000_GeneralUserGS_sf2_file.js'></script>
 <script src='sound/0060_SBLive_sf2.js'></script>
@@ -26,223 +25,215 @@
 <script src='sound/0560_JCLive_sf2_file.js'></script>
 <script src='sound/0240_JCLive_sf2_file.js'></script>
 
-<script src='https://surikov.github.io/webaudiofontdata/sound/0140_FluidR3_GM_sf2_file.js'></script>
-<script src='https://surikov.github.io/webaudiofontdata/sound/0300_Chaos_sf2_file.js'></script>
-<script src='https://surikov.github.io/webaudiofontdata/sound/0461_FluidR3_GM_sf2_file.js'></script>
-<script src='https://surikov.github.io/webaudiofontdata/sound/0900_SBLive_sf2.js'></script>
-<script src='https://surikov.github.io/webaudiofontdata/sound/1231_GeneralUserGS_sf2_file.js'></script>
-<script src='https://surikov.github.io/webaudiofontdata/sound/1100_SBLive_sf2.js'></script>
-<script src='https://surikov.github.io/webaudiofontdata/sound/1230_Chaos_sf2_file.js'></script>
+<script src='js/midi_parser.js'></script>
+<script src='js/FileSaver.js'></script>
+<script src='js/jsmidgen.js'></script>
 
-<script src='https://gitcdn.link/cdn/colxi/midi-parser-js/339ae97d484fdca3814a55859e3ba4b849501c20/src/midi-parser.js'></script>
-<script src='FileSaver.js'></script>
-<script src='jsmidgen.js'></script>
-
-
-<script src="html2canvas.js"></script>
-
-<script src="js_tabber.js"></script>
-<script src="contextMenuController.js"></script>
-<script src="midi_api.js"></script>
-<script src="model.js"></script>
-<script src="view.js"></script>
-<script src="controller.js"></script>
-<script src="mainjs.js"></script>
+<script src='js/html2canvas.js'></script>
+<script src='js/js_tabber.js'></script>
+<script src='js/contextMenuController.js'></script>
+<script src='js/midi_api.js'></script>
+<script src='js/model.js'></script>
+<script src='js/view.js'></script>
+<script src='js/controller.js'></script>
+<script src='js/mainjs.js'></script>
 
 </head>
 
 <body>
 
 <div class="container">
-	<h2>Browser Composer</h2>
-        <div class="col-sm-2">
-            <!--- This column contains edit palletes-->
-			<div  class="columnContainer">
-				<div class="columnSlave">
-					<ul class="nav nav-tabs">
-					<li id="ktab" ><a data-toggle="tab" href="#keys">🔑</a></li>
-					<li id="stab" class="active"><a data-toggle="tab" href="#settings">✌</a></li>
-					<li id="ptab" ><a data-toggle="tab" href="#preview">👁</a></li>
-					<li id="ttab" ><a data-toggle="tab" href="#tabber">🎸</a></li>
-				</ul>
-					<div class="row">
-						<div class="tab-content sidebar scroller">
-							<div id="keys" class="tab-pane fade">
-								<div id="helpMenu">
-									<br>
-									Explore
-									<br>
-									<br>
-									<p>↑↓: Navigate</p>
-									<p>Tab: Tonality </p>
-									<p> ~ : Mode </p>
-									<p>[ ]: Play </p>
-									<p>s-[ ]: Replay </p>
-									<p>c-[ ]: Replay all </p>
-
-									<br>
-									Modes
-									<br>
-									<br>
-									<p>Z: Create</p>
-									<p>X: Select</p>
-									<br>
-									Commands
-									<br>
-									<br>
-									<p>W: Invertible Swap</p>
-									<p>C: Copy</p>
-									<p>V: Paste</p>
-									<p>D: Delete</p>
-									<p>R: Append</p>
-									<p>c-A: Select all</p>
-									<p>c-Z: Undo</p>
-									<p>s-Z: Redo</p>
-								</div>
-							</div>  <!-- end help tab -->
-							<div id="settings" class="tab-pane fade in active">
+    <div class="col-sm-2">
+        <!--- This column contains edit palletes-->
+		<div  class="columnContainer">
+			<div class="columnSlave">
+				<ul class="nav nav-tabs">
+				<li id="ktab" ><a data-toggle="tab" href="#keys">🔑</a></li>
+				<li id="stab" class="active"><a data-toggle="tab" href="#settings">✌</a></li>
+				<li id="ptab" ><a data-toggle="tab" href="#preview">👁</a></li>
+				<li id="ttab" ><a data-toggle="tab" href="#tabber">🎸</a></li>
+			</ul>
+				<div class="row">
+					<div class="tab-content sidebar scroller">
+						<div id="keys" class="tab-pane fade">
+							<div id="helpMenu">
 								<br>
-								Invertible Counterpoint
-								<div class="form-group" id="Analysis">
-									<div class="radio">
-										<label><input type="radio" name="optradio0" value=0>None</label>
-									</div>
-									<div class="radio">
-										<label><input type="radio" name="optradio0" value=1 checked="checked">At the 15th</label>
-									</div>
-									<div class="radio">
-										<label><input type="radio" name="optradio0" value=2>At at 12th</label>
-									</div>
-									<div class="radio">
-										<label><input type="radio" name="optradio0" value=3>At at 10th</label>
-									</div>
-								</div>
-								Playback Options
-								<div class="form-group" id="PlayPreview">
-									<div class="radio">
-										<label><input type="radio" name="optradio1" value=0 checked="checked">Solo</label>
-									</div>
-									<div class="radio">
-										<label><input type="radio" name="optradio1" value=1>Chords</label>
-									</div>
-									<div class="radio">
-										<label><input type="radio" name="optradio1" value=2>Suspensions</label>
-									</div>
-								</div>
-								<!--
-								Play Duration
-								<div class="form-group" id="Playback">
-									<div class="radio">
-										<label><input type="radio" name="optradio2" value=1 checked="checked">Current grid</label>
-									</div>
-									<div class="radio">
-										<label><input type="radio" name="optradio2" value=2>All</label>
-									</div>
-								</div>
-								-->
-
-								<div class="slidecontainer">
-									<p id="TempoPreview">Tempo:</p>
-									<input type="range" min="60" max="250" value="120" class="slider" id="TempoSlider">
-								</div>
+								Explore
 								<br>
-							</div> <!-- end mode tab -->
+								<br>
+								<p>↑↓: Navigate</p>
+								<p>Tab: Tonality </p>
+								<p> ~ : Mode </p>
+								<p>[ ]: Play </p>
+								<p>s-[ ]: Replay </p>
+								<p>c-[ ]: Replay all </p>
 
-							<div id="preview" class="tab-pane fade in">
-								<div id="gridboxNavigator">
-										<div id="GridboxArray">
-										</div>
-								</div>
-							</div> <!-- end preview tab -->
-
-							<div id="tabber" class="tab-pane fade in">
-							<div id="tablatureSettings">
-
-								<!-- end preview tab <div id="GridboxArray" style="border: 1px solid black"></div> -->
-
-								<form id="TabSettingsForm">
-									<h4>Tab settings:</h4>
-									<label for="frets">Frets:</label><br>
-									<input type="number" name="frets" id="frets" min="0" max="24" value="12" /> <br>
-									<label for="strings">Instrument tuning:</label><br>
-									<input list="stringsList" id="strings" name="strings"value="e1,a1,d2,g2,b2,e3">
-									<datalist id="stringsList">
-										<option value="e1,a1,d2,g2,b2,e3"> Std. 6</option>
-										<option value="d1,a1,d2,g2,b2,e3"> Drop-D 6</option>
-										<option value="b0,e1,a1,d2,g2,b2,e3"> Std. 7</option>
-										<option value="d3,g2,b2,e3">Ukulele</option>
-									</datalist><br>
-
-									<label for="transpose">Transposition:</label><br>
-									<input type="number" name="transpose" id="transpose" value="0" /> <br>
-									<label for="screenLength">Screen length:</label><br>
-									<input type="number" name="screenLength" id="screenLength" value="150" /> <br>
-									<input class="midi-form-button" type="submit" name="tab" value="Generate Tab" />
-
-									<br><h4>Optimization costs:</h4>
-									<label for="neckCost">Fret position:</label><br>
-									<input type="number" name="neckCost" id="neckCost" min="0" max="10000" width="50" value="4500" /> <br>
-									<label for="spanCost">Fret span:</label><br>
-									<input type="number" name="spanCost" id="spanCost" min="0" max="10000" width="50" value="3000" /> <br>
-									<label for="diffCost">Fret difference:</label><br>
-									<input type="number" name="diffCost" id="diffCost" min="0" max="10000" width="50" value="6500" /> <br>
-									<label for="sustainCost">Note sustain:</label><br>
-									<input type="number" name="sustainCost" id="sustainCost" min="0" max="10000" width="50" value="1000" /> <br>
-									<label for="arpeggioCost">Arpeggiation:</label><br>
-									<input type="number" name="arpeggioCost" id="arpeggioCost" min="0" max="10000" width="50" value="1000" /> <br>
-
-								</form>
-
+								<br>
+								Modes
+								<br>
+								<br>
+								<p>Z: Create</p>
+								<p>X: Select</p>
+								<br>
+								Commands
+								<br>
+								<br>
+								<p>W: Invertible Swap</p>
+								<p>C: Copy</p>
+								<p>V: Paste</p>
+								<p>D: Delete</p>
+								<p>R: Append</p>
+								<p>c-A: Select all</p>
+								<p>c-Z: Undo</p>
+								<p>s-Z: Redo</p>
 							</div>
-							</div> <!-- end preview tab -->
-						</div> <!-- end tabular content -->
+						</div>  <!-- end help tab -->
+						<div id="settings" class="tab-pane fade in active">
+							<br>
+							Invertible Counterpoint
+							<div class="form-group" id="Analysis">
+								<div class="radio">
+									<label><input type="radio" name="optradio0" value=0>None</label>
+								</div>
+								<div class="radio">
+									<label><input type="radio" name="optradio0" value=1 checked="checked">At the 15th</label>
+								</div>
+								<div class="radio">
+									<label><input type="radio" name="optradio0" value=2>At at 12th</label>
+								</div>
+								<div class="radio">
+									<label><input type="radio" name="optradio0" value=3>At at 10th</label>
+								</div>
+							</div>
+							Playback Options
+							<div class="form-group" id="PlayPreview">
+								<div class="radio">
+									<label><input type="radio" name="optradio1" value=0 checked="checked">Solo</label>
+								</div>
+								<div class="radio">
+									<label><input type="radio" name="optradio1" value=1>Chords</label>
+								</div>
+								<div class="radio">
+									<label><input type="radio" name="optradio1" value=2>Suspensions</label>
+								</div>
+							</div>
+							<!--
+							Play Duration
+							<div class="form-group" id="Playback">
+								<div class="radio">
+									<label><input type="radio" name="optradio2" value=1 checked="checked">Current grid</label>
+								</div>
+								<div class="radio">
+									<label><input type="radio" name="optradio2" value=2>All</label>
+								</div>
+							</div>
+							-->
 
-					</div>
-				</div><!-- end row -->
-			</div>
-			<br>
-			<br>
-			<div class="row columnContainer">
-				<div id="trackbox" class="sidebar scroller">
+							<div class="slidecontainer">
+								<p id="TempoPreview">Tempo:</p>
+								<input type="range" min="60" max="250" value="120" class="slider" id="TempoSlider">
+							</div>
+							<br>
+						</div> <!-- end mode tab -->
+
+						<div id="preview" class="tab-pane fade in">
+							<div id="gridboxNavigator">
+									<div id="GridboxArray">
+									</div>
+							</div>
+						</div> <!-- end preview tab -->
+
+						<div id="tabber" class="tab-pane fade in">
+						<div id="tablatureSettings">
+
+							<!-- end preview tab <div id="GridboxArray" style="border: 1px solid black"></div> -->
+
+							<form id="TabSettingsForm">
+								<h4>Tab settings:</h4>
+								<label for="frets">Frets:</label><br>
+								<input type="number" name="frets" id="frets" min="0" max="24" value="12" /> <br>
+								<label for="strings">Instrument tuning:</label><br>
+								<input list="stringsList" id="strings" name="strings"value="e1,a1,d2,g2,b2,e3">
+								<datalist id="stringsList">
+									<option value="e1,a1,d2,g2,b2,e3"> Std. 6</option>
+									<option value="d1,a1,d2,g2,b2,e3"> Drop-D 6</option>
+									<option value="b0,e1,a1,d2,g2,b2,e3"> Std. 7</option>
+									<option value="d3,g2,b2,e3">Ukulele</option>
+								</datalist><br>
+
+								<label for="transpose">Transposition:</label><br>
+								<input type="number" name="transpose" id="transpose" value="0" /> <br>
+								<label for="screenLength">Screen length:</label><br>
+								<input type="number" name="screenLength" id="screenLength" value="150" /> <br>
+								<input class="midi-form-button" type="submit" name="tab" value="Generate Tab" />
+
+								<br><h4>Optimization costs:</h4>
+								<label for="neckCost">Fret position:</label><br>
+								<input type="number" name="neckCost" id="neckCost" min="0" max="10000" width="50" value="4500" /> <br>
+								<label for="spanCost">Fret span:</label><br>
+								<input type="number" name="spanCost" id="spanCost" min="0" max="10000" width="50" value="3000" /> <br>
+								<label for="diffCost">Fret difference:</label><br>
+								<input type="number" name="diffCost" id="diffCost" min="0" max="10000" width="50" value="6500" /> <br>
+								<label for="sustainCost">Note sustain:</label><br>
+								<input type="number" name="sustainCost" id="sustainCost" min="0" max="10000" width="50" value="1000" /> <br>
+								<label for="arpeggioCost">Arpeggiation:</label><br>
+								<input type="number" name="arpeggioCost" id="arpeggioCost" min="0" max="10000" width="50" value="1000" /> <br>
+
+							</form>
+
+						</div>
+						</div> <!-- end preview tab -->
+					</div> <!-- end tabular content -->
+
 				</div>
 			</div><!-- end row -->
-		</div> <!-- end column -->
+		</div>
+		<br>
+		<br>
+		<div class="row columnContainer">
+			<div id="trackbox" class="sidebar scroller">
+			</div>
+		</div><!-- end row -->
+	</div> <!-- end column -->
 
-        <!--- This column contains the main editing box -->
-        <div class="col-sm-10" >
-			<!--- This column contains edit palletes-->
-			<div class="columnContainer2">
-				<div class="columnSlave" id="gridWrapper">
-					<ul class="nav nav-tabs">
-						<li id="prtab" class="active" ><a data-toggle="tab" href="#gridboxContainer">🎵</a></li>
-						<li id="gttab" ><a data-toggle="tab" href="#guitartabs">𝄜</a></li>
-					</ul>
-					<div class="tab-content">
-						<div id="gridboxContainer" class="scroller tab-pane fade in active context-menu-target">
-		                    <div id="gridbox" >
-		                        <div id="testDZ" action="/file-upload">
-		                            <div id="RestartPlaybackLine" class="PlaybackLine"></div>
-		                            <div id="MainPlaybackLine" class="PlaybackLine"></div>
-		                                <div class="loader"></div>
-		                        </div>
-		                	</div>
-						</div>
-						<div id="guitartabs" class="tab-pane fade in">
-			            	<div id="tabberContainer"  class="context-menu-target scroller">
-								<div id="RestartPlaybackLine" class="PlaybackLine"></div>
-								<div id="MainPlaybackLine" class="PlaybackLine"></div>
-							</div>
+    <!--- This column contains the main editing box -->
+    <div class="col-sm-10" >
+		<!--- This column contains edit palletes-->
+		<div class="columnContainer2">
+			<div class="columnSlave" id="gridWrapper">
+				<ul class="nav nav-tabs">
+					<li id="prtab" class="active" ><a data-toggle="tab" href="#gridboxContainer">🎵</a></li>
+					<li id="gttab" ><a data-toggle="tab" href="#guitartabs">𝄜</a></li>
+				</ul>
+				<div class="tab-content">
+					<div id="gridboxContainer" class="scroller tab-pane fade in active context-menu-target">
+	                    <div id="gridbox" >
+	                        <div id="testDZ" action="/file-upload">
+	                            <div id="RestartPlaybackLine" class="PlaybackLine"></div>
+	                            <div id="MainPlaybackLine" class="PlaybackLine"></div>
+	                                <div class="loader"></div>
+	                        </div>
+	                	</div>
+					</div>
+					<div id="guitartabs" class="tab-pane fade in">
+		            	<div id="tabberContainer"  class="context-menu-target scroller">
+							<div id="RestartPlaybackLine" class="PlaybackLine"></div>
+							<div id="MainPlaybackLine" class="PlaybackLine"></div>
 						</div>
 					</div>
 				</div>
 			</div>
+		</div>
 	</div>
 </div>
 <nav id="context-menu" class="context-menu">
 	<ul class="context-menu__items">
 	  <li class="context-menu__item">
-		<a href="#" class="context-menu__link" data-action="Export"><i class="fa fa-eye"></i> Export midi</a>
+		<a href="#" class="context-menu__link" data-action="Generate-tab"><i class="fa fa-generate"></i> Generate tab</a>
 	  </li>
+  	  <li class="context-menu__item">
+  		<a href="#" class="context-menu__link" data-action="Export"><i class="fa fa-eye"></i> Export midi</a>
+  	  </li>
 	  <li class="context-menu__item">
 		<a href="#" class="context-menu__link" data-action="Select"><i class="fa fa-edit"></i> Select all</a>
 	  </li>

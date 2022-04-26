@@ -16,11 +16,6 @@ ScoreController.console = new disabledConsole();
 
 var lastTarget = 0
 
-  /**
-   * Variables
-   */
-
-
 //TODO: build emscript with -s EXIT_RUNTIME=1
 // ScoreView.console = console;
 // ScoreModel.console = console;
@@ -54,9 +49,6 @@ Dropzone.options.testDZ = {
         reader.onload = (function(event)
         {
             var midiData = new Uint8Array(event.target.result);
-
-            //console.log(array, midiData);
-            //TheMidiAbstractionLayer.ParseMidiFile(array);
             dropzoneChordMap = {}
             dropzoneMetaEventMap = {}
             TheMidiAbstractionLayer.ParseMidiFileToChordMap(midiData, dropzoneChordMap, dropzoneMetaEventMap);
@@ -65,7 +57,6 @@ Dropzone.options.testDZ = {
 
             setTimeout(function()
             {
-                //var {score, trackList} = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel();
                 var scoreModel = TheMidiAbstractionLayer.ConvertPitchDeltasToScoreModel(dropzoneChordMap);
 
 				score = scoreModel.noteBuffer;
