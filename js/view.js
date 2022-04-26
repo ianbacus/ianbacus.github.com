@@ -410,21 +410,21 @@ class View
 
         if(this.XTickCount > 0)
         {
-            x += this.PixelsPerTick/2;
+            x += this.PixelsPerTick / 2;
             this.XTickCount--;
             shouldScroll = true;
         }
 
         if(this.PositiveYTickCount > 0)
         {
-            y += this.PixelsPerTick/2;
+            y += this.PixelsPerTick / 2;
             this.PositiveYTickCount--;
             shouldScroll = true;
         }
 
         else if(this.NegativeYTickCount > 0)
         {
-            y -= this.PixelsPerTick/2;
+            y -= this.PixelsPerTick / 2;
             this.NegativeYTickCount--;
             shouldScroll = true;
         }
@@ -444,16 +444,16 @@ class View
         var mainDiv = this.GridboxContainer;
         var gridWidth = mainDiv.width();
 
-        var halfGridWidth = gridWidth/2;
+        var halfGridWidth = gridWidth / 2;
         var xAdjustedCoordinate = xCoordinate - halfGridWidth;
 
         this.ResetAutoScroll();
 
 		var gridHeight = mainDiv.height();
-		var halfGridheight = gridHeight/2;
+		var halfGridheight = gridHeight / 2;
 		var yAdjustedCoordinate = yCoordinate - halfGridheight;
 
-		mainDiv.animate({scrollTop:yAdjustedCoordinate, scrollLeft:xAdjustedCoordinate},500);
+		mainDiv.animate({scrollTop:yAdjustedCoordinate, scrollLeft:xAdjustedCoordinate}, 0);
 
     }
 

@@ -642,7 +642,6 @@ class Controller
     //Add a key at the same instant as other held down keys.
     InstantKeyDown(keyCharacter)
     {
-//        this.console.log("InstantKeyDown");//todo removed log
         var pitch = this.ChromaticKeyMap[keyCharacter];
         var selectCount = this.CountSelectedNotes();
         if(selectCount == 0) //on first keydown:
@@ -664,17 +663,14 @@ class Controller
         var playbackMode = this.GetModeSettings().PlaybackMode;
         var includeSuspensions = playbackMode == 2;
         var soloMode = playbackMode == 0;
-//        this.console.log("Note netry", this.MidiControllerInstantChordNotes);//todo removed log
 
         if(!soloMode)
         {
             this.GetPlaybackIntersections(this.MidiControllerInstantChordNotes, playbackBuffer, includeSuspensions);
-//            this.console.log("obtained playback intersections: ", playbackBuffer);//todo removed log
         }
 
         this.ModifyNoteArray(this.MidiControllerInstantChordNotes, function(note)
         {
-//            this.console.log("In-chord notes: playing note: ", note);//todo removed log
             this.Model.AddNote(note, 0, playbackBuffer, false);
         }, playbackBuffer);
 
@@ -691,7 +687,6 @@ class Controller
     //Move the playback line forward.
     InstantKeyUp(keyCharacter)
     {
-//        this.console.log("InstantKeyUp");//todo removed log
         if(this.MidiKeysDown == 0)
         {
             var selectedNotes = this.Model.SelectedNotes;
@@ -1265,7 +1260,6 @@ class Controller
                     this.CapturedPlaybackStartTicks = this.MainPlaybackStartTicks;
                     break;
                 case PlaybackEnumeration.RestartFromLastStart:
-                    //
                     this.ResetPlaybackStartTicks(this.CapturedPlaybackStartTicks);
                     break;
             }
@@ -1649,14 +1643,14 @@ class Controller
             }
 
             this.PendingTimeout = setTimeout(
-                $.proxy(this.OnPlayAllNotes, this),delta);
+                $.proxy(this.OnPlayAllNotes, this), delta);
 
             var xStart = this.View.ConvertTicksToXIndex(currentNote.StartTimeTicks);
             var yStart = this.View.ConvertPitchToYIndex(currentNote.Pitch);
             var xDestination = this.View.ConvertTicksToXIndex(nextNote.StartTimeTicks);
             var yDestination =  this.View.ConvertPitchToYIndex(nextNote.Pitch);
 
-            this.View.AutoScroll(xStart, yStart, xDestination, yDestination, this.MillisecondsPerTick)
+            this.View.AutoScroll(xStart, yStart, xDestination, yDestination, this.MillisecondsPerTick);
 
             //Update playback line after playing each chord
             this.MainPlaybackStartTicks = currentNote.StartTimeTicks;
@@ -1705,7 +1699,6 @@ class Controller
 
                 this.View.SmoothScroll(startX, ycoord, 500);
             }
-//            this.console.log("Play notes", noteArray);//todo removed log
             this.OnPlayAllNotes(includeSuspensions, includeSelectedNotes);
         }
     }
@@ -2550,7 +2543,7 @@ class Controller
         var fromSubDominantLabels = [];
         var fromDominantLabels = [];
 
-        //TODO this will be really slow
+        //TODO improve efficiency
         this.ConcatenateWithProbability(fromTonicLabels, ['iii','III','vi','VI'], 3);
         this.ConcatenateWithProbability(fromTonicLabels, ['ii','II','iv','IV'], 2.5);
         this.ConcatenateWithProbability(fromTonicLabels, ['V','vii','VII'], 2);
@@ -2702,7 +2695,7 @@ class Controller
             var figuring = selectedChordQuality.Figuring;
             var chordLabel = selectedChordQuality.ChordLabel;
             lastChordLabel = chordLabel;
-            
+
             //sample.Selection = selectedChordQuality;
             //var figuring = this.AnnotateSample(sample);
             var bassNote = chordNotes[0];
