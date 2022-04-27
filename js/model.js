@@ -139,10 +139,10 @@ class Note
             return;
         }
 
-        if(this.Figuring != undefined)
-        {
-            console.log(this.Figuring)
-        }
+        // if(this.Figuring != undefined)
+        // {
+        //     console.log(this.Figuring)
+        // }
 
         var milliseconds = millisecondsPerTick * this.Duration;
         var playback = this.Playback;
@@ -502,13 +502,21 @@ class Model
 
     CreateGridPreview()
     {
-        this.GridPreviewList.push(new NoteScore());
-        this.GridImageList.push(null);
+        this.GridPreviewList.splice(this.GridPreviewIndex, 0, new NoteScore());
+        this.GridImageList.splice(this.GridPreviewIndex, 0, null);
+        this.Score = this.GridPreviewList[this.GridPreviewIndex];
+    }
+
+    DeleteGridPreview()
+    {
+        console.log("Delete not yet supported");
+        // this.GridPreviewList[this.GridPreviewIndex] = [];
+        // this.GridPreviewList.splice(this.GridPreviewIndex, 1);
+        // this.GridImageList.splice(this.GridPreviewIndex, 1);
     }
 
     SortScoreByTicks()
     {
-        //this.Score.NoteArray.sort(this.CompareNotes);
         this.MergeSort(this.Score.NoteArray);
     }
 

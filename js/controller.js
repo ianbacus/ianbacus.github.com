@@ -697,9 +697,10 @@ class Controller
             this.MidiControllerTicks += tickAdvance;
             var newStartTicks = this.CapturedPlaybackStartTicks + this.MidiControllerTicks;
 
-            this.MainPlaybackStartTicks = newStartTicks;//currentNote.StartTimeTicks;
+            this.MainPlaybackStartTicks = newStartTicks;
+            //currentNote.StartTimeTicks;
             this.View.RenderPlaybackLine(this.MainPlaybackStartTicks, this.CapturedPlaybackStartTicks);
-//            this.console.log("No keys down, advancing ticks to ",newStartTicks)//todo removed log
+            //this.console.log("No keys down, advancing ticks to ",newStartTicks)//todo removed log
         }
 
         return undefined;
@@ -719,7 +720,7 @@ class Controller
         //  boundary strong beats for length: -, 0, +
         //  distance of start ticks to each of the strong beats, pick closest
         var exponent = Math.round(Math.log2(durationTicks));
-        var duration = (1<<exponent);
+        var duration = (1 << exponent);
         var modulus = duration;
 
         var r = startTimeTicks % modulus;
@@ -781,7 +782,7 @@ class Controller
             var xDestination = this.View.ConvertTicksToXIndex(previewNote.StartTimeTicks);
             var yDestination =  this.View.ConvertPitchToYIndex(previewNote.Pitch);
 
-            this.View.AutoScroll(xStart, yStart, xDestination, yDestination, this.MillisecondsPerTick)
+            this.View.AutoScroll(xStart, yStart, xDestination, yDestination, this.MillisecondsPerTick);
 
             //Update playback line after playing each chord
             this.MainPlaybackStartTicks = previewNote.StartTimeTicks;
@@ -826,12 +827,12 @@ class Controller
     {
         //Refresh ticks timeout.
         var timeoutTicks = 32;
-        this.MidiTimeoutTicksRemaining = timeoutTicks/this.SampleResolutionTicks
-        var sampleTimeMilliseconds =  this.SampleResolutionTicks*this.MillisecondsPerTick
+        this.MidiTimeoutTicksRemaining = timeoutTicks/this.SampleResolutionTicks;
+        var sampleTimeMilliseconds =  this.SampleResolutionTicks*this.MillisecondsPerTick;
 
         if(this.MidiControllerPendingTimeout == null)
         {
-            this.HandleSelectionReset()
+            this.HandleSelectionReset();
             this.MidiControllerPendingTimeout =
                 setTimeout($.proxy(this.OnMidiControllerNoteTimeout, this),sampleTimeMilliseconds);
         }
@@ -839,20 +840,20 @@ class Controller
 
     OnMidiControllerNoteTimeout(note)
     {
-        var sampleResolutionTicks = this.SampleResolutionTicks
-        var sampleTimeMilliseconds = sampleResolutionTicks*this.MillisecondsPerTick
+        var sampleResolutionTicks = this.SampleResolutionTicks;
+        var sampleTimeMilliseconds = sampleResolutionTicks*this.MillisecondsPerTick;
 
         if(this.MidiKeysDown > 0)
         {
             var timeoutTicks = 32;
-            this.MidiTimeoutTicksRemaining = timeoutTicks/this.SampleResolutionTicks
+            this.MidiTimeoutTicksRemaining = timeoutTicks/this.SampleResolutionTicks;
 
             for (let note of Object.values(this.PressedKeys))
             {
                 if(note != undefined)
                 {
-                    note.Duration += sampleResolutionTicks
-                    this.View.ApplyNoteStyle(note, this.NoteColorationMode)
+                    note.Duration += sampleResolutionTicks;
+                    this.View.ApplyNoteStyle(note, this.NoteColorationMode);
                 }
             }
         }
@@ -863,7 +864,7 @@ class Controller
             this.MidiTimeoutTicksRemaining--;
             var range = 32.0;
             var percentageComplete = (range - this.MidiTimeoutTicksRemaining)/range;
-            console.log(percentageComplete);
+            // console.log(percentageComplete);
         }
 
         else
@@ -873,7 +874,7 @@ class Controller
             return;
         }
 
-        this.MidiControllerTicks += sampleResolutionTicks
+        this.MidiControllerTicks += sampleResolutionTicks;
         this.MidiControllerPendingTimeout =
             setTimeout($.proxy(this.OnMidiControllerNoteTimeout, this), sampleTimeMilliseconds);
 
@@ -1086,17 +1087,18 @@ class Controller
             //Delete any selected notes
             this.DeleteSelectedNotes(true);
             this.RefreshGridPreview()
+            // this.DeleteGridPreview();
             break;
         case 9: //tab key
             event.preventDefault();
             var keys = 12;
             if(event.shiftKey)
             {
-                this.TonicKey = (this.TonicKey+(keys-7))%keys;
+                this.TonicKey = (this.TonicKey+(keys-7)) % keys;
             }
             else
             {
-                this.TonicKey = (this.TonicKey+7)%keys;
+                this.TonicKey = (this.TonicKey+7) % keys;
             }
             this.SetKeyReference(this.TonicKey, this.MusicalModeIndex);
 
@@ -1275,7 +1277,6 @@ class Controller
                 y2: 'Infinity',
             };
 
-            //
             var searchResult = this.GetNoteIndexOfOverlappingNote(selectionRectangle);
             var [searchIndex, binarySearchResult] = [searchResult.ClickedNoteIndex, searchResult.BinarySearchIndex]
 
@@ -1365,14 +1366,12 @@ class Controller
         this.DeleteSelectedNotes(false, 0);
 
         //Change to the next grid
-        //moveFunction.call(this.Model);
         this.Model.GotoGridView(gridIndex);
         newGridIndex = this.Model.GridPreviewIndex;
 
         //Instantiate the copied notes in the next buffer
         copyBuffer.forEach(function(note)
         {
-//            this.console.log("Transporting note: ", note, oldGridIndex, newGridIndex);//todo removed log
             note.CurrentGridIndex = newGridIndex;
             this.Model.AddNote(note, 0, this.Model.Score.NoteArray, false);
             this.Model.AddNote(note, 0, this.Model.SelectedNotes, false);
@@ -1382,7 +1381,6 @@ class Controller
         var targetGridWidth = this.Model.Score.GridWidth;
 
         this.SetGridWidth(targetGridWidth);
-//        this.console.log("Transport end:", originalGridWidth, currentGridWidth, targetGridWidth);//todo removed log
     }
 
     InvertVoices(moveHighestVoiceByOctave)
@@ -1599,12 +1597,10 @@ class Controller
     {
         //Get all notes that play during this note, return the index of the first note that won't be played in this chord
         var [chordNotes,returnIndex] = this.GetChordNotes(noteArray, noteIndex, includeSuspensions, includeSelectedNotes)
-//        this.console.log(chordNotes)//todo removed log
 
         this.ModifyNoteArray(chordNotes, function(note)
         {
             var instrumentCode = this.GetTrackInstrument(note.CurrentTrack);
-//            this.console.log("start play",this.MillisecondsPerTick, this, this.OnStopNote, instrumentCode);//todo removed log
             note.Play(this.MillisecondsPerTick, this, this.OnStopNote, instrumentCode);
             this.View.ApplyNoteStyle(note, this.NoteColorationMode);
         });

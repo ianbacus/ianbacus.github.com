@@ -1,0 +1,292 @@
+canvas {
+    width:100%;
+    background:whitesmoke;
+}
+
+html,body {
+    margin:0;
+    padding:0;
+}
+
+body
+{
+    -webkit-filter: saturate(110%); /* Safari */
+    filter: saturate(110%);
+    background: #700707;
+}
+
+.tab-content
+{
+    overflow-y:scroll;
+	width:100%;
+	height:100%;
+}
+
+.loader
+{
+    position:fixed;
+    top:40%;
+    right:40%;
+    z-index: 100000;
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 1s linear infinite; /* Safari */
+    animation: spin 1s linear infinite;
+}
+
+.scroller
+{
+    overflow-y: scroll;
+    scrollbar-color: pink rgba(0,0,0,0);
+    scrollbar-width:  thin;
+    scrollbar-border-radius: 50%;
+    scrollbar-box-shadow: inset 0 0 11px pink;
+}
+
+#Loading
+{
+    font-family: monospace;
+    z-index: 100000;
+    position: absolute;
+    background-color: rgba(140, 140, 140, 0.5);
+    width: 100%;
+    height: calc(100% - 37.5px);
+    top: 37.5px;
+    left: 0px;
+    opacity: 1;
+    -webkit-transition: opacity 0.4s;
+          transition: opacity 0.4s;
+}
+#Loading #Text
+{
+    color: white;
+    position: absolute;
+    text-align: center;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    margin-left: -150px;
+    height: 60px;
+    margin-top: -30px;
+    line-height: 60px;
+    font-size: 42px;
+}
+
+#Loading.Loaded
+{
+  pointer-events: none;
+  opacity: 0;
+}
+
+.columnContainer
+{
+    #background:red url('big_space.jpg') repeat;
+	border-radius: 25px;
+    padding-bottom:25px;
+    padding-top:25px;
+}
+
+.columnSlave
+{
+    background-color: white;
+	padding-bottom:10px;
+	padding-top:10px;
+	padding-left:10px;
+	border-radius: 25px;
+	width:95%;
+
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+	opacity:.9;
+    border:black;
+}
+
+@keyframes fadein {
+    from { alpha: 0; }
+    to   { alpha: 1; }
+}
+
+/* Firefox < 16 */
+@-moz-keyframes fadein {
+    from { alpha: 0; }
+    to   { alpha: 1; }
+}
+
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes fadein {
+    from { alpha: 0; }
+    to   { alpha: 1; }
+}
+
+/* Internet Explorer */
+@-ms-keyframes fadein {
+    from { alpha: 0; }
+    to   { alpha: 1; }
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+  /* Safari */
+@-webkit-keyframes spin
+{
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin
+{
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadein {
+    from { alpha: 0; }
+    to   { alpha: 1; }
+}
+
+/* Firefox < 16 */
+@-moz-keyframes fadein {
+    from { alpha: 0; }
+    to   { alpha: 1; }
+}
+
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes fadein {
+    from { alpha: 0; }
+    to   { alpha: 1; }
+}
+
+/* Internet Explorer */
+@-ms-keyframes fadein {
+    from { alpha: 0; }
+    to   { alpha: 1; }
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.container
+{
+     padding-top: 50px;
+     width:90%;
+}
+#gridboxContainer
+{
+	overflow-x:scroll;
+    overflow-y:scroll;
+	width:100%;
+	height:590px;
+    cursor:crosshair;
+}
+
+div#fileDropZone
+{
+    /* above all elements, even if z-index is used elsewhere
+       it can be lowered as needed, but this value surpasses
+       all elements when used on YouTube for example.
+        takes up 100% of page
+         positions to point 0,0 - required for z-index
+         *//*
+          top: 0; left: 0;
+          visibility:hidden;
+          background-color: rgba(0,0,0,0.5); transition: visibility 175ms, opacity 175ms;
+       */\
+   	position:absolute;
+    top: 0; left: 0;
+    z-index: 4;
+    width: 100%; height: 100%;
+
+    background-color: rgba(0,0,0,0.0);
+
+    transition: visibility 175ms, opacity 175ms;
+
+    visibility:none;
+    /* dim the page with 50% black background when visible */
+    /* a nice fade effect, visibility toggles after 175ms, opacity will animate for 175ms. note display:none cannot be animated.  */
+
+}
+
+#GridboxArray{
+    width:100%;
+    overflow-y:scroll;
+	height:400px;
+}
+#gridbox {
+	width:650%;
+	height:1000px;
+	position:relative;
+	/*background:#2F4F4F url('https://s3.amazonaws.com/com.appgrinders.test/images/grid_20.png') repeat;*/
+	background:whitesmoke url('grid_horizontal.png') repeat;
+}
+
+
+#feedback { font-size: 1.4em; }
+#selectable .ui-selecting { background: #FECA40; }
+#selectable .ui-selected { background: #F39814; color: white; }
+
+.slidecontainer {
+    width: 90%;
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 25px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+.slider:hover {
+    opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #4CAF50;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: black;
+    cursor: pointer;
+}
+
+/* width */
+::-webkit-scrollbar {
+    border-radius: 50%;
+}
+/* Track */
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 11px none;
+  margin-left:50px;
+  border-radius: 50%;
+  overflow-y: scroll;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: pink;
+  border-radius: 50%;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: yellow;
+}

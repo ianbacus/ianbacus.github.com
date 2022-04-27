@@ -1,77 +1,52 @@
-
-let ctx_this = undefined;
-
-class ContextMenuHandler
+class ContextMenu
 {
-    constructor()
+    constructor(menuIdName, targetIdName, targetClassName)
     {
-        ctx_this = this
-        this.MenuState = 0;
         this.ContextMenuClassName = "context-menu";
         this.ContextMenuItemClassName = "context-menu__item";
         this.ContextMenuLinkClassName = "context-menu__link";
         this.ContextMenuActive = "context-menu--active";
-
-        this.GridBoxClassName = "context-menu-target";
-        this.GridboxElement;
-
+        this.MenuState = 0;
+        this.MenuIdName = menuIdName;
+        this.TargetIdName = targetIdName;
+        this.TargetClassName = targetClassName;
         this.ContextMenuElement;
+        this.GridboxElement;
+        this.menuItems;
     }
 
-    Initialize(OnContextMenuSelectionCallback)
+    Initialize(onContextMenuSelectionCallback)
     {
-        this.ContextMenuElement = document.querySelector("#context-menu");
+        this.ContextMenuElement = document.querySelector(this.MenuIdName);
         this.menuItems = this.ContextMenuElement.querySelectorAll(".context-menu__item");
 
         document.addEventListener( "contextmenu", function(e)
         {
-            ctx_this.GridboxElement = ctx_this.GetClickedElementIfClassnameValid( e, this.ContextMenuClassName );
-
-            if ( ctx_this.GridboxElement )
+            this.GridboxElement = this.GetClickedElementIfClassnameValid( e, this.ContextMenuClassName );
+            if ( this.GridboxElement )
             {
                 e.preventDefault();
             }
-        });
-
-        document.addEventListener( "click", function(e)
-		{
-            ctx_this.OnClick(e);
-        });
-
-		$('#gridbox').contextmenu(function(e)
-		{
-            ctx_this.OnClick(e);
-        });
+        }.bind(this));
 
         window.onresize = function(e)
         {
-            ctx_this.ToggleMenuOff();
-        };
+            this.ToggleMenuOff();
+        }.bind(this);
 
-        this.MenuItemSelectionCallback = OnContextMenuSelectionCallback;
-    }
+        $(this.TargetIdName).contextmenu(function(e)
+		{
+            this.OnClick(e);
 
-    GetClickedElementIfClassnameValid( e, className )
-    {
-        var el = e.srcElement || e.target;
+        }.bind(this));
 
-        if ( el.classList.contains(className) )
-        {
-            return el;
-        }
+        document.addEventListener( "click", function(e)
+		{
+            this.OnClick(e);
 
-        else
-        {
-            while ( el = el.parentNode )
-            {
-                if ( el.classList && el.classList.contains(className) )
-                {
-                    return el;
-                }
-            }
-        }
+        }.bind(this));
 
-        return false;
+        this.MenuItemSelectionCallback = onContextMenuSelectionCallback;
     }
 
     GetCursorPosition(e)
@@ -93,59 +68,9 @@ class ContextMenuHandler
             posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
         }
 
-        return {
-            x: posx,
-            y: posy
-        }
+        return { x: posx, y: posy }
     }
 
-    OnClick(event)
-    {
-        var button = event.which || e.button;
-        var leftClickCode = 1;
-        var rightClickCode = 3;
-
-        if(this.MenuState == 0)
-        {
-            this.GridboxElement = this.GetClickedElementIfClassnameValid(event, this.GridBoxClassName );
-            if ( this.GridboxElement && (button == 3))
-            {
-                event.preventDefault();
-                this.ToggleMenuOn();
-                this.MoveContextMenu(event);
-            }
-
-            else
-            {
-                this.GridboxElement = null;
-                this.ToggleMenuOff();
-            }
-        }
-
-        else
-        {
-            var clickeElIsLink = this.GetClickedElementIfClassnameValid( event, this.ContextMenuLinkClassName );
-
-            if ( clickeElIsLink )
-            {
-                event.preventDefault();
-                this.OnMenuItemSelection( clickeElIsLink );
-            }
-
-            else
-            {
-                var taskElement = this.GetClickedElementIfClassnameValid( event, this.GridBoxClassName );
-                if ( button === leftClickCode )
-                {
-                    this.ToggleMenuOff();
-                }
-                else if(taskElement && (button === rightClickCode))
-                {
-                    this.MoveContextMenu(event);
-                }
-            }
-        }
-    }
     ToggleMenuOn()
     {
         if ( this.MenuState !== 1 )
@@ -196,10 +121,97 @@ class ContextMenuHandler
 
     OnMenuItemSelection( selectedItem )
     {
-        var selectionString = selectedItem.getAttribute("data-action")
+        var selectionString = selectedItem.getAttribute("data-action");
         this.MenuItemSelectionCallback(selectionString);
 
         this.ToggleMenuOff();
     }
 
+    GetClickedElementIfClassnameValid( e, className )
+    {
+        var el = e.srcElement || e.target;
+
+        if ( el.classList.contains(className) )
+        {
+            return el;
+        }
+
+        else
+        {
+            while ( el = el.parentNode )
+            {
+                if ( el.classList && el.classList.contains(className) )
+                {
+                    return el;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    OnClick(event)
+    {
+        var button = event.which || event.button;
+        var leftClickCode = 1;
+        var rightClickCode = 3;
+
+        if(this.MenuState == 0)
+        {
+            this.GridboxElement = this.GetClickedElementIfClassnameValid(event, this.TargetClassName );
+            if ( this.GridboxElement && (button == 3))
+            {
+                event.preventDefault();
+                this.ToggleMenuOn();
+                this.MoveContextMenu(event);
+            }
+
+            else
+            {
+                this.GridboxElement = null;
+                this.ToggleMenuOff();
+            }
+        }
+
+        else
+        {
+            var clickeElIsLink = this.GetClickedElementIfClassnameValid( event, this.ContextMenuLinkClassName );
+
+            if ( clickeElIsLink )
+            {
+                event.preventDefault();
+                this.OnMenuItemSelection( clickeElIsLink );
+            }
+
+            else
+            {
+                var taskElement = this.GetClickedElementIfClassnameValid( event, this.GridBoxClassName );
+                if ( button === leftClickCode )
+                {
+                    this.ToggleMenuOff();
+                }
+                else if(taskElement && (button === rightClickCode))
+                {
+                    this.MoveContextMenu(event);
+                }
+            }
+        }
+    }
+}
+
+class ContextMenuHandler
+{
+    constructor()
+    {
+        this.GridBoxClassName = "context-menu-target";
+
+        this.GridboxContextMenu = new ContextMenu("#context-menu-gridpreview", "#GridboxArray", "context-menu-gridpreview-target");
+        this.GridboxArrayContextMenu = new ContextMenu("#context-menu-canvas", "#gridbox", "context-menu-canvas-target");
+    }
+
+    Initialize(OnContextMenuSelectionCallback)
+    {
+        this.GridboxContextMenu.Initialize(OnContextMenuSelectionCallback);
+        this.GridboxArrayContextMenu.Initialize(OnContextMenuSelectionCallback);
+    }
 }

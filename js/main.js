@@ -32,6 +32,7 @@ view: highlighting, coloring, rendering notes, playback animation, menu populati
 model: Notes, Scores, sorting, undo/redo,
 Harmony analysis
 */
+
 var dropzoneChordMap = {};
 var dropzoneMetaEventMap = {};
 Dropzone.autoDiscover = false;
@@ -134,7 +135,7 @@ function GenerateTablatureFromCanvas()
         $("#tabberContainer").empty().append(tabResultData.tablatureString);//.replace(/\s/g, '&nbsp;'));
         if(tabResultData.failureReason == undefined)
         {
-            //OpenTextFileInNewTab(tabResultData.tablatureString);
+            // OpenTextFileInNewTab(tabResultData.tablatureString);
         }
 
         else
@@ -144,7 +145,6 @@ function GenerateTablatureFromCanvas()
 
         tabResultData = null;
 
-
         $(".loader").hide();
     }, 10);
 }
@@ -153,20 +153,30 @@ function OnContextMenuSelection(selection)
 {
     switch(selection)
     {
-        case "Tab":
+        // Gridbox
+        case "GenerateTab":
             $(".loader").show();
             GenerateTablatureFromCanvas();
             break;
-        case "Export":
+        case "ExportMidi":
             ExportScoreToMidiFile();
             break;
-        case "Select":
+        case "SelectNotes":
             ScoreController.SelectAllNotes();
             break;
-        case "Delete":
+        case "DeleteNotes":
             ScoreController.SelectAllNotes();
             ScoreController.DeleteSelectedNotes(true);
             ScoreController.RefreshGridPreview()
+            break;
+        // Canvas array
+        case "DeleteCanvas":
+            ScoreModel.DeleteGridPreview();
+            ScoreController.RefreshGridPreview();
+            break;
+        case "InsertCanvas":
+            ScoreModel.CreateGridPreview();
+            ScoreController.RefreshGridPreview();
             break;
         default:
             break;
@@ -224,13 +234,21 @@ $( function()
     ScoreController.Initialize(deserializedControllerData);
 
     $(".loader").hide();
+    // .mousemove(this.OnMouseMove)
+    // .mousedown(onMouseClickDown)
+    // .mouseup(onMouseClickUp)
+    // .mouseenter(onHoverBegin)
+    // .mouseleave(onHoverEnd)
 
-        // .mousemove(this.OnMouseMove)
-        // .mousedown(onMouseClickDown)
-        // .mouseup(onMouseClickUp)
-        // .mouseenter(onHoverBegin)
-        // .mouseleave(onHoverEnd)
-    $(".trackrow").mouseenter(function(e){console.log("track: hello", this, e )}).mouseleave(function(e){console.log("track: goodbye")});
+    $(".trackrow").mouseenter(
+        function(e)
+        {
+
+        }).mouseleave(
+        function(e)
+        {
+
+        });
 
 	$(document).on(".trackrow click", ".trackrow", function(e)
     {
@@ -240,31 +258,31 @@ $( function()
 
     //$("#GridboxArray").mousedown(function(){console.log("controller: go to grid view");});
 
-    $(document).on('dragstart','#testDZ', function(e)
+    $(document).on('dragstart','#fileDropZone', function(e)
     {
         console.log("start")
         lastTarget = e.target;
 
-        document.querySelector("#testDZ").style.visibility = "";
-        document.querySelector("#testDZ").style.opacity = 1;
+        document.querySelector("#fileDropZone").style.visibility = "";
+        document.querySelector("#fileDropZone").style.opacity = 1;
     });
 
-    $(document).on("dragleave", '#testDZ', function(e)
+    $(document).on("dragleave", '#fileDropZone', function(e)
     {
         if(e.target === lastTarget || e.target === document)
         {
-            document.querySelector("#testDZ").style.visibility = "hidden";
-            document.querySelector("#testDZ").style.opacity = 0;
+            document.querySelector("#fileDropZone").style.visibility = "hidden";
+            document.querySelector("#fileDropZone").style.opacity = 0;
         }
     });
 
-    var TheDropzone = new Dropzone("#testDZ",
+    var TheDropzone = new Dropzone("#fileDropZone",
     {
           url: "/file-upload",
           clickable: false
     });
 
-    $("#testDZ").addClass("dropzone");
+    $("#fileDropZone").addClass("dropzone");
 
     //$(document).on('submit', '#TabSettingsForm',
     $('#TabSettingsForm .midi-form-button').click(function(event)
