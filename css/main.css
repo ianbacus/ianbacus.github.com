@@ -8,6 +8,12 @@ html,body {
     padding:0;
 }
 
+.container
+{
+     padding-top: 50px;
+     width:90%;
+}
+
 body
 {
     -webkit-filter: saturate(110%); /* Safari */
@@ -96,7 +102,6 @@ body
 	padding-top:10px;
 	padding-left:10px;
 	border-radius: 25px;
-	width:95%;
 
     display: block;
     margin-left: auto;
@@ -174,11 +179,7 @@ body
   box-sizing: border-box;
 }
 
-.container
-{
-     padding-top: 50px;
-     width:90%;
-}
+
 #gridboxContainer
 {
 	overflow-x:scroll;
@@ -213,12 +214,6 @@ div#fileDropZone
     /* dim the page with 50% black background when visible */
     /* a nice fade effect, visibility toggles after 175ms, opacity will animate for 175ms. note display:none cannot be animated.  */
 
-}
-
-#GridboxArray{
-    width:100%;
-    overflow-y:scroll;
-	height:400px;
 }
 #gridbox {
 	width:650%;
